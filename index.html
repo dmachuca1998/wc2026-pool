@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>World Cup 2026 — Bombardier Prediction Challenge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --black: #000000;
@@ -27,7 +27,7 @@
   --green: #059669;
   --red: #dc2626;
   --blue: #2563eb;
-  --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-display: 'Bodoni Moda', 'Didot', 'Bodoni MT', Georgia, serif;
   --font-body: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -59,10 +59,12 @@ body{font-family:var(--font-body);background:var(--white);color:var(--gray-900);
 .hero-logos .hero-x { color:rgba(255,255,255,0.5);font-size:1.4em;font-weight:300; }
 .hero-logos img.hero-flogo { height:72px; }
 .hero-title {
-  font-family:var(--font-display);font-size:3.6em;font-weight:600;
-  color:var(--white);line-height:1.1;letter-spacing:-0.02em;
-  text-shadow:0 2px 30px rgba(0,0,0,0.5);
+  font-family:var(--font-display);font-size:4em;font-weight:400;
+  color:var(--white);line-height:1.08;letter-spacing:0.02em;
+  text-shadow:0 2px 40px rgba(0,0,0,0.6);
+  font-style:italic;
 }
+.hero-title strong { font-weight:700;font-style:normal;letter-spacing:0.04em; }
 .hero-sub {
   font-family:var(--font-body);font-size:1.1em;color:rgba(255,255,255,0.75);
   margin-top:14px;letter-spacing:2px;text-transform:uppercase;font-weight:300;
@@ -88,13 +90,42 @@ body{font-family:var(--font-body);background:var(--white);color:var(--gray-900);
 }
 .sticky-hdr.visible { transform:translateY(0); }
 .sticky-hdr-left { display:flex;align-items:center;gap:14px; }
-.sticky-hdr-left img.sh-blogo { height:28px; }
+.sticky-hdr-left img.sh-blogo { height:32px; }
 .sticky-hdr-left img.sh-flogo { height:36px; }
 .sticky-hdr-left .sh-divider { width:1px;height:24px;background:rgba(255,255,255,0.15); }
 .sticky-hdr-right { color:var(--regent);font-size:0.78em;letter-spacing:1.5px;text-transform:uppercase;font-weight:400; }
 
 /* ===== DEADLINE STRIP ===== */
 .deadline-strip { background:var(--gold);color:var(--black);text-align:center;padding:10px 16px;font-weight:600;font-size:0.88em;letter-spacing:0.3px; }
+
+/* ===== LIVE SCORES PANEL ===== */
+.scores-panel { background:var(--gray-900);color:var(--white);padding:20px 16px;border-bottom:1px solid rgba(255,255,255,0.08); }
+.scores-panel-inner { max-width:1200px;margin:0 auto; }
+.scores-panel h2 { font-family:var(--font-display);font-size:1.3em;font-weight:500;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px; }
+.scores-panel h2 .live-dot { width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+.scores-ticker { display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch; }
+.scores-ticker::-webkit-scrollbar { height:4px; }
+.scores-ticker::-webkit-scrollbar-thumb { background:var(--gray-600);border-radius:2px; }
+.score-chip { flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;min-width:200px;text-align:center;transition:background 0.2s; }
+.score-chip:hover { background:rgba(255,255,255,0.1); }
+.score-chip .sc-group { font-size:0.68em;color:var(--regent);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px; }
+.score-chip .sc-teams { display:flex;align-items:center;justify-content:center;gap:10px; }
+.score-chip .sc-team { font-size:0.88em;font-weight:500;min-width:60px; }
+.score-chip .sc-team:first-child { text-align:right; }
+.score-chip .sc-team:last-child { text-align:left; }
+.score-chip .sc-vs { font-size:0.72em;color:var(--regent);padding:0 2px; }
+.score-chip .sc-score { font-family:var(--font-display);font-size:1.3em;font-weight:700;color:var(--gold);min-width:40px; }
+.score-chip .sc-status { font-size:0.68em;color:var(--regent);margin-top:4px; }
+.score-chip .sc-status.live { color:var(--red);font-weight:600; }
+.score-chip.sc-upcoming { opacity:0.55; }
+.score-chip .sc-status.sc-upcoming-txt { color:var(--gray-400); }
+.scores-empty { color:var(--regent);font-size:0.88em;padding:8px 0; }
+
+/* ===== BRACKET IMAGE ===== */
+.bracket-img-wrap { margin:20px 0;text-align:center; }
+.bracket-img-wrap img { max-width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1);border:1px solid var(--gray-200); }
+.bracket-img-wrap p { font-size:0.78em;color:var(--regent);margin-top:8px;font-style:italic; }
 
 /* ===== NAV ===== */
 .nav { display:flex;justify-content:center;gap:4px;padding:12px 16px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);flex-wrap:wrap;position:sticky;top:56px;z-index:90; }
@@ -240,14 +271,14 @@ a { color:var(--black); }
 
 <!-- FULLSCREEN HERO -->
 <div class="hero-fullscreen" id="heroSection">
-  <img src="SoccerField.png" alt="" class="hero-bg">
+  <img src="trophy2.png" alt="" class="hero-bg">
   <div class="hero-content">
     <div class="hero-logos">
-      <img src="fifa_logo.png" alt="Bombardier" class="hero-blogo" style="width: 150px;height: 152px;padding-left: 50px;">
-      <span class="hero-x" style="padding-left: 30px;">×</span>
-      <img src="bombardier_logo.png" alt="FIFA World Cup 2026" class="hero-flogo" style="height: 110px; padding-right: 0px;">
+      <img src="bombardier_logo.png" alt="Bombardier" class="hero-blogo">
+      <span class="hero-x">×</span>
+      <img src="fifa_logo.png" alt="FIFA World Cup 2026" class="hero-flogo">
     </div>
-    <h1 class="hero-title">World Cup 2026<br>Prediction Challenge</h1>
+    <h1 class="hero-title"><strong>World Cup 2026</strong><br><em>Prediction Challenge</em></h1>
     <p class="hero-sub">Predict · Compete · Win</p>
   </div>
   <div class="hero-scroll" onclick="document.getElementById('mainContent').scrollIntoView({behavior:'smooth'})">
@@ -258,14 +289,25 @@ a { color:var(--black); }
 <!-- STICKY HEADER -->
 <div class="sticky-hdr" id="stickyHdr">
   <div class="sticky-hdr-left">
-    <img src="fifa_logo.png" alt="Bombardier" class="sh-blogo">
+    <img src="bombardier_dark.png" alt="Bombardier" class="sh-blogo">
     <div class="sh-divider"></div>
-    <img src="trophy1.png" alt="FIFA 2026" class="sh-flogo">
+    <img src="fifa_logo.png" alt="FIFA 2026" class="sh-flogo">
   </div>
   <div class="sticky-hdr-right">Prediction Challenge</div>
 </div>
 
 <div id="mainContent">
+
+<!-- LIVE SCORES PANEL -->
+<div class="scores-panel">
+  <div class="scores-panel-inner">
+    <h2><span class="live-dot"></span> World Cup 2026 — Match Scores</h2>
+    <div class="scores-ticker" id="scoresTicker">
+      <div class="scores-empty">Match scores will appear here once the tournament begins. Admin can update scores in the Admin Panel.</div>
+    </div>
+  </div>
+</div>
+
 <div class="deadline-strip">Predictions lock on June 10, 2026 at 11:59 PM ET — Submit before the first match!</div>
 
 <div class="nav">
@@ -278,39 +320,46 @@ a { color:var(--black); }
 <div class="container">
 <div id="tab-home" class="tab-content active">
 
+  <!-- PRIZE DISTRIBUTION (updated) -->
   <div class="card">
-    <h2>Challenge Overview</h2>
-    <p style="color:var(--gray-600);line-height:1.7;margin-bottom:12px;">
-      Welcome to the Bombardier World Cup 2026 Prediction Challenge! Predict group stage match scores, knockout stage outcomes (by group position), and the championship winner. All predictions must be submitted <strong>before the tournament begins</strong>. Good luck!
-    </p>
+    <h2>Prize Distribution</h2>
+    <div class="prizes-grid">
+      <div class="prize-card" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-color:var(--green);"><div class="pct" style="color:var(--green);">50%</div><div class="place">❤️ Bombardier<br>Selected Charity</div></div>
+      <div class="prize-card prize-1"><div class="pct">25%</div><div class="place">🥇 1st Place</div></div>
+      <div class="prize-card prize-2"><div class="pct">10%</div><div class="place">🥈 2nd Place</div></div>
+      <div class="prize-card prize-3"><div class="pct">5%</div><div class="place">🥉 3rd Place</div></div>
+      <div class="prize-card prize-4"><div class="pct">2.5%</div><div class="place">4th Place</div></div>
+      <div class="prize-card prize-5"><div class="pct">2.5%</div><div class="place">5th Place</div></div>
+      <div class="prize-card prize-party"><div class="pct">5%</div><div class="place">🎉 Final Party</div></div>
+    </div>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:6px;">50% of the pool goes to a Bombardier-selected charity. 5% is reserved for the final celebration with the department.</p>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="card">
+    <h2>Leaderboard</h2>
+    <button class="btn btn-black btn-sm" onclick="calcLeaderboard()" style="margin-bottom:10px;">Refresh Leaderboard</button>
     <div class="stats-row" id="homeStats">
       <div class="stat-box"><div class="num" id="statParticipants">0</div><div class="lbl">Participants</div></div>
       <div class="stat-box"><div class="num" id="statSubmitted">0</div><div class="lbl">Submitted</div></div>
       <div class="stat-box"><div class="num">104</div><div class="lbl">Total Matches</div></div>
       <div class="stat-box"><div class="num">48</div><div class="lbl">Teams</div></div>
     </div>
-  </div>
-
-  <div class="card">
-    <h2>Prize Distribution</h2>
-    <div class="prizes-grid">
-      <div class="prize-card prize-1"><div class="pct">50%</div><div class="place">🥇 1st Place</div></div>
-      <div class="prize-card prize-2"><div class="pct">20%</div><div class="place">🥈 2nd Place</div></div>
-      <div class="prize-card prize-3"><div class="pct">10%</div><div class="place">🥉 3rd Place</div></div>
-      <div class="prize-card prize-4"><div class="pct">7%</div><div class="place">4th Place</div></div>
-      <div class="prize-card prize-5"><div class="pct">3%</div><div class="place">5th Place</div></div>
-      <div class="prize-card prize-party"><div class="pct">5%</div><div class="place">🎉 Celebration</div></div>
+    <div style="overflow-x:auto;">
+    <table class="lb-table" id="lbTable">
+      <thead><tr><th>#</th><th>Participant</th><th>Predicted Champion</th><th>Group Stage</th><th>Knockout</th><th>Bonus</th><th>Total</th></tr></thead>
+      <tbody id="lbBody"><tr><td colspan="7" style="text-align:center;color:var(--regent);padding:20px;">No results yet. Admin must enter real match results.</td></tr></tbody>
+    </table>
     </div>
-    <p style="font-size:0.82em;color:var(--regent);margin-top:6px;">5% of the pool is reserved for the final celebration with the department.</p>
   </div>
 
+  <!-- SCORING SYSTEM -->
   <div class="card">
     <h2>Scoring System</h2>
     <h3>Group Stage (72 matches)</h3>
     <div class="scoring">
-      <span><span class="pts-badge pts-5">+5</span> Exact Score</span>
-      <span><span class="pts-badge pts-3">+3</span> Correct Outcome + Goal Diff</span>
-      <span><span class="pts-badge pts-2">+2</span> Correct Outcome Only</span>
+      <span><span class="pts-badge pts-3">+3</span> Correct Outcome (Win/Draw/Loss)</span>
+      <span><span class="pts-badge pts-5">+2</span> Bonus for Exact Score</span>
       <span><span class="pts-badge pts-0">+0</span> Wrong</span>
     </div>
     <h3>Knockout Stage (32 matches)</h3>
@@ -320,27 +369,25 @@ a { color:var(--black); }
       <span><span class="pts-badge pts-5">+8</span> QF Correct</span>
       <span>+12 SF Correct</span>
       <span>+20 Final Correct</span>
-      <span>+5 Exact KO Score</span>
+      <span>+3 Exact KO Score</span>
     </div>
-    <h3>Bonus</h3>
+    <h3>Champion Progression Bonus</h3>
     <div class="scoring">
-      <span>🏆 +15 Correct Champion</span>
+      <span>🏆 R32: +20</span>
+      <span>🏆 R16: +40</span>
+      <span>🏆 QF: +50</span>
+      <span>🏆 SF: +75</span>
+      <span>🏆 Final: +100</span>
+    </div>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">If your predicted champion team advances through each knockout round, you earn cumulative bonus points.</p>
+    <h3>Other Bonuses</h3>
+    <div class="scoring">
       <span>👟 +10 Golden Boot</span>
       <span>⚽ +5 Closest Total Goals</span>
     </div>
   </div>
 
-  <div class="card">
-    <h2>Leaderboard</h2>
-    <button class="btn btn-black btn-sm" onclick="calcLeaderboard()" style="margin-bottom:10px;">Refresh Leaderboard</button>
-    <div style="overflow-x:auto;">
-    <table class="lb-table" id="lbTable">
-      <thead><tr><th>#</th><th>Participant</th><th>Predicted Champion</th><th>Group Stage</th><th>Knockout</th><th>Bonus</th><th>Total</th></tr></thead>
-      <tbody id="lbBody"><tr><td colspan="7" style="text-align:center;color:var(--regent);padding:20px;">No results yet. Admin must enter real match results.</td></tr></tbody>
-    </table>
-    </div>
-  </div>
-
+  <!-- HOW IT WORKS -->
   <div class="card">
     <h2>How It Works</h2>
     <div class="info-box">
@@ -353,12 +400,23 @@ a { color:var(--black); }
       <strong>During the Tournament:</strong><br>
       <strong>6.</strong> As real matches are played, the organizer enters actual scores in the <strong>Admin Panel</strong>.<br>
       <strong>7.</strong> The system automatically compares every participant's predictions against real results:<br>
-      &nbsp;&nbsp;• <strong>Group Stage:</strong> Each predicted score is compared to the real score — exact match = 5 pts, correct outcome + goal difference = 3 pts, correct outcome only = 2 pts.<br>
-      &nbsp;&nbsp;• <strong>Knockout:</strong> Each predicted group position (e.g., "A1 advances") is compared to the actual winner — points increase by round (3→5→8→12→20). Exact score predictions earn +5 bonus.<br>
-      &nbsp;&nbsp;• <strong>Bonus:</strong> Champion, Golden Boot, and closest total goals predictions are compared at the end.<br>
-      <strong>8.</strong> The <strong>Leaderboard</strong> on the Home page updates automatically! The admin can also use the <strong>Live Comparison Tracker</strong> to see a full match-by-match breakdown per participant.
+      &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
+      &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (3→5→8→12→20). Exact KO score = +3 bonus.<br>
+      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +20, R16: +40, QF: +50, SF: +75, Final: +100.<br>
+      &nbsp;&nbsp;• <strong>Bonus:</strong> Golden Boot (+10) and closest total goals (+5).<br>
+      <strong>8.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
   </div>
+
+  <!-- Tournament Bracket Chart -->
+  <div class="card">
+    <h2>Tournament Bracket</h2>
+    <div class="bracket-img-wrap">
+      <img src="bracket_chart.png" alt="FIFA World Cup 2026 — Group Stage & Knockout Bracket">
+      <p>Official FIFA World Cup 2026 group stage and knockout bracket structure</p>
+    </div>
+  </div>
+
 </div>
 
 <!-- ============ PREDICT TAB ============ -->
@@ -395,8 +453,21 @@ a { color:var(--black); }
 
     <!-- KNOCKOUT BRACKET -->
     <div class="card">
+      <h2>Tournament Bracket Reference</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Use this bracket chart as reference when making your knockout stage predictions below.</p>
+      <div class="bracket-img-wrap">
+        <img src="bracket_chart.png" alt="FIFA World Cup 2026 — Knockout Bracket">
+      </div>
+    </div>
+
+    <div class="card">
       <h2>Knockout Stage Predictions</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Pick 8 third-place qualifying groups, then select which group position advances from each knockout match. Also predict the score for each match.</p>
+
+      <div class="bracket-img-wrap" style="margin:16px 0 20px;">
+        <img src="groups_chart.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
+        <p>World Cup 2026 group stage teams — use this as reference when selecting your 8 third-place qualifiers</p>
+      </div>
 
       <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
       <p style="font-size:0.82em;color:var(--regent);margin-bottom:6px;">Select exactly 8 of 12 groups whose 3rd-place teams you think will advance.</p>
@@ -732,7 +803,11 @@ const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
 const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
-const P={EX:5,DIFF:3,OUT:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:5,CHAMP:15,BOOT:10,GOALS:5};
+const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,BOOT:10,GOALS:5,CHAMP_R32:20,CHAMP_R16:40,CHAMP_QF:50,CHAMP_SF:75,CHAMP_FIN:100};
+
+// Country flag mapping (ISO codes for flagcdn.com)
+const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
+function fl(n){const c=FC[n];return c?'<img src="https://flagcdn.com/w20/'+c+'.png" alt="" style="width:18px;height:13px;vertical-align:middle;margin-right:4px;border-radius:2px;box-shadow:0 0 2px rgba(0,0,0,0.2);">':'';}
 
 // ============================
 // STATE
@@ -770,6 +845,52 @@ function updateHomeStats(){
   document.getElementById('statParticipants').textContent=S.participants.length;
   const sub=S.participants.filter(p=>S.submissions[p]&&S.submissions[p].locked).length;
   document.getElementById('statSubmitted').textContent=sub;
+  updateScoresTicker();
+}
+
+// ============================
+// SCORES TICKER
+// ============================
+function updateScoresTicker(){
+  const ticker=document.getElementById('scoresTicker');
+  if(!ticker)return;
+  // Build all matches sorted by match number with flags
+  let allM=[];
+  GM.forEach(m=>{
+    const r=S.admin.groupResults[m.n];
+    const status=r?'FT':'Upcoming';
+    const hScore=r?r.h:'-';
+    const aScore=r?r.a:'-';
+    allM.push({n:m.n,d:m.d,t:m.t,label:'Group '+m.g,h:m.h,a:m.a,hS:hScore,aS:aScore,status:status,played:!!r});
+  });
+  ALLKO.forEach(m=>{
+    const r=S.admin.koResults[m.n];
+    let label='R32';if(m.n>=89&&m.n<=96)label='R16';else if(m.n>=97&&m.n<=100)label='QF';else if(m.n>=101&&m.n<=102)label='SF';else if(m.n===104)label='Final';
+    const status=r&&r.winner?'FT · '+r.winner+' adv':'Upcoming';
+    allM.push({n:m.n,d:m.d,t:'',label:label,h:m.tA,a:m.tB,hS:r?r.h||0:'-',aS:r?r.a||0:'-',status:status,played:!!(r&&r.winner)});
+  });
+  allM.sort((a,b)=>a.n-b.n);
+  // Find closest match to today for auto-scroll
+  const today=new Date();
+  const yr=2026;
+  const monthMap={Jun:5,Jul:6};
+  let scrollIdx=0;
+  for(let i=0;i<allM.length;i++){
+    const parts=allM[i].d.split(' ');
+    if(parts.length===2&&monthMap[parts[0]]!==undefined){
+      const mDate=new Date(yr,monthMap[parts[0]],parseInt(parts[1]));
+      if(mDate<=today)scrollIdx=i;
+    }
+  }
+  let chips=allM.map((m,i)=>{
+    const playedCls=m.played?'':'sc-upcoming';
+    const statusCls=m.status.startsWith('FT')?'':'sc-upcoming-txt';
+    return `<div class="score-chip ${playedCls}" id="sc-chip-${i}"><div class="sc-group">${m.label} · M${m.n} · ${m.d}</div><div class="sc-teams"><span class="sc-team">${fl(m.h)}${m.h}</span><span class="sc-score">${m.hS}</span><span class="sc-vs">-</span><span class="sc-score">${m.aS}</span><span class="sc-team">${fl(m.a)}${m.a}</span></div><div class="sc-status ${statusCls}">${m.status}</div></div>`;
+  });
+  ticker.innerHTML=chips.join('');
+  // Auto-scroll to current match area
+  const target=document.getElementById('sc-chip-'+scrollIdx);
+  if(target)target.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 }
 
 // ============================
@@ -801,9 +922,9 @@ function renderGSForm(){
   const gl=Object.keys(GROUPS);
   gl.forEach(g=>{
     const teams=GROUPS[g];
-    h+=`<div class="group-hdr"><h3>Group ${g}</h3><div class="teams">${teams.join(' · ')}</div></div>`;
+    h+=`<div class="group-hdr"><h3>Group ${g}</h3><div class="teams">${teams.map(t=>fl(t)+t).join(' · ')}</div></div>`;
     GM.filter(m=>m.g===g).forEach(m=>{
-      h+=`<div class="match-row"><div class="t-home">${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d} · ${m.t}</div><div class="scores"><input type="number" min="0" max="20" id="ph-${m.n}" placeholder="-"><span class="vs">vs</span><input type="number" min="0" max="20" id="pa-${m.n}" placeholder="-"></div></div><div class="t-away">${m.a}</div></div>`;
+      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d} · ${m.t}</div><div class="scores"><input type="number" min="0" max="20" id="ph-${m.n}" placeholder="-"><span class="vs">vs</span><input type="number" min="0" max="20" id="pa-${m.n}" placeholder="-"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
     });
   });
   c.innerHTML=h;
@@ -950,7 +1071,7 @@ function renderAdminGS(){
   Object.keys(GROUPS).forEach(g=>{
     h+=`<div class="group-hdr"><h3>Group ${g}</h3></div>`;
     GM.filter(m=>m.g===g).forEach(m=>{
-      h+=`<div class="match-row"><div class="t-home">${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d}</div><div class="scores"><input type="number" min="0" max="20" id="ah-${m.n}" placeholder="-" onchange="saveAdmin()"><span class="vs">vs</span><input type="number" min="0" max="20" id="aa-${m.n}" placeholder="-" onchange="saveAdmin()"></div></div><div class="t-away">${m.a}</div></div>`;
+      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d}</div><div class="scores"><input type="number" min="0" max="20" id="ah-${m.n}" placeholder="-" onchange="saveAdmin()"><span class="vs">vs</span><input type="number" min="0" max="20" id="aa-${m.n}" placeholder="-" onchange="saveAdmin()"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
     });
   });
   c.innerHTML=h;
@@ -962,7 +1083,7 @@ function renderAdminKO(){
     const arr=Array.isArray(matches)?matches:[matches];
     arr.forEach(m=>{
       h+=`<div style="margin:6px 0;padding:8px 14px;border:1px solid var(--gray-200);border-radius:6px;">`;
-      h+=`<span style="font-size:0.78em;color:var(--regent);">M${m.n} · ${m.d} · ${m.tA} vs ${m.tB}</span><br>`;
+      h+=`<span style="font-size:0.78em;color:var(--regent);">M${m.n} · ${m.d} · ${fl(m.tA)}${m.tA} vs ${fl(m.tB)}${m.tB}</span><br>`;
       h+=`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">`;
       h+=`<label style="font-size:0.82em;">Winner:</label><input type="text" id="akw-${m.n}" placeholder="Team name" style="width:150px;font-size:0.85em;" onchange="saveAdmin()">`;
       h+=`<label style="font-size:0.82em;">Score:</label><input type="number" id="akh-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()"><span style="color:var(--regent);">-</span><input type="number" id="aka-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()">`;
@@ -1028,7 +1149,7 @@ function viewSubmittedPred(){
   h+=`<h3 style="margin-top:10px;">Group Stage</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;font-size:0.82em;">`;
   GM.forEach(m=>{
     const pr=sub.gs[m.n];
-    h+=`<div style="padding:3px 6px;background:var(--gray-50);border-radius:4px;">M${m.n}: ${m.h} ${pr?pr.h:'-'} - ${pr?pr.a:'-'} ${m.a}</div>`;
+    h+=`<div style="padding:3px 6px;background:var(--gray-50);border-radius:4px;">M${m.n}: ${fl(m.h)}${m.h} ${pr?pr.h:'-'} - ${pr?pr.a:'-'} ${fl(m.a)}${m.a}</div>`;
   });
   h+=`</div>`;
   h+=`<h3 style="margin-top:10px;">Knockout</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;font-size:0.82em;">`;
@@ -1059,19 +1180,17 @@ function renderComparison(){
     const real=S.admin.groupResults[m.n];
     let pts=0,label='-',cls='';
     if(pred&&real){
-      if(pred.h===real.h&&pred.a===real.a){pts=P.EX;label='Exact!';cls='pts-5';}
-      else{
-        const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pred.h-pred.a);
-        if(rOut===pOut){
-          if((real.h-real.a)===(pred.h-pred.a)){pts=P.DIFF;label='Outcome+Diff';cls='pts-3';}
-          else{pts=P.OUT;label='Outcome';cls='pts-2';}
-        }else{pts=0;label='Wrong';cls='pts-0';}
-      }
+      const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pred.h-pred.a);
+      if(rOut===pOut){
+        pts=P.OUT; // +3 for correct outcome
+        if(pred.h===real.h&&pred.a===real.a){pts+=P.EX_BONUS;label='Exact! (+5)';cls='pts-5';}
+        else{label='Outcome (+3)';cls='pts-3';}
+      }else{pts=0;label='Wrong';cls='pts-0';}
       totalGS+=pts;
     }
     const predStr=pred?pred.h+' - '+pred.a:'<span style="color:var(--regent)">-</span>';
     const realStr=real?real.h+' - '+real.a:'<span style="color:var(--regent)">Not played</span>';
-    h+=`<tr><td>M${m.n}</td><td style="font-size:0.82em;">${m.h} vs ${m.a}</td><td>${predStr}</td><td>${realStr}</td><td>${real?'<span class="pts-badge '+cls+'">'+label+'</span>':''}</td><td>${real?pts:''}</td></tr>`;
+    h+=`<tr><td>M${m.n}</td><td style="font-size:0.82em;">${fl(m.h)}${m.h} vs ${fl(m.a)}${m.a}</td><td>${predStr}</td><td>${realStr}</td><td>${real?'<span class="pts-badge '+cls+'">'+label+'</span>':''}</td><td>${real?pts:''}</td></tr>`;
   });
   h+=`<tr style="background:var(--gray-50);font-weight:700;"><td colspan="5" style="text-align:right;">Group Stage Total:</td><td>${totalGS}</td></tr>`;
   h+=`</tbody></table></div>`;
@@ -1099,19 +1218,39 @@ function renderComparison(){
     const predSS=pred?pred.h+' - '+pred.a:'-';
     const realW=real&&real.winner?real.winner:'<span style="color:var(--regent)">Not played</span>';
     const realSS=real&&real.winner?real.h+' - '+real.a:'';
-    h+=`<tr><td>M${m.n}</td><td style="font-size:0.82em;">${m.tA} vs ${m.tB}</td><td>${pickStr}</td><td>${predSS}</td><td>${realW}</td><td>${realSS}</td><td>${real&&real.winner?pts:''}</td></tr>`;
+    h+=`<tr><td>M${m.n}</td><td style="font-size:0.82em;">${fl(m.tA)}${m.tA} vs ${fl(m.tB)}${m.tB}</td><td>${pickStr}</td><td>${predSS}</td><td>${realW}</td><td>${realSS}</td><td>${real&&real.winner?pts:''}</td></tr>`;
   });
   h+=`<tr style="background:var(--gray-50);font-weight:700;"><td colspan="6" style="text-align:right;">Knockout Total:</td><td>${totalKO}</td></tr>`;
   h+=`</tbody></table></div>`;
 
   // Bonus
   let bonP=0;
-  h+=`<h3 style="margin:20px 0 8px;border-bottom:2px solid var(--gold);display:inline-block;padding-bottom:4px;">Bonus</h3>`;
-  const champOK=sub.champion&&S.admin.champion&&sub.champion.toLowerCase()===S.admin.champion.toLowerCase();
-  if(champOK)bonP+=P.CHAMP;
+  h+=`<h3 style="margin:20px 0 8px;border-bottom:2px solid var(--gold);display:inline-block;padding-bottom:4px;">Bonus & Champion Progression</h3>`;
+
+  // Champion progression bonus
+  if(sub.champion){
+    const champLower=sub.champion.toLowerCase();
+    const checkRound=(matchNums,pts,label)=>{
+      for(const mn of matchNums){
+        const r=S.admin.koResults[mn];
+        if(r&&r.winner&&r.winner.toLowerCase()===champLower){bonP+=pts;return `<span class="pts-badge pts-5">+${pts}</span> ${label}`;}
+      }
+      const anyPlayed=matchNums.some(mn=>S.admin.koResults[mn]&&S.admin.koResults[mn].winner);
+      if(anyPlayed)return `<span class="pts-badge pts-0">0</span> ${label}`;
+      return `<span style="color:var(--regent);">TBD</span> ${label}`;
+    };
+    h+=`<p style="margin-bottom:4px;"><strong>Champion Pick:</strong> ${sub.champion}</p>`;
+    h+=`<div style="display:grid;gap:3px;font-size:0.88em;margin:6px 0 12px;">`;
+    h+=`<div>${checkRound([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],P.CHAMP_R32,'Reaches R32')}</div>`;
+    h+=`<div>${checkRound([89,90,91,92,93,94,95,96],P.CHAMP_R16,'Reaches R16')}</div>`;
+    h+=`<div>${checkRound([97,98,99,100],P.CHAMP_QF,'Reaches QF')}</div>`;
+    h+=`<div>${checkRound([101,102],P.CHAMP_SF,'Reaches SF')}</div>`;
+    h+=`<div>${checkRound([104],P.CHAMP_FIN,'Reaches Final')}</div>`;
+    h+=`</div>`;
+  }
+
   const bootOK=sub.goldenBoot&&S.admin.goldenBoot&&sub.goldenBoot.toLowerCase()===S.admin.goldenBoot.toLowerCase();
   if(bootOK)bonP+=P.BOOT;
-  h+=`<p>Champion: <strong>${sub.champion||'-'}</strong> vs Actual: <strong>${S.admin.champion||'TBD'}</strong> ${S.admin.champion?(champOK?'<span class="pts-badge pts-5">+'+P.CHAMP+'</span>':'<span class="pts-badge pts-0">0</span>'):''}</p>`;
   h+=`<p>Golden Boot: <strong>${sub.goldenBoot||'-'}</strong> vs Actual: <strong>${S.admin.goldenBoot||'TBD'}</strong> ${S.admin.goldenBoot?(bootOK?'<span class="pts-badge pts-5">+'+P.BOOT+'</span>':'<span class="pts-badge pts-0">0</span>'):''}</p>`;
   h+=`<p>Total Goals: <strong>${sub.totalGoals!==null?sub.totalGoals:'-'}</strong> vs Actual: <strong>${S.admin.totalGoals!==null?S.admin.totalGoals:'TBD'}</strong> <span style="font-size:0.82em;color:var(--regent);">(Closest wins +5)</span></p>`;
   h+=`<div style="background:var(--black);color:var(--gold);padding:16px;border-radius:8px;margin-top:16px;text-align:center;font-size:1.2em;font-weight:700;">Grand Total: ${totalGS+totalKO+bonP} points</div>`;
@@ -1127,18 +1266,15 @@ function calcLeaderboard(){
     const sub=S.submissions[name];
     if(!sub||!sub.locked){rows.push({name,champ:'-',gs:0,ko:0,bonus:0,total:0});return;}
     let gsP=0,koP=0,bonP=0;
-    // Group stage scoring
+    // Group stage scoring: +3 correct outcome, +2 bonus exact score
     GM.forEach(m=>{
       const real=S.admin.groupResults[m.n];
       const pred=sub.gs[m.n];
       if(!real||!pred)return;
-      if(pred.h===real.h&&pred.a===real.a)gsP+=P.EX;
-      else{
-        const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pred.h-pred.a);
-        if(rOut===pOut){
-          if((real.h-real.a)===(pred.h-pred.a))gsP+=P.DIFF;
-          else gsP+=P.OUT;
-        }
+      const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pred.h-pred.a);
+      if(rOut===pOut){
+        gsP+=P.OUT; // +3 for correct outcome
+        if(pred.h===real.h&&pred.a===real.a)gsP+=P.EX_BONUS; // +2 bonus for exact
       }
     });
     // Knockout scoring
@@ -1146,23 +1282,33 @@ function calcLeaderboard(){
       const real=S.admin.koResults[m.n];
       const pred=sub.ko[m.n];
       if(!real||!pred||!real.winner)return;
-      // Determine points by round
       let rPts=0;
       if(m.n>=73&&m.n<=88)rPts=P.R32;
       else if(m.n>=89&&m.n<=96)rPts=P.R16;
       else if(m.n>=97&&m.n<=100)rPts=P.QF;
       else if(m.n>=101&&m.n<=102)rPts=P.SF;
       else if(m.n===104)rPts=P.FIN;
-      // For knockout, we compare group positions not team names directly since preds are by position
-      // The admin enters team names but the system just checks if the predicted position matches
-      // Since the comparison is complex (position -> actual team), we do a simple name check for now
-      // Admin should enter which position/team won
       if(pred.pick&&real.winner&&pred.pick.toLowerCase()===real.winner.toLowerCase())koP+=rPts;
-      // Exact score bonus
       if(pred.h===real.h&&pred.a===real.a)koP+=P.KO_EX;
     });
-    // Bonus
-    if(sub.champion&&S.admin.champion&&sub.champion.toLowerCase()===S.admin.champion.toLowerCase())bonP+=P.CHAMP;
+    // Champion progression bonus
+    if(sub.champion){
+      const champLower=sub.champion.toLowerCase();
+      // Check each round for champion advancement
+      const checkRound=(matchNums,pts)=>{
+        for(const mn of matchNums){
+          const r=S.admin.koResults[mn];
+          if(r&&r.winner&&r.winner.toLowerCase()===champLower)return pts;
+        }
+        return 0;
+      };
+      bonP+=checkRound([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],P.CHAMP_R32);
+      bonP+=checkRound([89,90,91,92,93,94,95,96],P.CHAMP_R16);
+      bonP+=checkRound([97,98,99,100],P.CHAMP_QF);
+      bonP+=checkRound([101,102],P.CHAMP_SF);
+      bonP+=checkRound([104],P.CHAMP_FIN);
+    }
+    // Other bonuses
     if(sub.goldenBoot&&S.admin.goldenBoot&&sub.goldenBoot.toLowerCase()===S.admin.goldenBoot.toLowerCase())bonP+=P.BOOT;
     if(sub.totalGoals!==null&&S.admin.totalGoals!==null){
       // Closest total goals - calculated separately
