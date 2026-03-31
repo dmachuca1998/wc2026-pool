@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>World Cup 2026 — Bombardier Prediction Challenge</title>
+<title>World Cup 2026 — Prediction Challenge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -287,7 +287,12 @@ a { color:var(--black); }
 <!-- STICKY HEADER -->
 <div class="sticky-hdr" id="stickyHdr">
   <div class="sticky-hdr-left">
-    <img src="fifa_logo.png" alt="FIFA 2026" class="sh-flogo">
+    <img src="fifa_logo.png" alt="FIFA 2026" class="sh-flogo" style="
+    width: 100px;
+    height: 142px;
+    padding-bottom: 0px;
+    border-bottom-width: 100px;
+">
   </div>
   <div class="sticky-hdr-right">Prediction Challenge</div>
 </div>
@@ -385,7 +390,7 @@ a { color:var(--black); }
     <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">If your predicted champion team advances through each knockout round, you earn cumulative bonus points.</p>
     <h3>Other Bonuses</h3>
     <div class="scoring">
-      <span>⚽ +5 Closest Total Goals</span>
+      <span>⚽ +30 Closest Total Goals</span>
     </div>
   </div>
 
@@ -405,7 +410,7 @@ a { color:var(--black); }
       &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
       &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (3→5→8→12→20). Exact KO score = +3 bonus.<br>
       &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +38, Final: +50.<br>
-      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (+5).<br>
+      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (+30).<br>
       <strong>8.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
   </div>
@@ -763,8 +768,8 @@ const GM = [
   {n:24,d:"Jun 17",t:"10:00 PM",g:"K",h:"Uzbekistan",a:"Colombia"},
   {n:45,d:"Jun 23",t:"1:00 PM",g:"K",h:"Colombia",a:"FIFA PO 1"},
   {n:46,d:"Jun 23",t:"4:00 PM",g:"K",h:"Portugal",a:"Uzbekistan"},
-  {n:71,d:"Jun 27",t:"6:00 PM",g:"K",h:"FIFA PO 1",a:"Portugal"},
-  {n:72,d:"Jun 27",t:"6:00 PM",g:"K",h:"Colombia",a:"Uzbekistan"},
+  {n:71,d:"Jun 27",t:"6:00 PM",g:"K",h:"FIFA PO 1",a:"Uzbekistan"},
+  {n:72,d:"Jun 27",t:"6:00 PM",g:"K",h:"Colombia",a:"Portugal"},
   {n:22,d:"Jun 17",t:"4:00 PM",g:"L",h:"England",a:"Croatia"},
   {n:23,d:"Jun 17",t:"7:00 PM",g:"L",h:"Ghana",a:"Panama"},
   {n:47,d:"Jun 23",t:"7:00 PM",g:"L",h:"Croatia",a:"Panama"},
@@ -820,13 +825,13 @@ let S = {
   submissions:{},
   admin:{groupResults:{},koResults:{},champion:"",totalGoals:null},
   predictionsLocked:false,
-  adminPwd:"bombardier2026",
+  adminPwd:"David2026",
   apiKey:""
 };
 function save(){localStorage.setItem('wc2026v2',JSON.stringify(S));}
 function load(){
   const d=localStorage.getItem('wc2026v2');
-  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="bombardier2026";if(!S.apiKey)S.apiKey="";if(S.predictionsLocked===undefined)S.predictionsLocked=false;}catch(e){}}
+  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="David2026";if(!S.apiKey)S.apiKey="";if(S.predictionsLocked===undefined)S.predictionsLocked=false;}catch(e){}}
 }
 
 // ============================
@@ -1375,7 +1380,7 @@ function renderComparison(){
     h+=`</div>`;
   }
 
-  h+=`<p>Total Goals: <strong>${sub.totalGoals!==null?sub.totalGoals:'-'}</strong> vs Actual: <strong>${S.admin.totalGoals!==null?S.admin.totalGoals:'TBD'}</strong> <span style="font-size:0.82em;color:var(--regent);">(Closest wins +5)</span></p>`;
+  h+=`<p>Total Goals: <strong>${sub.totalGoals!==null?sub.totalGoals:'-'}</strong> vs Actual: <strong>${S.admin.totalGoals!==null?S.admin.totalGoals:'TBD'}</strong> <span style="font-size:0.82em;color:var(--regent);">(Closest wins +30)</span></p>`;
   h+=`<div style="background:var(--black);color:var(--gold);padding:16px;border-radius:8px;margin-top:16px;text-align:center;font-size:1.2em;font-weight:700;">Grand Total: ${totalGS+totalKO+bonP} points</div>`;
   c.innerHTML=h;
 }
