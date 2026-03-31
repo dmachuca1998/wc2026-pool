@@ -271,12 +271,12 @@ a { color:var(--black); }
 
 <!-- FULLSCREEN HERO -->
 <div class="hero-fullscreen" id="heroSection">
-  <img src="SoccerField.png" alt="" class="hero-bg">
+  <img src="trophy2.png" alt="" class="hero-bg">
   <div class="hero-content">
     <div class="hero-logos">
-      <img src="fifa_logo.png" alt="Bombardier" class="hero-blogo" style="width: 150px; height: 152px; padding-left: 50px;">
-      <span class="hero-x" style="padding-left: 30px;">×</span>
-      <img src="bombardier_logo.png" alt="FIFA World Cup 2026" class="hero-flogo" style="height: 110px; padding-right: 0px;">
+      <img src="bombardier_logo.png" alt="Bombardier" class="hero-blogo">
+      <span class="hero-x">×</span>
+      <img src="fifa_logo.png" alt="FIFA World Cup 2026" class="hero-flogo">
     </div>
     <h1 class="hero-title"><strong>World Cup 2026</strong><br><em>Prediction Challenge</em></h1>
     <p class="hero-sub">Predict · Compete · Win</p>
@@ -320,19 +320,26 @@ a { color:var(--black); }
 <div class="container">
 <div id="tab-home" class="tab-content active">
 
+  <!-- GROUP STANDINGS -->
+  <div class="card" id="groupStandingsCard">
+    <h2>Group Standings</h2>
+    <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:12px;">Standings update automatically as match results are entered by the admin.</p>
+    <div id="groupStandingsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;"></div>
+  </div>
+
   <!-- PRIZE DISTRIBUTION (updated) -->
   <div class="card">
     <h2>Prize Distribution</h2>
     <div class="prizes-grid">
-      <div class="prize-card" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-color:var(--green);"><div class="pct" style="color:var(--green);">50%</div><div class="place">❤️ Bombardier<br>Selected Charity</div></div>
-      <div class="prize-card prize-1"><div class="pct">25%</div><div class="place">🥇 1st Place</div></div>
-      <div class="prize-card prize-2"><div class="pct">10%</div><div class="place">🥈 2nd Place</div></div>
-      <div class="prize-card prize-3"><div class="pct">5%</div><div class="place">🥉 3rd Place</div></div>
-      <div class="prize-card prize-4"><div class="pct">2.5%</div><div class="place">4th Place</div></div>
-      <div class="prize-card prize-5"><div class="pct">2.5%</div><div class="place">5th Place</div></div>
-      <div class="prize-card prize-party"><div class="pct">5%</div><div class="place">🎉 Final Party</div></div>
+      <div class="prize-card" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-color:var(--green);"><div class="pct" style="color:var(--green);">25%</div><div class="place">❤️ Bombardier<br>Selected Charity</div></div>
+      <div class="prize-card prize-1"><div class="pct">35%</div><div class="place">🥇 1st Place</div></div>
+      <div class="prize-card prize-2"><div class="pct">20%</div><div class="place">🥈 2nd Place</div></div>
+      <div class="prize-card prize-3"><div class="pct">7.5%</div><div class="place">🥉 3rd Place</div></div>
+      <div class="prize-card prize-4"><div class="pct">1.5%</div><div class="place">4th Place</div></div>
+      <div class="prize-card prize-5"><div class="pct">1%</div><div class="place">5th Place</div></div>
+      <div class="prize-card prize-party"><div class="pct">10%</div><div class="place">🎉 Final Party</div></div>
     </div>
-    <p style="font-size:0.82em;color:var(--regent);margin-top:6px;">50% of the pool goes to a Bombardier-selected charity. 5% is reserved for the final celebration with the department.</p>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:6px;">25% of the pool goes to a Bombardier-selected charity. 10% is reserved for the final celebration party.</p>
   </div>
 
   <!-- LEADERBOARD -->
@@ -373,16 +380,15 @@ a { color:var(--black); }
     </div>
     <h3>Champion Progression Bonus</h3>
     <div class="scoring">
-      <span>🏆 R32: +20</span>
-      <span>🏆 R16: +40</span>
-      <span>🏆 QF: +50</span>
-      <span>🏆 SF: +75</span>
-      <span>🏆 Final: +100</span>
+      <span>🏆 R32: +10</span>
+      <span>🏆 R16: +20</span>
+      <span>🏆 QF: +25</span>
+      <span>🏆 SF: +38</span>
+      <span>🏆 Final: +50</span>
     </div>
     <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">If your predicted champion team advances through each knockout round, you earn cumulative bonus points.</p>
     <h3>Other Bonuses</h3>
     <div class="scoring">
-      <span>👟 +10 Golden Boot</span>
       <span>⚽ +5 Closest Total Goals</span>
     </div>
   </div>
@@ -395,15 +401,15 @@ a { color:var(--black); }
       <strong>1.</strong> Go to <strong>Submit Prediction</strong> and enter your name.<br>
       <strong>2.</strong> Predict exact scores for all 72 group stage matches.<br>
       <strong>3.</strong> Predict knockout stage outcomes using group positions (e.g., A1, B2) — no chasing predictions between rounds!<br>
-      <strong>4.</strong> Predict scores for each knockout match and select your championship team, golden boot winner, and total goals.<br>
+      <strong>4.</strong> Predict scores for each knockout match and select your championship team and total goals estimate.<br>
       <strong>5.</strong> Submit once — predictions are final and private. Only the organizer can view them.<br><br>
       <strong>During the Tournament:</strong><br>
       <strong>6.</strong> As real matches are played, the organizer enters actual scores in the <strong>Admin Panel</strong>.<br>
       <strong>7.</strong> The system automatically compares every participant's predictions against real results:<br>
       &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
       &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (3→5→8→12→20). Exact KO score = +3 bonus.<br>
-      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +20, R16: +40, QF: +50, SF: +75, Final: +100.<br>
-      &nbsp;&nbsp;• <strong>Bonus:</strong> Golden Boot (+10) and closest total goals (+5).<br>
+      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +38, Final: +50.<br>
+      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (+5).<br>
       <strong>8.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
   </div>
@@ -487,10 +493,6 @@ a { color:var(--black); }
           <input type="text" id="bonusChamp" placeholder="e.g. Brazil" style="width:100%;">
         </div>
         <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">👟 Golden Boot Winner</label>
-          <input type="text" id="bonusBoot" placeholder="e.g. Kylian Mbappé" style="width:100%;">
-        </div>
-        <div>
           <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">⚽ Total Tournament Goals</label>
           <input type="number" id="bonusGoals" placeholder="e.g. 172" style="width:100%;">
         </div>
@@ -528,6 +530,15 @@ a { color:var(--black); }
         <button class="btn btn-black btn-sm" onclick="addParticipant()">+ Add</button>
       </div>
       <div class="ptag-list" id="partList"></div>
+    </div>
+
+    <div class="card">
+      <h2>🔒 Lock / Unlock Predictions</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:12px;">When locked, no one can submit new predictions. Use this on the day predictions close.</p>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <span id="lockStatus" style="font-weight:600;font-size:1em;"></span>
+        <button class="btn btn-sm" id="lockBtn" onclick="togglePredLock()"></button>
+      </div>
     </div>
 
     <div class="card">
@@ -606,15 +617,11 @@ a { color:var(--black); }
           <input type="text" id="actChamp" placeholder="e.g. Argentina" onchange="saveAdmin()" style="width:100%;">
         </div>
         <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Actual Golden Boot</label>
-          <input type="text" id="actBoot" placeholder="e.g. Mbappé" onchange="saveAdmin()" style="width:100%;">
-        </div>
-        <div>
           <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Actual Total Goals</label>
           <input type="number" id="actGoals" placeholder="e.g. 168" onchange="saveAdmin()" style="width:100%;">
         </div>
       </div>
-      <button class="btn btn-gold" style="margin-top:14px;" onclick="saveAdmin();calcLeaderboard();alert('Results saved & leaderboard updated!');">Save Results & Update Leaderboard</button>
+      <button class="btn btn-gold" style="margin-top:14px;" onclick="saveAdmin();calcLeaderboard();renderAdminKO();loadAdminData();alert('Results saved & leaderboard updated!');">Save Results & Update Leaderboard</button>
     </div>
   </div>
 </div>
@@ -803,7 +810,7 @@ const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
 const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
-const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,BOOT:10,GOALS:5,CHAMP_R32:20,CHAMP_R16:40,CHAMP_QF:50,CHAMP_SF:75,CHAMP_FIN:100};
+const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:5,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:38,CHAMP_FIN:50};
 
 // Country flag mapping (ISO codes for flagcdn.com)
 const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
@@ -815,14 +822,15 @@ function fl(n){const c=FC[n];return c?'<img src="https://flagcdn.com/w20/'+c+'.p
 let S = {
   participants:[],
   submissions:{},
-  admin:{groupResults:{},koResults:{},champion:"",goldenBoot:"",totalGoals:null},
+  admin:{groupResults:{},koResults:{},champion:"",totalGoals:null},
+  predictionsLocked:false,
   adminPwd:"bombardier2026",
   apiKey:""
 };
 function save(){localStorage.setItem('wc2026v2',JSON.stringify(S));}
 function load(){
   const d=localStorage.getItem('wc2026v2');
-  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",goldenBoot:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="bombardier2026";if(!S.apiKey)S.apiKey="";}catch(e){}}
+  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="bombardier2026";if(!S.apiKey)S.apiKey="";if(S.predictionsLocked===undefined)S.predictionsLocked=false;}catch(e){}}
 }
 
 // ============================
@@ -846,6 +854,7 @@ function updateHomeStats(){
   const sub=S.participants.filter(p=>S.submissions[p]&&S.submissions[p].locked).length;
   document.getElementById('statSubmitted').textContent=sub;
   updateScoresTicker();
+  updateGroupStandings();
 }
 
 // ============================
@@ -866,8 +875,9 @@ function updateScoresTicker(){
   ALLKO.forEach(m=>{
     const r=S.admin.koResults[m.n];
     let label='R32';if(m.n>=89&&m.n<=96)label='R16';else if(m.n>=97&&m.n<=100)label='QF';else if(m.n>=101&&m.n<=102)label='SF';else if(m.n===104)label='Final';
+    const rA=resolveSlot(m.tA),rB=resolveSlot(m.tB);
     const status=r&&r.winner?'FT · '+r.winner+' adv':'Upcoming';
-    allM.push({n:m.n,d:m.d,t:'',label:label,h:m.tA,a:m.tB,hS:r?r.h||0:'-',aS:r?r.a||0:'-',status:status,played:!!(r&&r.winner)});
+    allM.push({n:m.n,d:m.d,t:'',label:label,h:rA,a:rB,hS:r?r.h||0:'-',aS:r?r.a||0:'-',status:status,played:!!(r&&r.winner)});
   });
   allM.sort((a,b)=>a.n-b.n);
   // Find closest match to today for auto-scroll
@@ -894,6 +904,105 @@ function updateScoresTicker(){
 }
 
 // ============================
+// GROUP STANDINGS
+// ============================
+function getGroupStandings(){
+  const standings={};
+  Object.keys(GROUPS).forEach(g=>{
+    const teams=GROUPS[g];
+    const table={};
+    teams.forEach(t=>{table[t]={team:t,pld:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0};});
+    GM.filter(m=>m.g===g).forEach(m=>{
+      const r=S.admin.groupResults[m.n];
+      if(!r)return;
+      const ht=table[m.h],at=table[m.a];
+      if(!ht||!at)return;
+      ht.pld++;at.pld++;
+      ht.gf+=r.h;ht.ga+=r.a;
+      at.gf+=r.a;at.ga+=r.h;
+      if(r.h>r.a){ht.w++;ht.pts+=3;at.l++;}
+      else if(r.h<r.a){at.w++;at.pts+=3;ht.l++;}
+      else{ht.d++;at.d++;ht.pts+=1;at.pts+=1;}
+    });
+    // Sort: pts desc, gd desc, gf desc
+    const sorted=Object.values(table).sort((a,b)=>{
+      if(b.pts!==a.pts)return b.pts-a.pts;
+      const gdA=a.gf-a.ga,gdB=b.gf-b.ga;
+      if(gdB!==gdA)return gdB-gdA;
+      return b.gf-a.gf;
+    });
+    sorted.forEach((t,i)=>{t.gd=t.gf-t.ga;t.pos=i+1;});
+    standings[g]=sorted;
+  });
+  return standings;
+}
+
+function updateGroupStandings(){
+  const grid=document.getElementById('groupStandingsGrid');
+  if(!grid)return;
+  const standings=getGroupStandings();
+  let h='';
+  Object.keys(GROUPS).forEach(g=>{
+    const rows=standings[g];
+    const hasData=rows.some(r=>r.pld>0);
+    h+=`<div style="border:1px solid var(--gray-200);border-radius:10px;overflow:hidden;">`;
+    h+=`<div style="background:var(--black);color:var(--gold);padding:8px 14px;font-family:var(--font-display);font-weight:600;font-size:1.1em;">Group ${g}</div>`;
+    h+=`<table style="width:100%;font-size:0.8em;border-collapse:collapse;">`;
+    h+=`<thead><tr style="background:var(--gray-50);"><th style="text-align:left;padding:5px 8px;">#</th><th style="text-align:left;padding:5px 4px;">Team</th><th style="padding:5px 4px;">P</th><th style="padding:5px 4px;">W</th><th style="padding:5px 4px;">D</th><th style="padding:5px 4px;">L</th><th style="padding:5px 4px;">GF</th><th style="padding:5px 4px;">GA</th><th style="padding:5px 4px;">GD</th><th style="padding:5px 4px;font-weight:700;">Pts</th></tr></thead><tbody>`;
+    rows.forEach((r,i)=>{
+      const bg=i<2?'rgba(5,150,105,0.06)':i===2?'rgba(37,99,235,0.06)':'';
+      const border=i<rows.length-1?'border-bottom:1px solid var(--gray-100);':'';
+      h+=`<tr style="text-align:center;${border}${bg?'background:'+bg:''}">`;
+      h+=`<td style="padding:5px 8px;text-align:left;font-weight:600;color:var(--gray-500);">${i+1}</td>`;
+      h+=`<td style="padding:5px 4px;text-align:left;font-weight:500;">${fl(r.team)}${r.team}</td>`;
+      h+=`<td style="padding:5px 4px;">${hasData?r.pld:'-'}</td>`;
+      h+=`<td style="padding:5px 4px;">${hasData?r.w:'-'}</td>`;
+      h+=`<td style="padding:5px 4px;">${hasData?r.d:'-'}</td>`;
+      h+=`<td style="padding:5px 4px;">${hasData?r.l:'-'}</td>`;
+      h+=`<td style="padding:5px 4px;">${hasData?r.gf:'-'}</td>`;
+      h+=`<td style="padding:5px 4px;">${hasData?r.ga:'-'}</td>`;
+      h+=`<td style="padding:5px 4px;font-weight:500;">${hasData?(r.gd>=0?'+':'')+r.gd:'-'}</td>`;
+      h+=`<td style="padding:5px 4px;font-weight:700;">${hasData?r.pts:'-'}</td>`;
+      h+=`</tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  });
+  grid.innerHTML=h;
+}
+
+// ============================
+// RESOLVE KNOCKOUT SLOTS
+// ============================
+// Maps position codes (A1, B2, 3rd*) to actual team names based on group standings
+function resolveSlot(code){
+  if(!code)return code;
+  // Handle "W73", "W74" etc (winner of match N)
+  if(code.startsWith('W')){
+    const mn=parseInt(code.substring(1));
+    const r=S.admin.koResults[mn];
+    return (r&&r.winner)?r.winner:code;
+  }
+  // Handle "A1","A2","B1" etc
+  const m=code.match(/^([A-L])(\d)$/);
+  if(m){
+    const standings=getGroupStandings();
+    const g=standings[m[1]];
+    const pos=parseInt(m[2])-1;
+    if(g&&g[pos]&&g[pos].pld>0)return g[pos].team;
+    return code;
+  }
+  // Handle "3rd*" - can't resolve without context
+  return code;
+}
+
+// Get a resolved label for a KO team slot, with flag if available
+function resolveLabel(code){
+  const name=resolveSlot(code);
+  if(name===code)return code; // unresolved, show code as-is
+  return fl(name)+name;
+}
+
+// ============================
 // PREDICTION FORM
 // ============================
 let currentPredictor='';
@@ -901,6 +1010,7 @@ let predTP=[];
 let predKOPicks={};
 
 function startPrediction(){
+  if(S.predictionsLocked){alert('Predictions are now LOCKED by the organizer. No further submissions allowed.');return;}
   const name=document.getElementById('predictName').value.trim();
   if(!name){alert('Please enter your name.');return;}
   if(S.submissions[name]&&S.submissions[name].locked){
@@ -979,6 +1089,7 @@ function pickKO(n,side){
 
 function submitPrediction(){
   if(!currentPredictor){alert('No predictor selected.');return;}
+  if(S.predictionsLocked){alert('Predictions are now LOCKED by the organizer. No further submissions allowed.');return;}
   // Collect group stage
   let gs={};
   let gsComplete=true;
@@ -998,7 +1109,6 @@ function submitPrediction(){
     ko[m.n]={pick:pick,h:hv?parseInt(hv.value)||0:0,a:av?parseInt(av.value)||0:0};
   });
   const champ=document.getElementById('bonusChamp').value.trim();
-  const boot=document.getElementById('bonusBoot').value.trim();
   const goals=document.getElementById('bonusGoals').value.trim();
 
   S.submissions[currentPredictor]={
@@ -1008,7 +1118,6 @@ function submitPrediction(){
     ko:ko,
     tp:predTP.slice(),
     champion:champ,
-    goldenBoot:boot,
     totalGoals:goals?parseInt(goals):null
   };
   if(!S.participants.includes(currentPredictor))S.participants.push(currentPredictor);
@@ -1054,9 +1163,29 @@ function renderParts(){
     return `<span class="ptag">${p} ${locked?'<span class="lock-badge lock-yes">Submitted</span>':'<span class="lock-badge lock-no">Pending</span>'} <span class="rm" onclick="removePart('${p.replace(/'/g,"\\'")}')">&times;</span></span>`;
   }).join('');
 }
+function togglePredLock(){
+  S.predictionsLocked=!S.predictionsLocked;
+  save();
+  updateLockUI();
+  alert(S.predictionsLocked?'Predictions are now LOCKED. No one can submit.':'Predictions are now UNLOCKED. Submissions are open.');
+}
+function updateLockUI(){
+  const st=document.getElementById('lockStatus');
+  const btn=document.getElementById('lockBtn');
+  if(!st||!btn)return;
+  if(S.predictionsLocked){
+    st.innerHTML='<span style="color:var(--red);">🔒 LOCKED — Submissions Closed</span>';
+    btn.textContent='Unlock Predictions';
+    btn.style.background='var(--green)';btn.style.color='var(--white)';btn.style.borderColor='var(--green)';
+  } else {
+    st.innerHTML='<span style="color:var(--green);">🔓 OPEN — Submissions Accepted</span>';
+    btn.textContent='Lock Predictions';
+    btn.style.background='var(--red)';btn.style.color='var(--white)';btn.style.borderColor='var(--red)';
+  }
+}
 function renderAdminView(){
   if(!adminLoggedIn)return;
-  renderParts();renderAdminGS();renderAdminKO();loadAdminData();
+  renderParts();renderAdminGS();renderAdminKO();loadAdminData();updateLockUI();
   // Populate view predictions selector
   const sel=document.getElementById('viewPredPerson');
   const cur=sel.value;
@@ -1082,8 +1211,9 @@ function renderAdminKO(){
     h+=`<div class="round-hdr">${title}</div>`;
     const arr=Array.isArray(matches)?matches:[matches];
     arr.forEach(m=>{
+      const rA=resolveLabel(m.tA),rB=resolveLabel(m.tB);
       h+=`<div style="margin:6px 0;padding:8px 14px;border:1px solid var(--gray-200);border-radius:6px;">`;
-      h+=`<span style="font-size:0.78em;color:var(--regent);">M${m.n} · ${m.d} · ${fl(m.tA)}${m.tA} vs ${fl(m.tB)}${m.tB}</span><br>`;
+      h+=`<span style="font-size:0.78em;color:var(--regent);">M${m.n} · ${m.d} · ${rA} vs ${rB}</span><br>`;
       h+=`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">`;
       h+=`<label style="font-size:0.82em;">Winner:</label><input type="text" id="akw-${m.n}" placeholder="Team name" style="width:150px;font-size:0.85em;" onchange="saveAdmin()">`;
       h+=`<label style="font-size:0.82em;">Score:</label><input type="number" id="akh-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()"><span style="color:var(--regent);">-</span><input type="number" id="aka-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()">`;
@@ -1106,10 +1236,11 @@ function saveAdmin(){
     if(w)S.admin.koResults[m.n]={winner:w.value.trim(),h:hv?parseInt(hv.value)||0:0,a:av?parseInt(av.value)||0:0};
   });
   S.admin.champion=(document.getElementById('actChamp')||{}).value||'';
-  S.admin.goldenBoot=(document.getElementById('actBoot')||{}).value||'';
   const gv=(document.getElementById('actGoals')||{}).value;
   S.admin.totalGoals=gv?parseInt(gv):null;
   save();
+  updateGroupStandings();
+  updateScoresTicker();
 }
 function loadAdminData(){
   GM.forEach(m=>{
@@ -1132,7 +1263,6 @@ function loadAdminData(){
     }
   });
   const ac=document.getElementById('actChamp');if(ac)ac.value=S.admin.champion||'';
-  const ab=document.getElementById('actBoot');if(ab)ab.value=S.admin.goldenBoot||'';
   const ag=document.getElementById('actGoals');if(ag&&S.admin.totalGoals!==null)ag.value=S.admin.totalGoals;
   const ak=document.getElementById('apiKeyInput');if(ak)ak.value=S.apiKey||'';
   if(S.apiKey){const st=document.getElementById('apiKeyStatus');if(st)st.innerHTML='<span style="color:var(--green);">✓ API key saved</span>';}
@@ -1144,7 +1274,7 @@ function viewSubmittedPred(){
   if(!p||!S.submissions[p]){c.innerHTML='Select a participant.';return;}
   const sub=S.submissions[p];
   let h=`<p><strong>Submitted:</strong> ${sub.timestamp}</p>`;
-  h+=`<p><strong>Champion:</strong> ${sub.champion||'N/A'} | <strong>Golden Boot:</strong> ${sub.goldenBoot||'N/A'} | <strong>Total Goals:</strong> ${sub.totalGoals||'N/A'}</p>`;
+  h+=`<p><strong>Champion:</strong> ${sub.champion||'N/A'} | <strong>Total Goals:</strong> ${sub.totalGoals||'N/A'}</p>`;
   h+=`<p><strong>3rd Place Groups:</strong> ${(sub.tp||[]).join(', ')||'N/A'}</p>`;
   h+=`<h3 style="margin-top:10px;">Group Stage</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;font-size:0.82em;">`;
   GM.forEach(m=>{
@@ -1218,7 +1348,7 @@ function renderComparison(){
     const predSS=pred?pred.h+' - '+pred.a:'-';
     const realW=real&&real.winner?real.winner:'<span style="color:var(--regent)">Not played</span>';
     const realSS=real&&real.winner?real.h+' - '+real.a:'';
-    h+=`<tr><td>M${m.n}</td><td style="font-size:0.82em;">${fl(m.tA)}${m.tA} vs ${fl(m.tB)}${m.tB}</td><td>${pickStr}</td><td>${predSS}</td><td>${realW}</td><td>${realSS}</td><td>${real&&real.winner?pts:''}</td></tr>`;
+    h+=`<tr><td>M${m.n}</td><td style="font-size:0.82em;">${resolveLabel(m.tA)} vs ${resolveLabel(m.tB)}</td><td>${pickStr}</td><td>${predSS}</td><td>${realW}</td><td>${realSS}</td><td>${real&&real.winner?pts:''}</td></tr>`;
   });
   h+=`<tr style="background:var(--gray-50);font-weight:700;"><td colspan="6" style="text-align:right;">Knockout Total:</td><td>${totalKO}</td></tr>`;
   h+=`</tbody></table></div>`;
@@ -1249,9 +1379,6 @@ function renderComparison(){
     h+=`</div>`;
   }
 
-  const bootOK=sub.goldenBoot&&S.admin.goldenBoot&&sub.goldenBoot.toLowerCase()===S.admin.goldenBoot.toLowerCase();
-  if(bootOK)bonP+=P.BOOT;
-  h+=`<p>Golden Boot: <strong>${sub.goldenBoot||'-'}</strong> vs Actual: <strong>${S.admin.goldenBoot||'TBD'}</strong> ${S.admin.goldenBoot?(bootOK?'<span class="pts-badge pts-5">+'+P.BOOT+'</span>':'<span class="pts-badge pts-0">0</span>'):''}</p>`;
   h+=`<p>Total Goals: <strong>${sub.totalGoals!==null?sub.totalGoals:'-'}</strong> vs Actual: <strong>${S.admin.totalGoals!==null?S.admin.totalGoals:'TBD'}</strong> <span style="font-size:0.82em;color:var(--regent);">(Closest wins +5)</span></p>`;
   h+=`<div style="background:var(--black);color:var(--gold);padding:16px;border-radius:8px;margin-top:16px;text-align:center;font-size:1.2em;font-weight:700;">Grand Total: ${totalGS+totalKO+bonP} points</div>`;
   c.innerHTML=h;
@@ -1309,7 +1436,6 @@ function calcLeaderboard(){
       bonP+=checkRound([104],P.CHAMP_FIN);
     }
     // Other bonuses
-    if(sub.goldenBoot&&S.admin.goldenBoot&&sub.goldenBoot.toLowerCase()===S.admin.goldenBoot.toLowerCase())bonP+=P.BOOT;
     if(sub.totalGoals!==null&&S.admin.totalGoals!==null){
       // Closest total goals - calculated separately
     }
