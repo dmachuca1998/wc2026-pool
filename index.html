@@ -532,7 +532,7 @@ a { color:var(--black); }
       <h2>Tournament Bracket Reference</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Use this bracket chart as reference when making your knockout stage predictions below.</p>
       <div class="bracket-img-wrap">
-        <img src="qualified_nations.jpg" alt="FIFA World Cup 2026 — Knockout Bracket">
+        <img src="qualified_nations.png" alt="FIFA World Cup 2026 — Knockout Bracket">
       </div>
     </div>
 
@@ -911,13 +911,13 @@ let S = {
   admin:{groupResults:{},koResults:{},champion:"",totalGoals:null},
   predictionsLocked:false,
   koUpdateOpen:false,
-  adminPwd:"bombardier2026",
+  adminPwd:"David2026",
   apiKey:""
 };
 function save(){localStorage.setItem('wc2026v2',JSON.stringify(S));}
 function load(){
   const d=localStorage.getItem('wc2026v2');
-  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="bombardier2026";if(!S.apiKey)S.apiKey="";if(S.predictionsLocked===undefined)S.predictionsLocked=false;if(S.koUpdateOpen===undefined)S.koUpdateOpen=false;}catch(e){}}
+  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="David2026";if(!S.apiKey)S.apiKey="";if(S.predictionsLocked===undefined)S.predictionsLocked=false;if(S.koUpdateOpen===undefined)S.koUpdateOpen=false;}catch(e){}}
 }
 
 // ============================
