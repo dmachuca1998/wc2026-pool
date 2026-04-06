@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>World Cup 2026 — Prediction Challenge</title>
+<title>World Cup 2026 — Teambuilding Prediction Challenge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -287,12 +287,7 @@ a { color:var(--black); }
 <!-- STICKY HEADER -->
 <div class="sticky-hdr" id="stickyHdr">
   <div class="sticky-hdr-left">
-    <img src="fifa_logo.png" alt="FIFA 2026" class="sh-flogo" style="
-    width: 100px;
-    height: 142px;
-    padding-bottom: 0px;
-    border-bottom-width: 100px;
-">
+    <img src="fifa_logo.png" alt="FIFA 2026" class="sh-flogo">
   </div>
   <div class="sticky-hdr-right">Prediction Challenge</div>
 </div>
@@ -386,12 +381,14 @@ a { color:var(--black); }
       <span>🏆 QF: +25</span>
       <span>🏆 SF: +38</span>
       <span>🏆 Final: +50</span>
+      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +75</span>
     </div>
-    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">If your predicted champion team advances through each knockout round, you earn cumulative bonus points.</p>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>218 total bonus points</strong>.</p>
     <h3>Other Bonuses</h3>
     <div class="scoring">
-      <span>⚽ +30 Closest Total Goals</span>
+      <span>⚽ +5 Closest Total Goals</span>
     </div>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;"><strong>Knockout Update Window:</strong> After the group stage ends, the organizer will open a window for you to revise your knockout predictions based on final group standings.</p>
   </div>
 
   <!-- HOW IT WORKS -->
@@ -401,17 +398,21 @@ a { color:var(--black); }
       <strong>Before the Tournament:</strong><br>
       <strong>1.</strong> Go to <strong>Submit Prediction</strong> and enter your name.<br>
       <strong>2.</strong> Predict exact scores for all 72 group stage matches.<br>
-      <strong>3.</strong> Predict knockout stage outcomes using group positions (e.g., A1, B2) — no chasing predictions between rounds!<br>
+      <strong>3.</strong> Predict knockout stage outcomes using group positions (e.g., A1, B2).<br>
       <strong>4.</strong> Predict scores for each knockout match and select your championship team and total goals estimate.<br>
       <strong>5.</strong> Submit once — predictions are final and private. Only the organizer can view them.<br><br>
-      <strong>During the Tournament:</strong><br>
-      <strong>6.</strong> As real matches are played, the organizer enters actual scores in the <strong>Admin Panel</strong>.<br>
-      <strong>7.</strong> The system automatically compares every participant's predictions against real results:<br>
+      <strong>After Group Stage (Knockout Update Window):</strong><br>
+      <strong>6.</strong> After Match 72 (June 27th), the organizer opens a <strong>Knockout Update Window</strong>.<br>
+      <strong>7.</strong> Participants can <strong>update only their knockout predictions</strong> (3rd-place picks, match winners, scores, champion, goals) — group stage predictions remain locked.<br>
+      <strong>8.</strong> The window closes before Match 73 (Round of 32) begins.<br><br>
+      <strong>During the Knockout Stage:</strong><br>
+      <strong>9.</strong> As real matches are played, the organizer enters actual scores in the <strong>Admin Panel</strong>.<br>
+      <strong>10.</strong> The system automatically compares every participant's predictions against real results:<br>
       &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
       &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (3→5→8→12→20). Exact KO score = +3 bonus.<br>
-      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +38, Final: +50.<br>
-      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (+30).<br>
-      <strong>8.</strong> The <strong>Leaderboard</strong> updates automatically!
+      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +38, Final: +50, <strong>Winner: +75</strong>.<br>
+      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (+5).<br>
+      <strong>11.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
   </div>
 
@@ -445,6 +446,74 @@ a { color:var(--black); }
     </div>
   </div>
 
+  <!-- KO UPDATE WINDOW (separate from first-time submission) -->
+  <div class="card" id="koUpdateCard" style="display:none;">
+    <h2>🔄 Update Knockout Predictions</h2>
+    <div class="info-box" style="margin-bottom:14px;">
+      <strong>The knockout prediction update window is now OPEN!</strong><br>
+      Since the group stage is complete, you can update your knockout predictions (3rd-place picks, match winners, scores, champion, and total goals). Your group stage predictions remain locked.
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px;">
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Name (must match original submission)</label>
+        <input type="text" id="koUpdateName" placeholder="Enter your full name..." style="min-width:220px;">
+      </div>
+      <button class="btn btn-gold" onclick="startKOUpdate()">Open My KO Predictions</button>
+    </div>
+    <div id="koUpdateStatus" style="font-size:0.86em;color:var(--gray-600);"></div>
+  </div>
+
+  <!-- KO UPDATE FORM (appears after verification) -->
+  <div id="koUpdateMain" style="display:none;">
+    <div class="card" style="border-left:4px solid var(--gold);">
+      <h2 id="koUpdateWelcome">Updating KO Predictions for ...</h2>
+      <p style="color:var(--gray-600);font-size:0.88em;">Your group stage predictions are <strong>locked</strong>. Update your knockout picks below, then click <strong>Save Updated KO Predictions</strong>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Tournament Bracket Reference</h2>
+      <div class="bracket-img-wrap">
+        <img src="bracket_chart.png" alt="FIFA World Cup 2026 — Knockout Bracket">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Knockout Stage Predictions (Update)</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Now that group results are known, update your knockout picks if you wish.</p>
+
+      <div class="bracket-img-wrap" style="margin:16px 0 20px;">
+        <img src="groups_chart.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
+      </div>
+
+      <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
+      <p style="font-size:0.82em;color:var(--regent);margin-bottom:6px;">Select exactly 8 of 12 groups whose 3rd-place teams you think will advance.</p>
+      <div class="tp-grid" id="koUpTpPicker"></div>
+      <p style="color:var(--gold-dark);font-size:0.82em;margin-top:4px;" id="koUpTpCount">Selected: 0 / 8</p>
+
+      <h3>Step 2: Predict Each Knockout Match</h3>
+      <div id="koUpMatches"></div>
+    </div>
+
+    <div class="card">
+      <h2>Bonus Predictions (Update)</h2>
+      <div style="display:grid;gap:12px;max-width:400px;">
+        <div>
+          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">🏆 Championship Winner</label>
+          <input type="text" id="koUpChamp" placeholder="e.g. Brazil" style="width:100%;">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">⚽ Total Tournament Goals</label>
+          <input type="number" id="koUpGoals" placeholder="e.g. 172" style="width:100%;">
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="text-align:center;">
+      <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitKOUpdate()">Save Updated KO Predictions</button>
+      <p style="font-size:0.78em;color:var(--regent);margin-top:8px;">This will overwrite only your knockout predictions. Group stage predictions remain unchanged.</p>
+    </div>
+  </div>
+
   <div id="predictMain" style="display:none;">
     <div class="card">
       <h2 id="predictWelcome">Predictions for ...</h2>
@@ -463,7 +532,7 @@ a { color:var(--black); }
       <h2>Tournament Bracket Reference</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Use this bracket chart as reference when making your knockout stage predictions below.</p>
       <div class="bracket-img-wrap">
-        <img src="bracket_knockout.png" alt="FIFA World Cup 2026 — Knockout Bracket" style="width: 900px;">
+        <img src="bracket_chart.png" alt="FIFA World Cup 2026 — Knockout Bracket">
       </div>
     </div>
 
@@ -472,7 +541,7 @@ a { color:var(--black); }
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Pick 8 third-place qualifying groups, then select which group position advances from each knockout match. Also predict the score for each match.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="groups_chart.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
+        <img src="qualified_nations.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
         <p>World Cup 2026 group stage teams — use this as reference when selecting your 8 third-place qualifiers</p>
       </div>
 
@@ -539,6 +608,22 @@ a { color:var(--black); }
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <span id="lockStatus" style="font-weight:600;font-size:1em;"></span>
         <button class="btn btn-sm" id="lockBtn" onclick="togglePredLock()"></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔄 Knockout Update Window</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">After the group stage ends (Match 72, June 27th), open this window to allow participants to <strong>update only their knockout predictions</strong>. Group stage scores remain locked. Close the window before Match 73 begins.</p>
+      <div class="info-box" style="margin-bottom:12px;">
+        <strong>How it works:</strong><br>
+        • Participants who already submitted can go to "Submit Prediction" → "Update Knockout Predictions"<br>
+        • They can change their 3rd-place picks, knockout match picks/scores, champion, and total goals<br>
+        • Group stage predictions are <strong>frozen</strong> and cannot be changed<br>
+        • Close this window before Round of 32 begins
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <span id="koWindowStatus" style="font-weight:600;font-size:1em;"></span>
+        <button class="btn btn-sm" id="koWindowBtn" onclick="toggleKOWindow()"></button>
       </div>
     </div>
 
@@ -668,7 +753,7 @@ a { color:var(--black); }
   <img src="trophy3.png" alt="World Cup Trophy">
   <img src="trophy2.png" alt="World Cup 2026">
 </div>
-<div class="footer-bar">© 2026 David&Yonas Department Pool — World Cup 2026 Prediction Challenge</div>
+<div class="footer-bar">© 2026 David & Yonas Department Pool — World Cup 2026 Prediction Challenge</div>
 <script>
 // ===== STICKY HEADER SCROLL =====
 (function(){
@@ -689,33 +774,33 @@ a { color:var(--black); }
 // WORLD CUP 2026 DATA
 // ============================
 const GROUPS = {
-  A:["Mexico","South Africa","South Korea","UEFA PO D"],
-  B:["Canada","UEFA PO A","Qatar","Switzerland"],
+  A:["Mexico","South Africa","South Korea","Czechia"],
+  B:["Canada","Bosnia and Herzegovina","Qatar","Switzerland"],
   C:["Brazil","Morocco","Haiti","Scotland"],
-  D:["USA","Paraguay","Australia","UEFA PO C"],
+  D:["USA","Paraguay","Australia","Türkiye"],
   E:["Germany","Curaçao","Ivory Coast","Ecuador"],
-  F:["Netherlands","Japan","UEFA PO B","Tunisia"],
+  F:["Netherlands","Japan","Sweden","Tunisia"],
   G:["Belgium","Egypt","Iran","New Zealand"],
   H:["Spain","Cape Verde","Saudi Arabia","Uruguay"],
-  I:["France","Senegal","Norway","FIFA PO 2"],
+  I:["France","Senegal","Norway","Iraq"],
   J:["Argentina","Algeria","Austria","Jordan"],
-  K:["Portugal","FIFA PO 1","Uzbekistan","Colombia"],
+  K:["Portugal","DR Congo","Uzbekistan","Colombia"],
   L:["England","Croatia","Ghana","Panama"]
 };
 
 const GM = [
   {n:1,d:"Jun 11",t:"3:00 PM",g:"A",h:"Mexico",a:"South Africa"},
-  {n:2,d:"Jun 11",t:"10:00 PM",g:"A",h:"South Korea",a:"UEFA PO D"},
-  {n:25,d:"Jun 18",t:"12:00 PM",g:"A",h:"South Africa",a:"UEFA PO D"},
+  {n:2,d:"Jun 11",t:"10:00 PM",g:"A",h:"South Korea",a:"Czechia"},
+  {n:25,d:"Jun 18",t:"12:00 PM",g:"A",h:"South Africa",a:"Czechia"},
   {n:26,d:"Jun 18",t:"9:00 PM",g:"A",h:"Mexico",a:"South Korea"},
-  {n:53,d:"Jun 24",t:"6:00 PM",g:"A",h:"UEFA PO D",a:"Mexico"},
+  {n:53,d:"Jun 24",t:"6:00 PM",g:"A",h:"Czechia",a:"Mexico"},
   {n:54,d:"Jun 24",t:"6:00 PM",g:"A",h:"South Africa",a:"South Korea"},
-  {n:3,d:"Jun 12",t:"12:00 PM",g:"B",h:"Canada",a:"UEFA PO A"},
+  {n:3,d:"Jun 12",t:"12:00 PM",g:"B",h:"Canada",a:"Bosnia and Herzegovina"},
   {n:4,d:"Jun 12",t:"3:00 PM",g:"B",h:"Qatar",a:"Switzerland"},
-  {n:27,d:"Jun 18",t:"3:00 PM",g:"B",h:"UEFA PO A",a:"Switzerland"},
+  {n:27,d:"Jun 18",t:"3:00 PM",g:"B",h:"Bosnia-Herzegovina",a:"Switzerland"},
   {n:28,d:"Jun 18",t:"6:00 PM",g:"B",h:"Canada",a:"Qatar"},
   {n:49,d:"Jun 24",t:"12:00 PM",g:"B",h:"Switzerland",a:"Canada"},
-  {n:50,d:"Jun 24",t:"12:00 PM",g:"B",h:"UEFA PO A",a:"Qatar"},
+  {n:50,d:"Jun 24",t:"12:00 PM",g:"B",h:"Bosnia-Herzegovina",a:"Qatar"},
   {n:5,d:"Jun 12",t:"6:00 PM",g:"C",h:"Brazil",a:"Morocco"},
   {n:6,d:"Jun 12",t:"9:00 PM",g:"C",h:"Haiti",a:"Scotland"},
   {n:29,d:"Jun 19",t:"12:00 PM",g:"C",h:"Morocco",a:"Scotland"},
@@ -723,10 +808,10 @@ const GM = [
   {n:55,d:"Jun 25",t:"6:00 PM",g:"C",h:"Scotland",a:"Brazil"},
   {n:56,d:"Jun 25",t:"6:00 PM",g:"C",h:"Morocco",a:"Haiti"},
   {n:7,d:"Jun 13",t:"3:00 PM",g:"D",h:"USA",a:"Paraguay"},
-  {n:8,d:"Jun 13",t:"6:00 PM",g:"D",h:"Australia",a:"UEFA PO C"},
-  {n:31,d:"Jun 19",t:"6:00 PM",g:"D",h:"Paraguay",a:"UEFA PO C"},
+  {n:8,d:"Jun 13",t:"6:00 PM",g:"D",h:"Australia",a:"Türkiye"},
+  {n:31,d:"Jun 19",t:"6:00 PM",g:"D",h:"Paraguay",a:"Türkiye"},
   {n:32,d:"Jun 19",t:"9:00 PM",g:"D",h:"USA",a:"Australia"},
-  {n:57,d:"Jun 25",t:"6:00 PM",g:"D",h:"UEFA PO C",a:"USA"},
+  {n:57,d:"Jun 25",t:"6:00 PM",g:"D",h:"Türkiye",a:"USA"},
   {n:58,d:"Jun 25",t:"6:00 PM",g:"D",h:"Paraguay",a:"Australia"},
   {n:9,d:"Jun 13",t:"9:00 PM",g:"E",h:"Germany",a:"Curaçao"},
   {n:10,d:"Jun 13",t:"12:00 AM",g:"E",h:"Ivory Coast",a:"Ecuador"},
@@ -735,11 +820,11 @@ const GM = [
   {n:59,d:"Jun 25",t:"6:00 PM",g:"E",h:"Ecuador",a:"Germany"},
   {n:60,d:"Jun 25",t:"6:00 PM",g:"E",h:"Curaçao",a:"Ivory Coast"},
   {n:11,d:"Jun 14",t:"12:00 PM",g:"F",h:"Netherlands",a:"Japan"},
-  {n:12,d:"Jun 14",t:"3:00 PM",g:"F",h:"UEFA PO B",a:"Tunisia"},
+  {n:12,d:"Jun 14",t:"3:00 PM",g:"F",h:"Sweden",a:"Tunisia"},
   {n:35,d:"Jun 20",t:"6:00 PM",g:"F",h:"Japan",a:"Tunisia"},
-  {n:36,d:"Jun 20",t:"9:00 PM",g:"F",h:"Netherlands",a:"UEFA PO B"},
+  {n:36,d:"Jun 20",t:"9:00 PM",g:"F",h:"Netherlands",a:"Sweden"},
   {n:63,d:"Jun 26",t:"6:00 PM",g:"F",h:"Tunisia",a:"Netherlands"},
-  {n:64,d:"Jun 26",t:"6:00 PM",g:"F",h:"Japan",a:"UEFA PO B"},
+  {n:64,d:"Jun 26",t:"6:00 PM",g:"F",h:"Japan",a:"Sweden"},
   {n:13,d:"Jun 14",t:"6:00 PM",g:"G",h:"Belgium",a:"Egypt"},
   {n:14,d:"Jun 14",t:"9:00 PM",g:"G",h:"Iran",a:"New Zealand"},
   {n:37,d:"Jun 21",t:"12:00 PM",g:"G",h:"Egypt",a:"New Zealand"},
@@ -753,10 +838,10 @@ const GM = [
   {n:51,d:"Jun 24",t:"6:00 PM",g:"H",h:"Uruguay",a:"Spain"},
   {n:52,d:"Jun 24",t:"6:00 PM",g:"H",h:"Cape Verde",a:"Saudi Arabia"},
   {n:17,d:"Jun 16",t:"3:00 PM",g:"I",h:"France",a:"Senegal"},
-  {n:18,d:"Jun 16",t:"6:00 PM",g:"I",h:"Norway",a:"FIFA PO 2"},
+  {n:18,d:"Jun 16",t:"6:00 PM",g:"I",h:"Norway",a:"Iraq"},
   {n:41,d:"Jun 22",t:"3:00 PM",g:"I",h:"France",a:"Norway"},
-  {n:42,d:"Jun 22",t:"6:00 PM",g:"I",h:"FIFA PO 2",a:"Senegal"},
-  {n:67,d:"Jun 27",t:"6:00 PM",g:"I",h:"FIFA PO 2",a:"France"},
+  {n:42,d:"Jun 22",t:"6:00 PM",g:"I",h:"Iraq",a:"Senegal"},
+  {n:67,d:"Jun 27",t:"6:00 PM",g:"I",h:"Iraq",a:"France"},
   {n:68,d:"Jun 27",t:"6:00 PM",g:"I",h:"Senegal",a:"Norway"},
   {n:19,d:"Jun 16",t:"9:00 PM",g:"J",h:"Argentina",a:"Algeria"},
   {n:20,d:"Jun 16",t:"12:00 AM",g:"J",h:"Austria",a:"Jordan"},
@@ -764,11 +849,11 @@ const GM = [
   {n:44,d:"Jun 22",t:"12:00 AM",g:"J",h:"Jordan",a:"Algeria"},
   {n:69,d:"Jun 27",t:"6:00 PM",g:"J",h:"Jordan",a:"Argentina"},
   {n:70,d:"Jun 27",t:"6:00 PM",g:"J",h:"Algeria",a:"Austria"},
-  {n:21,d:"Jun 17",t:"1:00 PM",g:"K",h:"Portugal",a:"FIFA PO 1"},
+  {n:21,d:"Jun 17",t:"1:00 PM",g:"K",h:"Portugal",a:"DR Congo"},
   {n:24,d:"Jun 17",t:"10:00 PM",g:"K",h:"Uzbekistan",a:"Colombia"},
-  {n:45,d:"Jun 23",t:"1:00 PM",g:"K",h:"Colombia",a:"FIFA PO 1"},
+  {n:45,d:"Jun 23",t:"1:00 PM",g:"K",h:"Colombia",a:"DR Congo"},
   {n:46,d:"Jun 23",t:"4:00 PM",g:"K",h:"Portugal",a:"Uzbekistan"},
-  {n:71,d:"Jun 27",t:"6:00 PM",g:"K",h:"FIFA PO 1",a:"Uzbekistan"},
+  {n:71,d:"Jun 27",t:"6:00 PM",g:"K",h:"DR Congo",a:"Uzbekistan"},
   {n:72,d:"Jun 27",t:"6:00 PM",g:"K",h:"Colombia",a:"Portugal"},
   {n:22,d:"Jun 17",t:"4:00 PM",g:"L",h:"England",a:"Croatia"},
   {n:23,d:"Jun 17",t:"7:00 PM",g:"L",h:"Ghana",a:"Panama"},
@@ -811,10 +896,10 @@ const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
 const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
-const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:5,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:38,CHAMP_FIN:50};
+const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:5,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:38,CHAMP_FIN:50,CHAMP_WIN:75};
 
 // Country flag mapping (ISO codes for flagcdn.com)
-const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
+const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Bosnia and Herzegovina':'ba','Türkiye':'tr','DR Congo':'cd','Iraq':'iq','Sweden':'se','Czechia':'cz','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
 function fl(n){const c=FC[n];return c?'<img src="https://flagcdn.com/w20/'+c+'.png" alt="" style="width:18px;height:13px;vertical-align:middle;margin-right:4px;border-radius:2px;box-shadow:0 0 2px rgba(0,0,0,0.2);">':'';}
 
 // ============================
@@ -825,13 +910,14 @@ let S = {
   submissions:{},
   admin:{groupResults:{},koResults:{},champion:"",totalGoals:null},
   predictionsLocked:false,
-  adminPwd:"David2026",
+  koUpdateOpen:false,
+  adminPwd:"david2026",
   apiKey:""
 };
 function save(){localStorage.setItem('wc2026v2',JSON.stringify(S));}
 function load(){
   const d=localStorage.getItem('wc2026v2');
-  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="David2026";if(!S.apiKey)S.apiKey="";if(S.predictionsLocked===undefined)S.predictionsLocked=false;}catch(e){}}
+  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="david2026";if(!S.apiKey)S.apiKey="";if(S.predictionsLocked===undefined)S.predictionsLocked=false;if(S.koUpdateOpen===undefined)S.koUpdateOpen=false;}catch(e){}}
 }
 
 // ============================
@@ -843,6 +929,7 @@ function showTab(t){
   document.getElementById('tab-'+t).classList.add('active');
   event.target.classList.add('active');
   if(t==='home'){updateHomeStats();calcLeaderboard();}
+  if(t==='predict')checkKOUpdateVisibility();
   if(t==='admin')renderAdminView();
   if(t==='data'&&adminLoggedIn){document.getElementById('dataLoginCard').style.display='none';document.getElementById('dataMain').style.display='';}
 }
@@ -1130,6 +1217,144 @@ function submitPrediction(){
 }
 
 // ============================
+// KO UPDATE WINDOW
+// ============================
+let koUpdater='';
+let koUpTP=[];
+let koUpPicks={};
+
+function checkKOUpdateVisibility(){
+  const card=document.getElementById('koUpdateCard');
+  if(!card)return;
+  card.style.display=S.koUpdateOpen?'':'none';
+}
+
+function startKOUpdate(){
+  const name=document.getElementById('koUpdateName').value.trim();
+  const st=document.getElementById('koUpdateStatus');
+  if(!name){alert('Please enter your name.');return;}
+  if(!S.submissions[name]||!S.submissions[name].locked){
+    st.innerHTML='<span style="color:var(--red);">❌ No submitted prediction found for "'+name+'". You must have submitted predictions during the initial window.</span>';
+    return;
+  }
+  if(!S.koUpdateOpen){
+    st.innerHTML='<span style="color:var(--red);">❌ The knockout update window is currently closed.</span>';
+    return;
+  }
+  koUpdater=name;
+  st.innerHTML='<span style="color:var(--green);">✓ Found your submission. Loading knockout predictions...</span>';
+  document.getElementById('koUpdateWelcome').textContent='Updating KO Predictions for '+name;
+  document.getElementById('koUpdateMain').style.display='';
+
+  // Load existing KO data
+  const sub=S.submissions[name];
+  koUpTP=(sub.tp||[]).slice();
+  koUpPicks={};
+  ALLKO.forEach(m=>{
+    const pk=sub.ko[m.n];
+    if(pk&&pk.pick)koUpPicks[m.n]=pk.pick;
+  });
+
+  renderKOUpdateForm();
+  loadKOUpdateData(sub);
+}
+
+function renderKOUpdateForm(){
+  // TP picker
+  const tpc=document.getElementById('koUpTpPicker');
+  tpc.innerHTML='ABCDEFGHIJKL'.split('').map(g=>`<div class="tp-btn ${koUpTP.includes(g)?'sel':''}" id="koup-tp-${g}" onclick="toggleKOUpTP('${g}')">${g}3</div>`).join('');
+  document.getElementById('koUpTpCount').textContent='Selected: '+koUpTP.length+' / 8';
+
+  // KO matches
+  const c=document.getElementById('koUpMatches');let h='';
+  function renderRound(title,matches,cls){
+    h+=`<div class="round-hdr">${title}</div><div class="bracket-grid ${cls}">`;
+    matches.forEach(m=>{
+      const arr=Array.isArray(m)?m:[m];
+      arr.forEach(mm=>{
+        const rA=resolveLabel(mm.tA),rB=resolveLabel(mm.tB);
+        h+=`<div class="bkt-match"><div class="bkt-label">M${mm.n} · ${mm.d}${mm.tp?' · 3rd from: '+mm.tp:''}</div>`;
+        h+=`<div class="bkt-opt${koUpPicks[mm.n]==='A'?' sel':''}" id="koup-bo-${mm.n}-A" onclick="pickKOUp(${mm.n},'A')">${rA}</div>`;
+        h+=`<div class="bkt-opt${koUpPicks[mm.n]==='B'?' sel':''}" id="koup-bo-${mm.n}-B" onclick="pickKOUp(${mm.n},'B')">${rB}</div>`;
+        h+=`<div class="bkt-scores"><input type="number" min="0" max="20" id="koup-s-${mm.n}-h" placeholder="-"><span class="vs">vs</span><input type="number" min="0" max="20" id="koup-s-${mm.n}-a" placeholder="-"></div>`;
+        h+=`</div>`;
+      });
+    });
+    h+=`</div>`;
+  }
+  renderRound('Round of 32 (M73–M88)',R32,'r32');
+  renderRound('Round of 16 (M89–M96)',R16,'r16');
+  renderRound('Quarter-Finals (M97–M100)',QF,'qf');
+  renderRound('Semi-Finals (M101–M102)',SF,'sf');
+  renderRound('Final (M104)',[FINAL],'fin');
+  c.innerHTML=h;
+}
+
+function loadKOUpdateData(sub){
+  // Load existing KO picks and scores
+  ALLKO.forEach(m=>{
+    const pk=sub.ko[m.n];
+    if(!pk)return;
+    if(pk.pick){
+      const el=document.getElementById('koup-bo-'+m.n+'-'+pk.pick);
+      if(el)el.classList.add('sel');
+    }
+    const hv=document.getElementById('koup-s-'+m.n+'-h');
+    const av=document.getElementById('koup-s-'+m.n+'-a');
+    if(hv&&pk.h!==undefined)hv.value=pk.h;
+    if(av&&pk.a!==undefined)av.value=pk.a;
+  });
+  // Load champion and goals
+  const ch=document.getElementById('koUpChamp');if(ch)ch.value=sub.champion||'';
+  const gl=document.getElementById('koUpGoals');if(gl&&sub.totalGoals!==null)gl.value=sub.totalGoals;
+}
+
+function toggleKOUpTP(g){
+  const i=koUpTP.indexOf(g);
+  if(i>=0)koUpTP.splice(i,1);
+  else{if(koUpTP.length>=8){alert('Max 8 groups!');return;}koUpTP.push(g);}
+  'ABCDEFGHIJKL'.split('').forEach(x=>{
+    const el=document.getElementById('koup-tp-'+x);
+    if(el)el.classList.toggle('sel',koUpTP.includes(x));
+  });
+  document.getElementById('koUpTpCount').textContent='Selected: '+koUpTP.length+' / 8';
+}
+
+function pickKOUp(mn,side){
+  koUpPicks[mn]=side;
+  const a=document.getElementById('koup-bo-'+mn+'-A');
+  const b=document.getElementById('koup-bo-'+mn+'-B');
+  if(a)a.classList.toggle('sel',side==='A');
+  if(b)b.classList.toggle('sel',side==='B');
+}
+
+function submitKOUpdate(){
+  if(!koUpdater||!S.submissions[koUpdater]){alert('No predictor selected.');return;}
+  if(!S.koUpdateOpen){alert('The knockout update window is now closed.');return;}
+  // Collect KO picks
+  let ko={};
+  ALLKO.forEach(m=>{
+    const pick=koUpPicks[m.n]||'';
+    const hv=document.getElementById('koup-s-'+m.n+'-h');
+    const av=document.getElementById('koup-s-'+m.n+'-a');
+    ko[m.n]={pick:pick,h:hv?parseInt(hv.value)||0:0,a:av?parseInt(av.value)||0:0};
+  });
+  const champ=document.getElementById('koUpChamp').value.trim();
+  const goals=document.getElementById('koUpGoals').value.trim();
+
+  // Update only KO data - preserve GS
+  S.submissions[koUpdater].ko=ko;
+  S.submissions[koUpdater].tp=koUpTP.slice();
+  S.submissions[koUpdater].champion=champ;
+  S.submissions[koUpdater].totalGoals=goals?parseInt(goals):null;
+  S.submissions[koUpdater].koUpdateTimestamp=new Date().toISOString();
+  save();
+  alert('Knockout predictions updated successfully for '+koUpdater+'!');
+  document.getElementById('koUpdateMain').style.display='none';
+  document.getElementById('koUpdateStatus').innerHTML='<span style="color:var(--green);">✓ KO predictions updated at '+new Date().toLocaleString()+'</span>';
+}
+
+// ============================
 // ADMIN
 // ============================
 let adminLoggedIn=false;
@@ -1184,9 +1409,30 @@ function updateLockUI(){
     btn.style.background='var(--red)';btn.style.color='var(--white)';btn.style.borderColor='var(--red)';
   }
 }
+function toggleKOWindow(){
+  S.koUpdateOpen=!S.koUpdateOpen;
+  save();
+  updateKOWindowUI();
+  alert(S.koUpdateOpen?'Knockout update window is now OPEN. Participants can update their KO predictions.':'Knockout update window is now CLOSED. KO predictions are locked.');
+}
+function updateKOWindowUI(){
+  const st=document.getElementById('koWindowStatus');
+  const btn=document.getElementById('koWindowBtn');
+  if(!st||!btn)return;
+  if(S.koUpdateOpen){
+    st.innerHTML='<span style="color:var(--gold);font-weight:700;">🔓 OPEN — Participants Can Update KO Predictions</span>';
+    btn.textContent='Close KO Update Window';
+    btn.style.background='var(--red)';btn.style.color='var(--white)';btn.style.borderColor='var(--red)';
+  } else {
+    st.innerHTML='<span style="color:var(--gray-400);">🔒 CLOSED — KO Predictions Locked</span>';
+    btn.textContent='Open KO Update Window';
+    btn.style.background='var(--gold)';btn.style.color='var(--black)';btn.style.borderColor='var(--gold)';
+  }
+  checkKOUpdateVisibility();
+}
 function renderAdminView(){
   if(!adminLoggedIn)return;
-  renderParts();renderAdminGS();renderAdminKO();loadAdminData();updateLockUI();
+  renderParts();renderAdminGS();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();
   // Populate view predictions selector
   const sel=document.getElementById('viewPredPerson');
   const cur=sel.value;
@@ -1377,10 +1623,18 @@ function renderComparison(){
     h+=`<div>${checkRound([97,98,99,100],P.CHAMP_QF,'Reaches QF')}</div>`;
     h+=`<div>${checkRound([101,102],P.CHAMP_SF,'Reaches SF')}</div>`;
     h+=`<div>${checkRound([104],P.CHAMP_FIN,'Reaches Final')}</div>`;
+    // Champion Winner bonus: if predicted champion = actual tournament champion
+    if(S.admin.champion){
+      const champWon=sub.champion.toLowerCase()===S.admin.champion.toLowerCase();
+      if(champWon){bonP+=P.CHAMP_WIN;h+=`<div><span class="pts-badge pts-5">+${P.CHAMP_WIN}</span> 🏆 Champion Winner!</div>`;}
+      else{h+=`<div><span class="pts-badge pts-0">0</span> Champion Winner (${S.admin.champion} won)</div>`;}
+    } else {
+      h+=`<div><span style="color:var(--regent);">TBD</span> Champion Winner</div>`;
+    }
     h+=`</div>`;
   }
 
-  h+=`<p>Total Goals: <strong>${sub.totalGoals!==null?sub.totalGoals:'-'}</strong> vs Actual: <strong>${S.admin.totalGoals!==null?S.admin.totalGoals:'TBD'}</strong> <span style="font-size:0.82em;color:var(--regent);">(Closest wins +30)</span></p>`;
+  h+=`<p>Total Goals: <strong>${sub.totalGoals!==null?sub.totalGoals:'-'}</strong> vs Actual: <strong>${S.admin.totalGoals!==null?S.admin.totalGoals:'TBD'}</strong> <span style="font-size:0.82em;color:var(--regent);">(Closest wins +5)</span></p>`;
   h+=`<div style="background:var(--black);color:var(--gold);padding:16px;border-radius:8px;margin-top:16px;text-align:center;font-size:1.2em;font-weight:700;">Grand Total: ${totalGS+totalKO+bonP} points</div>`;
   c.innerHTML=h;
 }
@@ -1435,6 +1689,8 @@ function calcLeaderboard(){
       bonP+=checkRound([97,98,99,100],P.CHAMP_QF);
       bonP+=checkRound([101,102],P.CHAMP_SF);
       bonP+=checkRound([104],P.CHAMP_FIN);
+      // Champion Winner bonus: predicted champion = actual tournament winner
+      if(S.admin.champion&&sub.champion.toLowerCase()===S.admin.champion.toLowerCase())bonP+=P.CHAMP_WIN;
     }
     // Other bonuses
     if(sub.totalGoals!==null&&S.admin.totalGoals!==null){
