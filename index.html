@@ -251,6 +251,31 @@ input:focus,select:focus,textarea:focus { outline:none;border-color:var(--black)
 .footer-gallery img { height:200px;border-radius:12px;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,0.12); }
 .footer-bar { background:var(--black);padding:24px;text-align:center;color:var(--regent);font-size:0.78em;letter-spacing:0.5px; }
 
+/* ===== STICKY SAVE BAR ===== */
+.sticky-save-bar {
+  position:sticky;
+  top:100px; /* sits just below the nav */
+  z-index:80;
+  background:rgba(255,255,255,0.97);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--gray-200);
+  border-radius:10px;
+  padding:10px 18px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.08);
+}
+.sticky-save-bar .ssb-left {
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.sticky-save-bar .ssb-status {
+  font-size:0.82em;color:var(--regent);min-width:160px;
+}
+
 /* ===== MISC ===== */
 .ptag-list { display:flex;flex-wrap:wrap;gap:6px;margin:8px 0; }
 .ptag { background:var(--gray-100);padding:5px 12px;border-radius:15px;font-size:0.84em;display:flex;align-items:center;gap:6px;border:1px solid var(--gray-200); }
@@ -548,7 +573,16 @@ a { color:var(--black); }
   <div id="predictMain" style="display:none;">
     <div class="card">
       <h2 id="predictWelcome">Predictions for ...</h2>
-      <p style="color:var(--gray-600);font-size:0.88em;">Fill in ALL sections below, then click <strong>Submit Predictions</strong> at the bottom. You can only submit once!</p>
+      <p style="color:var(--gray-600);font-size:0.88em;">Fill in all sections below, then click <strong>Submit Final Predictions</strong> at the bottom. Use <strong>Save Progress</strong> at any time to save your work and come back later.</p>
+    </div>
+
+    <!-- STICKY SAVE BAR — always visible while filling predictions -->
+    <div class="sticky-save-bar">
+      <div class="ssb-left">
+        <button class="btn btn-outline" style="font-size:0.92em;padding:9px 22px;" onclick="saveDraft()">💾 Save Progress</button>
+        <span class="ssb-status" id="draftStatusTop">Progress not yet saved</span>
+      </div>
+      <button class="btn btn-gold" style="font-size:0.92em;padding:9px 22px;" onclick="submitPrediction()">✅ Submit Final Predictions</button>
     </div>
 
     <!-- GROUP STAGE -->
@@ -603,10 +637,10 @@ a { color:var(--black); }
     <!-- SUBMIT -->
     <div class="card" style="text-align:center;">
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;">
-        <button class="btn btn-outline" style="font-size:1em;padding:12px 28px;" onclick="saveDraft()">💾 Save Draft</button>
+        <button class="btn btn-outline" style="font-size:1em;padding:12px 28px;" onclick="saveDraft()">💾 Save Progress</button>
         <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitPrediction()">✅ Submit Final Predictions</button>
       </div>
-      <p style="font-size:0.78em;color:var(--regent);margin-top:10px;">Save Draft lets you come back later. Once you Submit, predictions are <strong>final and locked</strong>.</p>
+      <p style="font-size:0.78em;color:var(--regent);margin-top:10px;">Save Progress lets you come back later. Once you Submit, predictions are <strong>final and locked</strong>.</p>
       <p id="draftStatus" style="font-size:0.84em;margin-top:6px;min-height:18px;"></p>
     </div>
   </div>
@@ -1275,6 +1309,8 @@ async function startPrediction(){
     renderGSForm();renderTPPicker();renderKOForm();
     loadDraftIntoForm(draft);
     statusEl.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — continue where you left off.</span>';
+    const dst=document.getElementById('draftStatusTop');
+    if(dst)dst.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — '+new Date(draft.draftTimestamp||Date.now()).toLocaleString()+'</span>';
   } else {
     predTP=[];predKOPicks={};
     renderGSForm();renderTPPicker();renderKOForm();
@@ -1357,8 +1393,11 @@ function saveDraft(){
     totalGoals:goals?parseInt(goals):null
   };
   save();
+  const msg='<span style="color:var(--green);">✓ Progress saved at '+new Date().toLocaleTimeString()+'</span>';
   const ds=document.getElementById('draftStatus');
-  if(ds)ds.innerHTML='<span style="color:var(--green);">✓ Draft saved at '+new Date().toLocaleTimeString()+'! You can safely close this tab and resume later.</span>';
+  if(ds)ds.innerHTML=msg+'<span style="color:var(--regent);font-size:0.9em;"> — You can safely close this tab and resume later.</span>';
+  const dst=document.getElementById('draftStatusTop');
+  if(dst)dst.innerHTML=msg;
 }
 
 function renderGSForm(){
