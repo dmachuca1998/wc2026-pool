@@ -251,6 +251,31 @@ input:focus,select:focus,textarea:focus { outline:none;border-color:var(--black)
 .footer-gallery img { height:200px;border-radius:12px;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,0.12); }
 .footer-bar { background:var(--black);padding:24px;text-align:center;color:var(--regent);font-size:0.78em;letter-spacing:0.5px; }
 
+/* ===== STICKY SAVE BAR ===== */
+.sticky-save-bar {
+  position:sticky;
+  top:100px; /* sits just below the nav */
+  z-index:80;
+  background:rgba(255,255,255,0.97);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--gray-200);
+  border-radius:10px;
+  padding:10px 18px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.08);
+}
+.sticky-save-bar .ssb-left {
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.sticky-save-bar .ssb-status {
+  font-size:0.82em;color:var(--regent);min-width:160px;
+}
+
 /* ===== MISC ===== */
 .ptag-list { display:flex;flex-wrap:wrap;gap:6px;margin:8px 0; }
 .ptag { background:var(--gray-100);padding:5px 12px;border-radius:15px;font-size:0.84em;display:flex;align-items:center;gap:6px;border:1px solid var(--gray-200); }
@@ -303,7 +328,10 @@ a { color:var(--black); }
 <div class="scores-panel">
   <div class="scores-panel-inner">
     <h2><span class="live-dot"></span> World Cup 2026 — Match Scores</h2>
-    <div class="scores-ticker" id="scoresTicker">
+    <button id="tickerPrev" onclick="scrollTicker(-1)" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:var(--white);font-size:1.1em;cursor:pointer;">‹</button>
+<div class="scores-ticker" id="scoresTicker">
+</div>
+<button id="tickerNext" onclick="scrollTicker(1)" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:var(--white);font-size:1.1em;cursor:pointer;">›</button>
       <div class="scores-empty">Match scores will appear here once the tournament begins. Admin can update scores in the Admin Panel.</div>
     </div>
   </div>
@@ -522,7 +550,7 @@ a { color:var(--black); }
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Now that group results are known, update your knockout picks if you wish.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="groups_chart.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
+        <img src="qualified_nations.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
       </div>
 
       <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
@@ -548,7 +576,16 @@ a { color:var(--black); }
   <div id="predictMain" style="display:none;">
     <div class="card">
       <h2 id="predictWelcome">Predictions for ...</h2>
-      <p style="color:var(--gray-600);font-size:0.88em;">Fill in ALL sections below, then click <strong>Submit Predictions</strong> at the bottom. You can only submit once!</p>
+      <p style="color:var(--gray-600);font-size:0.88em;">Fill in all sections below, then click <strong>Submit Final Predictions</strong> at the bottom. Use <strong>Save Progress</strong> at any time to save your work and come back later.</p>
+    </div>
+
+    <!-- STICKY SAVE BAR — always visible while filling predictions -->
+    <div class="sticky-save-bar">
+      <div class="ssb-left">
+        <button class="btn btn-outline" style="font-size:0.92em;padding:9px 22px;" onclick="saveDraft()">💾 Save Progress</button>
+        <span class="ssb-status" id="draftStatusTop">Progress not yet saved</span>
+      </div>
+      <button class="btn btn-gold" style="font-size:0.92em;padding:9px 22px;" onclick="submitPrediction()">✅ Submit Final Predictions</button>
     </div>
 
     <!-- GROUP STAGE -->
@@ -603,10 +640,10 @@ a { color:var(--black); }
     <!-- SUBMIT -->
     <div class="card" style="text-align:center;">
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;">
-        <button class="btn btn-outline" style="font-size:1em;padding:12px 28px;" onclick="saveDraft()">💾 Save Draft</button>
+        <button class="btn btn-outline" style="font-size:1em;padding:12px 28px;" onclick="saveDraft()">💾 Save Progress</button>
         <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitPrediction()">✅ Submit Final Predictions</button>
       </div>
-      <p style="font-size:0.78em;color:var(--regent);margin-top:10px;">Save Draft lets you come back later. Once you Submit, predictions are <strong>final and locked</strong>.</p>
+      <p style="font-size:0.78em;color:var(--regent);margin-top:10px;">Save Progress lets you come back later. Once you Submit, predictions are <strong>final and locked</strong>.</p>
       <p id="draftStatus" style="font-size:0.84em;margin-top:6px;min-height:18px;"></p>
     </div>
   </div>
@@ -735,18 +772,14 @@ a { color:var(--black); }
       <div style="display:grid;gap:12px;max-width:400px;margin-top:10px;">
         <div>
           <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Actual Champion</label>
-          <input type="text" id="actChamp" placeholder="e.g. Argentina" oninput="silentSave()" style="width:100%;">
+          <input type="text" id="actChamp" placeholder="e.g. Argentina" onchange="saveAdmin()" style="width:100%;">
         </div>
         <div>
           <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Actual Total Goals</label>
-          <input type="number" id="actGoals" placeholder="e.g. 168" oninput="silentSave()" style="width:100%;">
+          <input type="number" id="actGoals" placeholder="e.g. 168" onchange="saveAdmin()" style="width:100%;">
         </div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;">
-        <button class="btn btn-gold" onclick="saveAdminManual()">💾 Save Results &amp; Update Leaderboard</button>
-        <button class="btn btn-red btn-sm" onclick="resetMatchResults()">🗑 Reset All Match Entries</button>
-      </div>
-      <p id="adminSaveStatus" style="font-size:0.84em;margin-top:8px;min-height:18px;"></p>
+      <button class="btn btn-gold" style="margin-top:14px;" onclick="saveAdmin();calcLeaderboard();renderAdminKO();loadAdminData();alert('Results saved & leaderboard updated!');">Save Results & Update Leaderboard</button>
     </div>
   </div>
 </div>
@@ -1079,6 +1112,10 @@ function updateHomeStats(){
 // ============================
 // SCORES TICKER
 // ============================
+function scrollTicker(dir){
+  const ticker=document.getElementById('scoresTicker');
+  if(ticker)ticker.scrollBy({left:dir*220,behavior:'smooth'});
+}
 function updateScoresTicker(){
   const ticker=document.getElementById('scoresTicker');
   if(!ticker)return;
@@ -1279,6 +1316,8 @@ async function startPrediction(){
     renderGSForm();renderTPPicker();renderKOForm();
     loadDraftIntoForm(draft);
     statusEl.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — continue where you left off.</span>';
+    const dst=document.getElementById('draftStatusTop');
+    if(dst)dst.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — '+new Date(draft.draftTimestamp||Date.now()).toLocaleString()+'</span>';
   } else {
     predTP=[];predKOPicks={};
     renderGSForm();renderTPPicker();renderKOForm();
@@ -1361,8 +1400,11 @@ function saveDraft(){
     totalGoals:goals?parseInt(goals):null
   };
   save();
+  const msg='<span style="color:var(--green);">✓ Progress saved at '+new Date().toLocaleTimeString()+'</span>';
   const ds=document.getElementById('draftStatus');
-  if(ds)ds.innerHTML='<span style="color:var(--green);">✓ Draft saved at '+new Date().toLocaleTimeString()+'! You can safely close this tab and resume later.</span>';
+  if(ds)ds.innerHTML=msg+'<span style="color:var(--regent);font-size:0.9em;"> — You can safely close this tab and resume later.</span>';
+  const dst=document.getElementById('draftStatusTop');
+  if(dst)dst.innerHTML=msg;
 }
 
 function renderGSForm(){
@@ -1717,7 +1759,7 @@ function renderAdminGS(){
   Object.keys(GROUPS).forEach(g=>{
     h+=`<div class="group-hdr"><h3>Group ${g}</h3></div>`;
     GM.filter(m=>m.g===g).forEach(m=>{
-      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d}</div><div class="scores"><input type="number" min="0" max="20" id="ah-${m.n}" placeholder="-" oninput="silentSave()"><span class="vs">vs</span><input type="number" min="0" max="20" id="aa-${m.n}" placeholder="-" oninput="silentSave()"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
+      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d}</div><div class="scores"><input type="number" min="0" max="20" id="ah-${m.n}" placeholder="-" onchange="saveAdmin()"><span class="vs">vs</span><input type="number" min="0" max="20" id="aa-${m.n}" placeholder="-" onchange="saveAdmin()"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
     });
   });
   c.innerHTML=h;
@@ -1732,8 +1774,8 @@ function renderAdminKO(){
       h+=`<div style="margin:6px 0;padding:8px 14px;border:1px solid var(--gray-200);border-radius:6px;">`;
       h+=`<span style="font-size:0.78em;color:var(--regent);">M${m.n} · ${m.d} · ${rA} vs ${rB}</span><br>`;
       h+=`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">`;
-      h+=`<label style="font-size:0.82em;">Winner:</label><input type="text" id="akw-${m.n}" placeholder="Team name" style="width:150px;font-size:0.85em;" oninput="silentSave()">`;
-      h+=`<label style="font-size:0.82em;">Score:</label><input type="number" id="akh-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" oninput="silentSave()"><span style="color:var(--regent);">-</span><input type="number" id="aka-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" oninput="silentSave()">`;
+      h+=`<label style="font-size:0.82em;">Winner:</label><input type="text" id="akw-${m.n}" placeholder="Team name" style="width:150px;font-size:0.85em;" onchange="saveAdmin()">`;
+      h+=`<label style="font-size:0.82em;">Score:</label><input type="number" id="akh-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()"><span style="color:var(--regent);">-</span><input type="number" id="aka-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()">`;
       h+=`</div></div>`;
     });
   }
@@ -1759,58 +1801,6 @@ function saveAdmin(){
   updateGroupStandings();
   updateScoresTicker();
 }
-
-// Debounced silent auto-save while typing — no DOM rebuild, no scroll jump
-let _silentSaveTimer=null;
-function silentSave(){
-  clearTimeout(_silentSaveTimer);
-  _silentSaveTimer=setTimeout(()=>{
-    saveAdmin();
-    const st=document.getElementById('adminSaveStatus');
-    if(st)st.innerHTML='<span style="color:var(--regent);">Auto-saved at '+new Date().toLocaleTimeString()+'</span>';
-  },600);
-}
-
-// Manual save — no renderAdminKO/loadAdminData calls so no scroll jump
-function saveAdminManual(){
-  saveAdmin();
-  calcLeaderboard();
-  const st=document.getElementById('adminSaveStatus');
-  if(st)st.innerHTML='<span style="color:var(--green);">✓ Saved &amp; leaderboard updated at '+new Date().toLocaleTimeString()+'</span>';
-}
-
-// Clear all manually entered match results — inputs cleared in place, no scroll jump
-function resetMatchResults(){
-  if(!confirm('Reset ALL manually entered match results?\n\nThis clears all group scores, knockout results, champion and total goals.\n\nParticipant predictions are NOT affected.'))return;
-  S.admin.groupResults={};
-  S.admin.koResults={};
-  S.admin.champion='';
-  S.admin.totalGoals=null;
-  save();
-  // Clear inputs in-place — no innerHTML rebuild, so scroll position is preserved
-  GM.forEach(m=>{
-    const hv=document.getElementById('ah-'+m.n);
-    const av=document.getElementById('aa-'+m.n);
-    if(hv)hv.value='';
-    if(av)av.value='';
-  });
-  ALLKO.forEach(m=>{
-    const w=document.getElementById('akw-'+m.n);
-    const hv=document.getElementById('akh-'+m.n);
-    const av=document.getElementById('aka-'+m.n);
-    if(w)w.value='';
-    if(hv)hv.value='';
-    if(av)av.value='';
-  });
-  const ac=document.getElementById('actChamp');if(ac)ac.value='';
-  const ag=document.getElementById('actGoals');if(ag)ag.value='';
-  updateGroupStandings();
-  updateScoresTicker();
-  calcLeaderboard();
-  const st=document.getElementById('adminSaveStatus');
-  if(st)st.innerHTML='<span style="color:var(--red);">🗑 All match results cleared.</span>';
-}
-
 function loadAdminData(){
   GM.forEach(m=>{
     const r=S.admin.groupResults[m.n];
