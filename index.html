@@ -3,9 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>World Cup 2026 — Bombardier Prediction Challenge</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+<title>World Cup 2026 — Teambuilding Prediction Challenge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Firebase Realtime Database (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
 :root {
   --black: #000000;
@@ -246,6 +251,31 @@ input:focus,select:focus,textarea:focus { outline:none;border-color:var(--black)
 .footer-gallery img { height:200px;border-radius:12px;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,0.12); }
 .footer-bar { background:var(--black);padding:24px;text-align:center;color:var(--regent);font-size:0.78em;letter-spacing:0.5px; }
 
+/* ===== STICKY SAVE BAR ===== */
+.sticky-save-bar {
+  position:sticky;
+  top:100px; /* sits just below the nav */
+  z-index:80;
+  background:rgba(255,255,255,0.97);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--gray-200);
+  border-radius:10px;
+  padding:10px 18px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.08);
+}
+.sticky-save-bar .ssb-left {
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.sticky-save-bar .ssb-status {
+  font-size:0.82em;color:var(--regent);min-width:160px;
+}
+
 /* ===== MISC ===== */
 .ptag-list { display:flex;flex-wrap:wrap;gap:6px;margin:8px 0; }
 .ptag { background:var(--gray-100);padding:5px 12px;border-radius:15px;font-size:0.84em;display:flex;align-items:center;gap:6px;border:1px solid var(--gray-200); }
@@ -271,11 +301,9 @@ a { color:var(--black); }
 
 <!-- FULLSCREEN HERO -->
 <div class="hero-fullscreen" id="heroSection">
-  <img src="trophy2.png" alt="" class="hero-bg">
+  <img src="SoccerField.png" alt="" class="hero-bg">
   <div class="hero-content">
     <div class="hero-logos">
-      <img src="bombardier_logo.png" alt="Bombardier" class="hero-blogo">
-      <span class="hero-x">×</span>
       <img src="fifa_logo.png" alt="FIFA World Cup 2026" class="hero-flogo">
     </div>
     <h1 class="hero-title"><strong>World Cup 2026</strong><br><em>Prediction Challenge</em></h1>
@@ -289,8 +317,6 @@ a { color:var(--black); }
 <!-- STICKY HEADER -->
 <div class="sticky-hdr" id="stickyHdr">
   <div class="sticky-hdr-left">
-    <img src="bombardier_dark.png" alt="Bombardier" class="sh-blogo">
-    <div class="sh-divider"></div>
     <img src="fifa_logo.png" alt="FIFA 2026" class="sh-flogo">
   </div>
   <div class="sticky-hdr-right">Prediction Challenge</div>
@@ -302,13 +328,16 @@ a { color:var(--black); }
 <div class="scores-panel">
   <div class="scores-panel-inner">
     <h2><span class="live-dot"></span> World Cup 2026 — Match Scores</h2>
-    <div class="scores-ticker" id="scoresTicker">
+    <button id="tickerPrev" onclick="scrollTicker(-1)" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:var(--white);font-size:1.1em;cursor:pointer;">‹</button>
+<div class="scores-ticker" id="scoresTicker">
+</div>
+<button id="tickerNext" onclick="scrollTicker(1)" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:var(--white);font-size:1.1em;cursor:pointer;">›</button>
       <div class="scores-empty">Match scores will appear here once the tournament begins. Admin can update scores in the Admin Panel.</div>
     </div>
   </div>
 </div>
 
-<div class="deadline-strip">Predictions lock on June 10, 2026 at 11:59 PM ET — Submit before the first match!</div>
+<div class="deadline-strip">Predictions lock on June 4th, 2026 at 11:59 PM ET — Submit before the first match!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -331,7 +360,7 @@ a { color:var(--black); }
   <div class="card">
     <h2>Prize Distribution</h2>
     <div class="prizes-grid">
-      <div class="prize-card" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-color:var(--green);"><div class="pct" style="color:var(--green);">25%</div><div class="place">❤️ Bombardier<br>Selected Charity</div></div>
+      <div class="prize-card" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-color:var(--green);"><div class="pct" style="color:var(--green);">25%</div><div class="place">❤️ Team<br>Selected Charity</div></div>
       <div class="prize-card prize-1"><div class="pct">35%</div><div class="place">🥇 1st Place</div></div>
       <div class="prize-card prize-2"><div class="pct">20%</div><div class="place">🥈 2nd Place</div></div>
       <div class="prize-card prize-3"><div class="pct">7.5%</div><div class="place">🥉 3rd Place</div></div>
@@ -339,13 +368,16 @@ a { color:var(--black); }
       <div class="prize-card prize-5"><div class="pct">1%</div><div class="place">5th Place</div></div>
       <div class="prize-card prize-party"><div class="pct">10%</div><div class="place">🎉 Final Party</div></div>
     </div>
-    <p style="font-size:0.82em;color:var(--regent);margin-top:6px;">25% of the pool goes to a Bombardier-selected charity. 10% is reserved for the final celebration party.</p>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:6px;">25% of the pool goes to a Team-selected charity. 10% is reserved for the final celebration party.</p>
   </div>
 
   <!-- LEADERBOARD -->
   <div class="card">
     <h2>Leaderboard</h2>
-    <button class="btn btn-black btn-sm" onclick="calcLeaderboard()" style="margin-bottom:10px;">Refresh Leaderboard</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="btn btn-black btn-sm" onclick="calcLeaderboard()">Refresh Leaderboard</button>
+      <span style="font-size:0.78em;color:var(--regent);display:flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse-dot 2s infinite;"></span> Live sync across all devices</span>
+    </div>
     <div class="stats-row" id="homeStats">
       <div class="stat-box"><div class="num" id="statParticipants">0</div><div class="lbl">Participants</div></div>
       <div class="stat-box"><div class="num" id="statSubmitted">0</div><div class="lbl">Submitted</div></div>
@@ -404,7 +436,7 @@ a { color:var(--black); }
       <strong>2.</strong> Predict exact scores for all 72 group stage matches.<br>
       <strong>3.</strong> Predict knockout stage outcomes using group positions (e.g., A1, B2).<br>
       <strong>4.</strong> Predict scores for each knockout match and select your championship team and total goals estimate.<br>
-      <strong>5.</strong> Submit once — predictions are final and private. Only the organizer can view them.<br><br>
+      <strong>5.</strong> Submit once — predictions are <strong>final and private</strong>. Use <strong>View My Predictions</strong> on the Submit tab to review your picks from any device using your name and password.<br><br>
       <strong>After Group Stage (Knockout Update Window):</strong><br>
       <strong>6.</strong> After Match 72 (June 27th), the organizer opens a <strong>Knockout Update Window</strong>.<br>
       <strong>7.</strong> Participants can <strong>update only their knockout predictions</strong> (3rd-place picks, match winners, scores, champion, goals) — group stage predictions remain locked.<br>
@@ -424,7 +456,7 @@ a { color:var(--black); }
   <div class="card">
     <h2>Tournament Bracket</h2>
     <div class="bracket-img-wrap">
-      <img src="bracket_chart.png" alt="FIFA World Cup 2026 — Group Stage & Knockout Bracket">
+      <img src="bracket_knockout.png" alt="FIFA World Cup 2026 — Group Stage & Knockout Bracket">
       <p>Official FIFA World Cup 2026 group stage and knockout bracket structure</p>
     </div>
   </div>
@@ -437,17 +469,45 @@ a { color:var(--black); }
   <div class="card" id="predictEntryCard">
     <h2>Submit Your Prediction</h2>
     <div class="warn-box" id="alreadySubmitted" style="display:none;">
-      <strong>You have already submitted your predictions.</strong> Each participant may only submit once.
+      <strong>You have already submitted your predictions.</strong> Each participant may only submit once. Use <em>View My Predictions</em> below to review your picks.
     </div>
     <div id="predictForm">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px;">
+      <div class="info-box" style="margin-bottom:12px;font-size:0.85em;">
+        <strong>New participant?</strong> Enter your name and create a password — it prevents anyone else from using your name.<br>
+        <strong>Returning (draft)?</strong> Enter your name + password to resume your saved draft.
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:10px;">
         <div>
           <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Name</label>
           <input type="text" id="predictName" placeholder="Enter your full name..." style="min-width:220px;">
         </div>
-        <button class="btn btn-black" onclick="startPrediction()">Start Predicting</button>
+        <div>
+          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;" id="pwdLabel">Password (4+ chars)</label>
+          <input type="password" id="predictPwd" placeholder="Create or enter password..." style="min-width:190px;">
+        </div>
+        <button class="btn btn-black" onclick="startPrediction()">Start / Resume</button>
       </div>
+      <p id="predictEntryStatus" style="font-size:0.85em;color:var(--gray-600);margin-top:2px;min-height:18px;"></p>
     </div>
+  </div>
+
+  <!-- VIEW MY PREDICTIONS CARD -->
+  <div class="card" id="viewMyPredCard">
+    <h2>👁 View My Predictions</h2>
+    <p style="color:var(--gray-600);font-size:0.87em;margin-bottom:12px;">Already submitted? Enter your name and password to view your predictions on any device at any time.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:10px;">
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Name</label>
+        <input type="text" id="viewMyName" placeholder="Enter your full name..." style="min-width:220px;">
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Password</label>
+        <input type="password" id="viewMyPwd" placeholder="Your password..." style="min-width:180px;">
+      </div>
+      <button class="btn btn-outline" onclick="viewMyPredictions()">View Predictions</button>
+    </div>
+    <p id="viewMyStatus" style="font-size:0.85em;margin-bottom:6px;min-height:18px;"></p>
+    <div id="viewMyContent" style="display:none;margin-top:8px;"></div>
   </div>
 
   <!-- KO UPDATE WINDOW (separate from first-time submission) -->
@@ -461,6 +521,10 @@ a { color:var(--black); }
       <div>
         <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Name (must match original submission)</label>
         <input type="text" id="koUpdateName" placeholder="Enter your full name..." style="min-width:220px;">
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Password</label>
+        <input type="password" id="koUpdatePwd" placeholder="Your password..." style="min-width:180px;">
       </div>
       <button class="btn btn-gold" onclick="startKOUpdate()">Open My KO Predictions</button>
     </div>
@@ -486,7 +550,7 @@ a { color:var(--black); }
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Now that group results are known, update your knockout picks if you wish.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="groups_chart.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
+        <img src="qualified_nations.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
       </div>
 
       <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
@@ -498,30 +562,30 @@ a { color:var(--black); }
       <div id="koUpMatches"></div>
     </div>
 
-    <div class="card">
-      <h2>Bonus Predictions (Update)</h2>
-      <div style="display:grid;gap:12px;max-width:400px;">
-        <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">🏆 Championship Winner</label>
-          <input type="text" id="koUpChamp" placeholder="e.g. Brazil" style="width:100%;">
-        </div>
-        <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">⚽ Total Tournament Goals</label>
-          <input type="number" id="koUpGoals" placeholder="e.g. 172" style="width:100%;">
-        </div>
-      </div>
+    <!-- Bonus Predictions are LOCKED during KO update — only knockout bracket can be updated -->
+    <div class="info-box" style="margin:8px 0;">
+      <strong>ℹ️ Note:</strong> Bonus Predictions (Champion & Total Goals) cannot be changed during the knockout update window. Only your bracket picks and scores can be revised.
     </div>
 
     <div class="card" style="text-align:center;">
       <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitKOUpdate()">Save Updated KO Predictions</button>
-      <p style="font-size:0.78em;color:var(--regent);margin-top:8px;">This will overwrite only your knockout predictions. Group stage predictions remain unchanged.</p>
+      <p style="font-size:0.78em;color:var(--regent);margin-top:8px;">This will overwrite only your knockout bracket predictions. Group stage predictions and bonus picks remain unchanged.</p>
     </div>
   </div>
 
   <div id="predictMain" style="display:none;">
     <div class="card">
       <h2 id="predictWelcome">Predictions for ...</h2>
-      <p style="color:var(--gray-600);font-size:0.88em;">Fill in ALL sections below, then click <strong>Submit Predictions</strong> at the bottom. You can only submit once!</p>
+      <p style="color:var(--gray-600);font-size:0.88em;">Fill in all sections below, then click <strong>Submit Final Predictions</strong> at the bottom. Use <strong>Save Progress</strong> at any time to save your work and come back later.</p>
+    </div>
+
+    <!-- STICKY SAVE BAR — always visible while filling predictions -->
+    <div class="sticky-save-bar">
+      <div class="ssb-left">
+        <button class="btn btn-outline" style="font-size:0.92em;padding:9px 22px;" onclick="saveDraft()">💾 Save Progress</button>
+        <span class="ssb-status" id="draftStatusTop">Progress not yet saved</span>
+      </div>
+      <button class="btn btn-gold" style="font-size:0.92em;padding:9px 22px;" onclick="submitPrediction()">✅ Submit Final Predictions</button>
     </div>
 
     <!-- GROUP STAGE -->
@@ -536,7 +600,7 @@ a { color:var(--black); }
       <h2>Tournament Bracket Reference</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Use this bracket chart as reference when making your knockout stage predictions below.</p>
       <div class="bracket-img-wrap">
-        <img src="bracket_chart.png" alt="FIFA World Cup 2026 — Knockout Bracket">
+        <img src="qualified_nations.png" alt="FIFA World Cup 2026 — Knockout Bracket">
       </div>
     </div>
 
@@ -545,7 +609,7 @@ a { color:var(--black); }
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Pick 8 third-place qualifying groups, then select which group position advances from each knockout match. Also predict the score for each match.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="groups_chart.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
+        <img src="bracket_knockout.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
         <p>World Cup 2026 group stage teams — use this as reference when selecting your 8 third-place qualifiers</p>
       </div>
 
@@ -575,8 +639,12 @@ a { color:var(--black); }
 
     <!-- SUBMIT -->
     <div class="card" style="text-align:center;">
-      <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitPrediction()">Submit Predictions</button>
-      <p style="font-size:0.78em;color:var(--regent);margin-top:8px;">Predictions are final and cannot be changed after submission.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-outline" style="font-size:1em;padding:12px 28px;" onclick="saveDraft()">💾 Save Progress</button>
+        <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitPrediction()">✅ Submit Final Predictions</button>
+      </div>
+      <p style="font-size:0.78em;color:var(--regent);margin-top:10px;">Save Progress lets you come back later. Once you Submit, predictions are <strong>final and locked</strong>.</p>
+      <p id="draftStatus" style="font-size:0.84em;margin-top:6px;min-height:18px;"></p>
     </div>
   </div>
 </div>
@@ -754,10 +822,10 @@ a { color:var(--black); }
 </div><!-- /mainContent -->
 
 <div class="footer-gallery">
-  <img src="trophy2.png" alt="World Cup Trophy">
+  <img src="trophy3.png" alt="World Cup Trophy">
   <img src="trophy2.png" alt="World Cup 2026">
 </div>
-<div class="footer-bar">© 2026 Bombardier Department Pool — World Cup 2026 Prediction Challenge</div>
+<div class="footer-bar">© 2026 David & Yonas Department Pool — World Cup 2026 Prediction Challenge</div>
 <script>
 // ===== STICKY HEADER SCROLL =====
 (function(){
@@ -778,33 +846,33 @@ a { color:var(--black); }
 // WORLD CUP 2026 DATA
 // ============================
 const GROUPS = {
-  A:["Mexico","South Africa","South Korea","UEFA PO D"],
-  B:["Canada","UEFA PO A","Qatar","Switzerland"],
+  A:["Mexico","South Africa","South Korea","Czechia"],
+  B:["Canada","Bosnia and Herzegovina","Qatar","Switzerland"],
   C:["Brazil","Morocco","Haiti","Scotland"],
-  D:["USA","Paraguay","Australia","UEFA PO C"],
+  D:["USA","Paraguay","Australia","Türkiye"],
   E:["Germany","Curaçao","Ivory Coast","Ecuador"],
-  F:["Netherlands","Japan","UEFA PO B","Tunisia"],
+  F:["Netherlands","Japan","Sweden","Tunisia"],
   G:["Belgium","Egypt","Iran","New Zealand"],
   H:["Spain","Cape Verde","Saudi Arabia","Uruguay"],
-  I:["France","Senegal","Norway","FIFA PO 2"],
+  I:["France","Senegal","Norway","Iraq"],
   J:["Argentina","Algeria","Austria","Jordan"],
-  K:["Portugal","FIFA PO 1","Uzbekistan","Colombia"],
+  K:["Portugal","DR Congo","Uzbekistan","Colombia"],
   L:["England","Croatia","Ghana","Panama"]
 };
 
 const GM = [
   {n:1,d:"Jun 11",t:"3:00 PM",g:"A",h:"Mexico",a:"South Africa"},
-  {n:2,d:"Jun 11",t:"10:00 PM",g:"A",h:"South Korea",a:"UEFA PO D"},
-  {n:25,d:"Jun 18",t:"12:00 PM",g:"A",h:"South Africa",a:"UEFA PO D"},
+  {n:2,d:"Jun 11",t:"10:00 PM",g:"A",h:"South Korea",a:"Czechia"},
+  {n:25,d:"Jun 18",t:"12:00 PM",g:"A",h:"South Africa",a:"Czechia"},
   {n:26,d:"Jun 18",t:"9:00 PM",g:"A",h:"Mexico",a:"South Korea"},
-  {n:53,d:"Jun 24",t:"6:00 PM",g:"A",h:"UEFA PO D",a:"Mexico"},
+  {n:53,d:"Jun 24",t:"6:00 PM",g:"A",h:"Czechia",a:"Mexico"},
   {n:54,d:"Jun 24",t:"6:00 PM",g:"A",h:"South Africa",a:"South Korea"},
-  {n:3,d:"Jun 12",t:"12:00 PM",g:"B",h:"Canada",a:"UEFA PO A"},
+  {n:3,d:"Jun 12",t:"12:00 PM",g:"B",h:"Canada",a:"Bosnia and Herzegovina"},
   {n:4,d:"Jun 12",t:"3:00 PM",g:"B",h:"Qatar",a:"Switzerland"},
-  {n:27,d:"Jun 18",t:"3:00 PM",g:"B",h:"UEFA PO A",a:"Switzerland"},
+  {n:27,d:"Jun 18",t:"3:00 PM",g:"B",h:"Bosnia-Herzegovina",a:"Switzerland"},
   {n:28,d:"Jun 18",t:"6:00 PM",g:"B",h:"Canada",a:"Qatar"},
   {n:49,d:"Jun 24",t:"12:00 PM",g:"B",h:"Switzerland",a:"Canada"},
-  {n:50,d:"Jun 24",t:"12:00 PM",g:"B",h:"UEFA PO A",a:"Qatar"},
+  {n:50,d:"Jun 24",t:"12:00 PM",g:"B",h:"Bosnia-Herzegovina",a:"Qatar"},
   {n:5,d:"Jun 12",t:"6:00 PM",g:"C",h:"Brazil",a:"Morocco"},
   {n:6,d:"Jun 12",t:"9:00 PM",g:"C",h:"Haiti",a:"Scotland"},
   {n:29,d:"Jun 19",t:"12:00 PM",g:"C",h:"Morocco",a:"Scotland"},
@@ -812,10 +880,10 @@ const GM = [
   {n:55,d:"Jun 25",t:"6:00 PM",g:"C",h:"Scotland",a:"Brazil"},
   {n:56,d:"Jun 25",t:"6:00 PM",g:"C",h:"Morocco",a:"Haiti"},
   {n:7,d:"Jun 13",t:"3:00 PM",g:"D",h:"USA",a:"Paraguay"},
-  {n:8,d:"Jun 13",t:"6:00 PM",g:"D",h:"Australia",a:"UEFA PO C"},
-  {n:31,d:"Jun 19",t:"6:00 PM",g:"D",h:"Paraguay",a:"UEFA PO C"},
+  {n:8,d:"Jun 13",t:"6:00 PM",g:"D",h:"Australia",a:"Türkiye"},
+  {n:31,d:"Jun 19",t:"6:00 PM",g:"D",h:"Paraguay",a:"Türkiye"},
   {n:32,d:"Jun 19",t:"9:00 PM",g:"D",h:"USA",a:"Australia"},
-  {n:57,d:"Jun 25",t:"6:00 PM",g:"D",h:"UEFA PO C",a:"USA"},
+  {n:57,d:"Jun 25",t:"6:00 PM",g:"D",h:"Türkiye",a:"USA"},
   {n:58,d:"Jun 25",t:"6:00 PM",g:"D",h:"Paraguay",a:"Australia"},
   {n:9,d:"Jun 13",t:"9:00 PM",g:"E",h:"Germany",a:"Curaçao"},
   {n:10,d:"Jun 13",t:"12:00 AM",g:"E",h:"Ivory Coast",a:"Ecuador"},
@@ -824,11 +892,11 @@ const GM = [
   {n:59,d:"Jun 25",t:"6:00 PM",g:"E",h:"Ecuador",a:"Germany"},
   {n:60,d:"Jun 25",t:"6:00 PM",g:"E",h:"Curaçao",a:"Ivory Coast"},
   {n:11,d:"Jun 14",t:"12:00 PM",g:"F",h:"Netherlands",a:"Japan"},
-  {n:12,d:"Jun 14",t:"3:00 PM",g:"F",h:"UEFA PO B",a:"Tunisia"},
+  {n:12,d:"Jun 14",t:"3:00 PM",g:"F",h:"Sweden",a:"Tunisia"},
   {n:35,d:"Jun 20",t:"6:00 PM",g:"F",h:"Japan",a:"Tunisia"},
-  {n:36,d:"Jun 20",t:"9:00 PM",g:"F",h:"Netherlands",a:"UEFA PO B"},
+  {n:36,d:"Jun 20",t:"9:00 PM",g:"F",h:"Netherlands",a:"Sweden"},
   {n:63,d:"Jun 26",t:"6:00 PM",g:"F",h:"Tunisia",a:"Netherlands"},
-  {n:64,d:"Jun 26",t:"6:00 PM",g:"F",h:"Japan",a:"UEFA PO B"},
+  {n:64,d:"Jun 26",t:"6:00 PM",g:"F",h:"Japan",a:"Sweden"},
   {n:13,d:"Jun 14",t:"6:00 PM",g:"G",h:"Belgium",a:"Egypt"},
   {n:14,d:"Jun 14",t:"9:00 PM",g:"G",h:"Iran",a:"New Zealand"},
   {n:37,d:"Jun 21",t:"12:00 PM",g:"G",h:"Egypt",a:"New Zealand"},
@@ -842,10 +910,10 @@ const GM = [
   {n:51,d:"Jun 24",t:"6:00 PM",g:"H",h:"Uruguay",a:"Spain"},
   {n:52,d:"Jun 24",t:"6:00 PM",g:"H",h:"Cape Verde",a:"Saudi Arabia"},
   {n:17,d:"Jun 16",t:"3:00 PM",g:"I",h:"France",a:"Senegal"},
-  {n:18,d:"Jun 16",t:"6:00 PM",g:"I",h:"Norway",a:"FIFA PO 2"},
+  {n:18,d:"Jun 16",t:"6:00 PM",g:"I",h:"Norway",a:"Iraq"},
   {n:41,d:"Jun 22",t:"3:00 PM",g:"I",h:"France",a:"Norway"},
-  {n:42,d:"Jun 22",t:"6:00 PM",g:"I",h:"FIFA PO 2",a:"Senegal"},
-  {n:67,d:"Jun 27",t:"6:00 PM",g:"I",h:"FIFA PO 2",a:"France"},
+  {n:42,d:"Jun 22",t:"6:00 PM",g:"I",h:"Iraq",a:"Senegal"},
+  {n:67,d:"Jun 27",t:"6:00 PM",g:"I",h:"Iraq",a:"France"},
   {n:68,d:"Jun 27",t:"6:00 PM",g:"I",h:"Senegal",a:"Norway"},
   {n:19,d:"Jun 16",t:"9:00 PM",g:"J",h:"Argentina",a:"Algeria"},
   {n:20,d:"Jun 16",t:"12:00 AM",g:"J",h:"Austria",a:"Jordan"},
@@ -853,12 +921,12 @@ const GM = [
   {n:44,d:"Jun 22",t:"12:00 AM",g:"J",h:"Jordan",a:"Algeria"},
   {n:69,d:"Jun 27",t:"6:00 PM",g:"J",h:"Jordan",a:"Argentina"},
   {n:70,d:"Jun 27",t:"6:00 PM",g:"J",h:"Algeria",a:"Austria"},
-  {n:21,d:"Jun 17",t:"1:00 PM",g:"K",h:"Portugal",a:"FIFA PO 1"},
+  {n:21,d:"Jun 17",t:"1:00 PM",g:"K",h:"Portugal",a:"DR Congo"},
   {n:24,d:"Jun 17",t:"10:00 PM",g:"K",h:"Uzbekistan",a:"Colombia"},
-  {n:45,d:"Jun 23",t:"1:00 PM",g:"K",h:"Colombia",a:"FIFA PO 1"},
+  {n:45,d:"Jun 23",t:"1:00 PM",g:"K",h:"Colombia",a:"DR Congo"},
   {n:46,d:"Jun 23",t:"4:00 PM",g:"K",h:"Portugal",a:"Uzbekistan"},
-  {n:71,d:"Jun 27",t:"6:00 PM",g:"K",h:"FIFA PO 1",a:"Portugal"},
-  {n:72,d:"Jun 27",t:"6:00 PM",g:"K",h:"Colombia",a:"Uzbekistan"},
+  {n:71,d:"Jun 27",t:"6:00 PM",g:"K",h:"DR Congo",a:"Uzbekistan"},
+  {n:72,d:"Jun 27",t:"6:00 PM",g:"K",h:"Colombia",a:"Portugal"},
   {n:22,d:"Jun 17",t:"4:00 PM",g:"L",h:"England",a:"Croatia"},
   {n:23,d:"Jun 17",t:"7:00 PM",g:"L",h:"Ghana",a:"Panama"},
   {n:47,d:"Jun 23",t:"7:00 PM",g:"L",h:"Croatia",a:"Panama"},
@@ -903,25 +971,117 @@ const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:5,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:38,CHAMP_FIN:50,CHAMP_WIN:75};
 
 // Country flag mapping (ISO codes for flagcdn.com)
-const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
+const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Bosnia and Herzegovina':'ba','Türkiye':'tr','DR Congo':'cd','Iraq':'iq','Sweden':'se','Czechia':'cz','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
 function fl(n){const c=FC[n];return c?'<img src="https://flagcdn.com/w20/'+c+'.png" alt="" style="width:18px;height:13px;vertical-align:middle;margin-right:4px;border-radius:2px;box-shadow:0 0 2px rgba(0,0,0,0.2);">':'';}
+
+// ============================
+// FIREBASE CONFIG
+// Replace these values with your own Firebase project settings.
+// Steps: https://console.firebase.google.com → Create project → Realtime Database → Get config
+// Security Rules: set to allow read/write (for dev):
+//   { "rules": { ".read": true, ".write": true } }
+// ============================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAz19oh3Vsu6j11Vp7_Wnj_EXDlqFsCRTg",
+  authDomain: "wc2026-5aa26.firebaseapp.com",
+  databaseURL: "https://wc2026-5aa26-default-rtdb.firebaseio.com",
+  projectId: "wc2026-5aa26",
+  storageBucket: "wc2026-5aa26.firebasestorage.app",
+  messagingSenderId: "1087674288372",
+  appId: "1:1087674288372:web:cdb53f8112b7616988f6a1",
+  measurementId: "G-BWSYWYC2SJ"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const fbDb = firebase.database();
+const DB_ROOT = 'wc2026v2';
+
+const FORMSPREE_URL = 'https://formspree.io/f/xvzvlnrp';
 
 // ============================
 // STATE
 // ============================
 let S = {
   participants:[],
+  passwords:{},
   submissions:{},
   admin:{groupResults:{},koResults:{},champion:"",totalGoals:null},
   predictionsLocked:false,
   koUpdateOpen:false,
-  adminPwd:"bombardier2026",
+  adminPwd:"David2026",
   apiKey:""
 };
-function save(){localStorage.setItem('wc2026v2',JSON.stringify(S));}
+
+function ensureDefaults(){
+  if(!S.submissions)S.submissions={};
+  if(!S.passwords)S.passwords={};
+  if(!S.participants)S.participants=[];
+  if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};
+  if(!S.admin.groupResults)S.admin.groupResults={};
+  if(!S.admin.koResults)S.admin.koResults={};
+  if(!S.adminPwd)S.adminPwd="David2026";
+  if(!S.apiKey)S.apiKey="";
+  if(S.predictionsLocked===undefined)S.predictionsLocked=false;
+  if(S.koUpdateOpen===undefined)S.koUpdateOpen=false;
+}
+
+let _saveTimer=null;
+function save(){
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    fbDb.ref(DB_ROOT).set(S).catch(e=>console.error('Firebase save error:',e));
+  },400);
+}
+
+let _realtimeReady=false;
 function load(){
-  const d=localStorage.getItem('wc2026v2');
-  if(d){try{S=JSON.parse(d);if(!S.submissions)S.submissions={};if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};if(!S.adminPwd)S.adminPwd="bombardier2026";if(!S.apiKey)S.apiKey="";if(S.predictionsLocked===undefined)S.predictionsLocked=false;if(S.koUpdateOpen===undefined)S.koUpdateOpen=false;}catch(e){}}
+  fbDb.ref(DB_ROOT).once('value').then(snap=>{
+    if(snap.exists()){S=snap.val();ensureDefaults();}
+    else{ensureDefaults();}
+    updateHomeStats();
+    calcLeaderboard();
+    checkKOUpdateVisibility();
+    if(!_realtimeReady){
+      _realtimeReady=true;
+      fbDb.ref(DB_ROOT).on('value',snap2=>{
+        if(snap2.exists()){
+          const fresh=snap2.val();
+          // Don't overwrite if we are mid-edit in the prediction form
+          if(!currentPredictor){
+            S=fresh;ensureDefaults();
+          } else {
+            // Merge only safe external fields
+            S.admin=fresh.admin||S.admin;
+            S.predictionsLocked=fresh.predictionsLocked!==undefined?fresh.predictionsLocked:S.predictionsLocked;
+            S.koUpdateOpen=fresh.koUpdateOpen!==undefined?fresh.koUpdateOpen:S.koUpdateOpen;
+            // Always refresh participants and leaderboard-facing data
+            S.participants=fresh.participants||S.participants;
+            S.submissions=fresh.submissions||S.submissions;
+            S.passwords=fresh.passwords||S.passwords;
+          }
+          updateHomeStats();
+          calcLeaderboard();
+          checkKOUpdateVisibility();
+        }
+      });
+    }
+  }).catch(e=>{
+    console.error('Firebase load error:',e);
+    alert('⚠️ Could not connect to the database. Check your Firebase config in index.html.');
+  });
+}
+
+// ============================
+// PASSWORD UTILITIES
+// ============================
+async function hashPassword(pwd){
+  const buf=new TextEncoder().encode(pwd);
+  const h=await crypto.subtle.digest('SHA-256',buf);
+  return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function verifyPassword(name,pwd){
+  if(!S.passwords||!S.passwords[name])return false;
+  const h=await hashPassword(pwd);
+  return h===S.passwords[name];
 }
 
 // ============================
@@ -952,6 +1112,10 @@ function updateHomeStats(){
 // ============================
 // SCORES TICKER
 // ============================
+function scrollTicker(dir){
+  const ticker=document.getElementById('scoresTicker');
+  if(ticker)ticker.scrollBy({left:dir*220,behavior:'smooth'});
+}
 function updateScoresTicker(){
   const ticker=document.getElementById('scoresTicker');
   if(!ticker)return;
@@ -1101,64 +1265,99 @@ let currentPredictor='';
 let predTP=[];
 let predKOPicks={};
 
-function startPrediction(){
+async function startPrediction(){
   if(S.predictionsLocked){alert('Predictions are now LOCKED by the organizer. No further submissions allowed.');return;}
   const name=document.getElementById('predictName').value.trim();
-  if(!name){alert('Please enter your name.');return;}
+  const pwd=document.getElementById('predictPwd').value;
+  const statusEl=document.getElementById('predictEntryStatus');
+  if(!name){statusEl.textContent='⚠ Please enter your name.';return;}
+  if(!pwd||pwd.length<4){statusEl.textContent='⚠ Please enter a password of at least 4 characters.';return;}
+
+  const isExisting=S.passwords&&S.passwords[name];
+
+  if(isExisting){
+    // Existing participant — verify password
+    statusEl.textContent='Verifying password…';
+    const ok=await verifyPassword(name,pwd);
+    if(!ok){statusEl.innerHTML='<span style="color:var(--red);">❌ Wrong password. Try again.</span>';return;}
+  } else {
+    // New participant — register password
+    if(S.submissions[name]&&S.submissions[name].locked){
+      // Name exists with submission but no password entry (legacy) — block
+      document.getElementById('alreadySubmitted').style.display='';
+      document.getElementById('predictMain').style.display='none';
+      return;
+    }
+    const h=await hashPassword(pwd);
+    if(!S.passwords)S.passwords={};
+    S.passwords[name]=h;
+    if(!S.participants.includes(name))S.participants.push(name);
+    save();
+    statusEl.innerHTML='<span style="color:var(--green);">✓ Password created! Starting your prediction form…</span>';
+  }
+
   if(S.submissions[name]&&S.submissions[name].locked){
     document.getElementById('alreadySubmitted').style.display='';
     document.getElementById('predictMain').style.display='none';
     return;
   }
+
   currentPredictor=name;
   if(!S.participants.includes(name)){S.participants.push(name);save();}
   document.getElementById('alreadySubmitted').style.display='none';
   document.getElementById('predictWelcome').textContent='Predictions for '+name;
   document.getElementById('predictMain').style.display='';
-  predTP=[];predKOPicks={};
-  renderGSForm();renderTPPicker();renderKOForm();
-  // If this person has an existing (unlocked) submission, pre-fill the form
-  if(S.submissions[name]){
-    loadExistingSubmission(name);
+  // Load draft if it exists (unlocked submission)
+  const draft=S.submissions[name];
+  if(draft&&!draft.locked){
+    predTP=(draft.tp||[]).slice();
+    predKOPicks={};
+    if(draft.ko){Object.keys(draft.ko).forEach(k=>{if(draft.ko[k].pick)predKOPicks[k]=draft.ko[k].pick;});}
+    renderGSForm();renderTPPicker();renderKOForm();
+    loadDraftIntoForm(draft);
+    statusEl.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — continue where you left off.</span>';
+    const dst=document.getElementById('draftStatusTop');
+    if(dst)dst.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — '+new Date(draft.draftTimestamp||Date.now()).toLocaleString()+'</span>';
+  } else {
+    predTP=[];predKOPicks={};
+    renderGSForm();renderTPPicker();renderKOForm();
+    if(isExisting)statusEl.innerHTML='<span style="color:var(--green);">✓ Verified! Fill in your predictions below.</span>';
   }
 }
 
-function loadExistingSubmission(name){
-  const sub=S.submissions[name];
-  if(!sub)return;
-  // Pre-fill group stage scores
-  if(sub.gs){
+function loadDraftIntoForm(draft){
+  // Load GS scores
+  if(draft.gs){
     GM.forEach(m=>{
-      const pr=sub.gs[m.n];
+      const pr=draft.gs[m.n];
       if(pr){
-        const h=document.getElementById('ph-'+m.n);
-        const a=document.getElementById('pa-'+m.n);
-        if(h)h.value=pr.h;
-        if(a)a.value=pr.a;
+        const hEl=document.getElementById('ph-'+m.n);
+        const aEl=document.getElementById('pa-'+m.n);
+        if(hEl)hEl.value=pr.h;
+        if(aEl)aEl.value=pr.a;
       }
     });
   }
-  // Pre-fill third-place picks
-  if(sub.tp&&sub.tp.length>0){
-    predTP=sub.tp.slice();
-    'ABCDEFGHIJKL'.split('').forEach(g=>{
-      const el=document.getElementById('tp-'+g);
-      if(el)el.classList.toggle('sel',predTP.includes(g));
+  // Load TP selections
+  if(draft.tp){
+    'ABCDEFGHIJKL'.split('').forEach(x=>{
+      const el=document.getElementById('ptp-'+x);
+      if(el)el.classList.toggle('sel',predTP.includes(x));
     });
-    const cnt=document.getElementById('tpCount');
-    if(cnt)cnt.textContent='Selected: '+predTP.length+' / 8';
+    const tc=document.getElementById('tpCount');
+    if(tc)tc.textContent='Selected: '+predTP.length+' / 8';
   }
-  // Pre-fill KO picks and scores
-  if(sub.ko){
+  // Load KO picks and scores
+  if(draft.ko){
     ALLKO.forEach(m=>{
-      const pk=sub.ko[m.n];
+      const pk=draft.ko[m.n];
       if(!pk)return;
       if(pk.pick){
         predKOPicks[m.n]=pk.pick;
-        const eA=document.getElementById('pbo-'+m.n+'-A');
-        const eB=document.getElementById('pbo-'+m.n+'-B');
-        if(eA)eA.classList.toggle('sel',pk.pick==='A');
-        if(eB)eB.classList.toggle('sel',pk.pick==='B');
+        const elA=document.getElementById('pbo-'+m.n+'-A');
+        const elB=document.getElementById('pbo-'+m.n+'-B');
+        if(elA)elA.classList.toggle('sel',pk.pick==='A');
+        if(elB)elB.classList.toggle('sel',pk.pick==='B');
       }
       const hv=document.getElementById('pks-'+m.n+'-h');
       const av=document.getElementById('pks-'+m.n+'-a');
@@ -1166,9 +1365,46 @@ function loadExistingSubmission(name){
       if(av&&pk.a!==undefined)av.value=pk.a;
     });
   }
-  // Pre-fill bonus predictions
-  const ch=document.getElementById('bonusChamp');if(ch&&sub.champion)ch.value=sub.champion;
-  const gl=document.getElementById('bonusGoals');if(gl&&sub.totalGoals!==null)gl.value=sub.totalGoals;
+  // Load bonus
+  const bc=document.getElementById('bonusChamp');
+  const bg=document.getElementById('bonusGoals');
+  if(bc&&draft.champion)bc.value=draft.champion;
+  if(bg&&draft.totalGoals!==null&&draft.totalGoals!==undefined)bg.value=draft.totalGoals;
+}
+
+function saveDraft(){
+  if(!currentPredictor){alert('Please start a prediction first.');return;}
+  // Collect current form state
+  let gs={};
+  GM.forEach(m=>{
+    const hv=document.getElementById('ph-'+m.n);
+    const av=document.getElementById('pa-'+m.n);
+    if(hv&&av&&hv.value!==''&&av.value!=='')gs[m.n]={h:parseInt(hv.value)||0,a:parseInt(av.value)||0};
+  });
+  let ko={};
+  ALLKO.forEach(m=>{
+    const pick=predKOPicks[m.n]||'';
+    const hv=document.getElementById('pks-'+m.n+'-h');
+    const av=document.getElementById('pks-'+m.n+'-a');
+    ko[m.n]={pick:pick,h:hv?parseInt(hv.value)||0:0,a:av?parseInt(av.value)||0:0};
+  });
+  const champ=(document.getElementById('bonusChamp')||{}).value||'';
+  const goals=(document.getElementById('bonusGoals')||{}).value||'';
+  S.submissions[currentPredictor]={
+    locked:false,
+    draftTimestamp:new Date().toISOString(),
+    gs:gs,
+    ko:ko,
+    tp:predTP.slice(),
+    champion:champ,
+    totalGoals:goals?parseInt(goals):null
+  };
+  save();
+  const msg='<span style="color:var(--green);">✓ Progress saved at '+new Date().toLocaleTimeString()+'</span>';
+  const ds=document.getElementById('draftStatus');
+  if(ds)ds.innerHTML=msg+'<span style="color:var(--regent);font-size:0.9em;"> — You can safely close this tab and resume later.</span>';
+  const dst=document.getElementById('draftStatusTop');
+  if(dst)dst.innerHTML=msg;
 }
 
 function renderGSForm(){
@@ -1231,14 +1467,14 @@ function pickKO(n,side){
   if(eB)eB.classList.toggle('sel',side==='B');
 }
 
-function submitPrediction(){
+async function submitPrediction(){
   if(!currentPredictor){alert('No predictor selected.');return;}
   if(S.predictionsLocked){alert('Predictions are now LOCKED by the organizer. No further submissions allowed.');return;}
 
-  // ========== VALIDATION ==========
+  // ========== STRICT VALIDATION ==========
   let errors=[];
 
-  // 1. Group stage: all 72 matches must have both scores
+  // 1. All 72 group stage matches must have both scores
   let gsMissing=0;
   let gs={};
   GM.forEach(m=>{
@@ -1249,10 +1485,10 @@ function submitPrediction(){
   });
   if(gsMissing>0) errors.push('Group Stage: '+gsMissing+' match(es) missing scores. All 72 matches must be filled.');
 
-  // 2. Third-place picks: exactly 8
+  // 2. Exactly 8 third-place picks
   if(predTP.length!==8) errors.push('Third-Place Qualifiers: You selected '+predTP.length+' groups. You must select exactly 8.');
 
-  // 3. KO matches: all must have a winner picked AND scores filled
+  // 3. All KO matches must have winner picked AND scores filled
   let koMissingPick=0, koMissingScore=0;
   let ko={};
   ALLKO.forEach(m=>{
@@ -1265,27 +1501,28 @@ function submitPrediction(){
     if(!pick)koMissingPick++;
     if(hVal===''||aVal==='')koMissingScore++;
   });
-  if(koMissingPick>0) errors.push('Knockout Stage: '+koMissingPick+' match(es) missing a winner pick. You must select a winner for every KO match.');
-  if(koMissingScore>0) errors.push('Knockout Stage: '+koMissingScore+' match(es) missing scores. You must fill in scores for every KO match.');
+  if(koMissingPick>0) errors.push('Knockout Stage: '+koMissingPick+' match(es) missing a winner pick. Select a winner for every KO match.');
+  if(koMissingScore>0) errors.push('Knockout Stage: '+koMissingScore+' match(es) missing scores. Fill in scores for every KO match.');
 
-  // 4. Champion
+  // 4. Champion required
   const champ=document.getElementById('bonusChamp').value.trim();
   if(!champ) errors.push('Championship Winner: You must predict which team will win the World Cup.');
 
-  // 5. Total goals
+  // 5. Total goals required
   const goals=document.getElementById('bonusGoals').value.trim();
   if(!goals) errors.push('Total Goals: You must predict the total number of tournament goals.');
 
-  // Show errors if any
+  // Block if anything missing
   if(errors.length>0){
     alert('⚠️ Cannot submit — please complete the following:\n\n• '+errors.join('\n\n• '));
     return;
   }
 
   // ========== SAVE ==========
+  const ts=new Date().toISOString();
   S.submissions[currentPredictor]={
     locked:true,
-    timestamp:new Date().toISOString(),
+    timestamp:ts,
     gs:gs,
     ko:ko,
     tp:predTP.slice(),
@@ -1294,9 +1531,23 @@ function submitPrediction(){
   };
   if(!S.participants.includes(currentPredictor))S.participants.push(currentPredictor);
   save();
-  alert('Predictions submitted successfully for '+currentPredictor+'! They are now locked.');
+
+  // Notify organizer via Formspree (fire-and-forget)
+  try{
+    await fetch(FORMSPREE_URL,{
+      method:'POST',
+      headers:{'Accept':'application/json','Content-Type':'application/json'},
+      body:JSON.stringify({
+        name:currentPredictor,
+        message:'New WC2026 prediction submitted by '+currentPredictor+' at '+new Date().toLocaleString()+'. Champion pick: '+(champ||'N/A')+', Total Goals: '+(goals||'N/A')+'.'
+      })
+    });
+  }catch(e){/* Formspree notification optional */}
+
+  alert('✅ Predictions submitted successfully for '+currentPredictor+'! They are now locked.');
   document.getElementById('predictMain').style.display='none';
   document.getElementById('alreadySubmitted').style.display='';
+  currentPredictor='';
   updateHomeStats();
 }
 
@@ -1313,10 +1564,12 @@ function checkKOUpdateVisibility(){
   card.style.display=S.koUpdateOpen?'':'none';
 }
 
-function startKOUpdate(){
+async function startKOUpdate(){
   const name=document.getElementById('koUpdateName').value.trim();
+  const pwd=document.getElementById('koUpdatePwd').value;
   const st=document.getElementById('koUpdateStatus');
   if(!name){alert('Please enter your name.');return;}
+  if(!pwd){st.innerHTML='<span style="color:var(--red);">❌ Please enter your password.</span>';return;}
   if(!S.submissions[name]||!S.submissions[name].locked){
     st.innerHTML='<span style="color:var(--red);">❌ No submitted prediction found for "'+name+'". You must have submitted predictions during the initial window.</span>';
     return;
@@ -1325,8 +1578,15 @@ function startKOUpdate(){
     st.innerHTML='<span style="color:var(--red);">❌ The knockout update window is currently closed.</span>';
     return;
   }
+  // Verify password
+  st.textContent='Verifying password…';
+  const ok=await verifyPassword(name,pwd);
+  if(!ok){
+    st.innerHTML='<span style="color:var(--red);">❌ Wrong password. Try again.</span>';
+    return;
+  }
   koUpdater=name;
-  st.innerHTML='<span style="color:var(--green);">✓ Found your submission. Loading knockout predictions...</span>';
+  st.innerHTML='<span style="color:var(--green);">✓ Verified! Loading knockout predictions…</span>';
   document.getElementById('koUpdateWelcome').textContent='Updating KO Predictions for '+name;
   document.getElementById('koUpdateMain').style.display='';
 
@@ -1375,7 +1635,7 @@ function renderKOUpdateForm(){
 }
 
 function loadKOUpdateData(sub){
-  // Load existing KO picks and scores
+  // Load existing KO picks and scores into the update form
   ALLKO.forEach(m=>{
     const pk=sub.ko[m.n];
     if(!pk)return;
@@ -1388,9 +1648,7 @@ function loadKOUpdateData(sub){
     if(hv&&pk.h!==undefined)hv.value=pk.h;
     if(av&&pk.a!==undefined)av.value=pk.a;
   });
-  // Load champion and goals
-  const ch=document.getElementById('koUpChamp');if(ch)ch.value=sub.champion||'';
-  const gl=document.getElementById('koUpGoals');if(gl&&sub.totalGoals!==null)gl.value=sub.totalGoals;
+  // Bonus predictions (champion, totalGoals) are NOT loaded or editable here
 }
 
 function toggleKOUpTP(g){
@@ -1416,7 +1674,7 @@ function submitKOUpdate(){
   if(!koUpdater||!S.submissions[koUpdater]){alert('No predictor selected.');return;}
   if(!S.koUpdateOpen){alert('The knockout update window is now closed.');return;}
 
-  // Validate
+  // Validate KO fields
   let errors=[];
   if(koUpTP.length!==8) errors.push('Third-Place Qualifiers: You selected '+koUpTP.length+' groups. Must be exactly 8.');
 
@@ -1435,25 +1693,20 @@ function submitKOUpdate(){
   if(koMissingPick>0) errors.push('Knockout Stage: '+koMissingPick+' match(es) missing a winner pick.');
   if(koMissingScore>0) errors.push('Knockout Stage: '+koMissingScore+' match(es) missing scores.');
 
-  const champ=document.getElementById('koUpChamp').value.trim();
-  const goals=document.getElementById('koUpGoals').value.trim();
-  if(!champ) errors.push('Championship Winner: You must predict which team will win.');
-  if(!goals) errors.push('Total Goals: You must predict total tournament goals.');
-
   if(errors.length>0){
     alert('⚠️ Cannot save — please complete the following:\n\n• '+errors.join('\n\n• '));
     return;
   }
 
-  // Update only KO data - preserve GS
+  // Update only KO bracket and 3rd-place picks — preserve GS AND bonus predictions
   S.submissions[koUpdater].ko=ko;
   S.submissions[koUpdater].tp=koUpTP.slice();
-  S.submissions[koUpdater].champion=champ;
-  S.submissions[koUpdater].totalGoals=parseInt(goals);
+  // champion and totalGoals are intentionally NOT updated
   S.submissions[koUpdater].koUpdateTimestamp=new Date().toISOString();
   save();
-  alert('Knockout predictions updated successfully for '+koUpdater+'!');
+  alert('✅ Knockout bracket predictions updated for '+koUpdater+'! Bonus predictions (Champion & Total Goals) remain as originally submitted.');
   document.getElementById('koUpdateMain').style.display='none';
+  document.getElementById('koUpdatePwd').value='';
   document.getElementById('koUpdateStatus').innerHTML='<span style="color:var(--green);">✓ KO predictions updated at '+new Date().toLocaleString()+'</span>';
 }
 
@@ -1500,12 +1753,12 @@ function renderParts(){
   }).join('');
 }
 function unlockSubmission(name){
-  if(!confirm('Unlock predictions for "'+name+'"? They will be able to edit and re-submit their predictions.'))return;
+  if(!confirm('Unlock predictions for "'+name+'"?\n\nThey will be able to log in, edit their predictions, and re-submit. Their existing data will be pre-filled in the form.'))return;
   if(S.submissions[name]){
     S.submissions[name].locked=false;
     save();
     renderParts();
-    alert(name+'\'s predictions are now unlocked. They can go to "Submit Prediction" and re-edit.');
+    alert('✅ '+name+'\'s predictions are now unlocked.\n\nTell them to go to "Submit Prediction", enter their name and password, and they\'ll see their form pre-filled. They can edit and re-submit.');
   }
 }
 function togglePredLock(){
@@ -2016,11 +2269,87 @@ function importData(){
 }
 
 // ============================
+// VIEW MY PREDICTIONS (participant self-service)
+// ============================
+async function viewMyPredictions(){
+  const name=document.getElementById('viewMyName').value.trim();
+  const pwd=document.getElementById('viewMyPwd').value;
+  const st=document.getElementById('viewMyStatus');
+  const cont=document.getElementById('viewMyContent');
+  cont.style.display='none';
+  if(!name){st.innerHTML='<span style="color:var(--red);">⚠ Please enter your name.</span>';return;}
+  if(!pwd){st.innerHTML='<span style="color:var(--red);">⚠ Please enter your password.</span>';return;}
+  st.textContent='Verifying…';
+  const ok=await verifyPassword(name,pwd);
+  if(!ok){st.innerHTML='<span style="color:var(--red);">❌ Wrong password.</span>';return;}
+  const sub=S.submissions[name];
+  if(!sub){st.innerHTML='<span style="color:var(--gold-dark);">ℹ No predictions found for "'+name+'" yet.</span>';return;}
+  st.innerHTML='<span style="color:var(--green);">✓ Verified — showing your predictions below.</span>';
+  renderMyPredictions(name,sub);
+  cont.style.display='';
+}
+
+function renderMyPredictions(name,sub){
+  const cont=document.getElementById('viewMyContent');
+  let h='';
+  const statusBadge=sub.locked
+    ?'<span style="background:rgba(5,150,105,0.12);color:var(--green);padding:3px 10px;border-radius:12px;font-size:0.82em;font-weight:600;">✓ Final Submission</span>'
+    :'<span style="background:rgba(201,168,76,0.15);color:var(--gold-dark);padding:3px 10px;border-radius:12px;font-size:0.82em;font-weight:600;">📂 Draft (not submitted yet)</span>';
+  h+=`<div style="padding:12px 16px;background:var(--gray-50);border-radius:8px;margin-bottom:10px;">`;
+  h+=`<strong>${name}</strong> ${statusBadge}<br>`;
+  if(sub.locked&&sub.timestamp)h+=`<span style="font-size:0.82em;color:var(--regent);">Submitted: ${new Date(sub.timestamp).toLocaleString()}</span><br>`;
+  if(sub.koUpdateTimestamp)h+=`<span style="font-size:0.82em;color:var(--regent);">KO Updated: ${new Date(sub.koUpdateTimestamp).toLocaleString()}</span><br>`;
+  h+=`<span style="font-size:0.85em;">🏆 Champion: <strong>${sub.champion||'N/A'}</strong> &nbsp;⚽ Total Goals: <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>`;
+  h+=`<span style="font-size:0.85em;">3rd-Place groups: <strong>${(sub.tp||[]).join(', ')||'N/A'}</strong></span>`;
+  h+=`</div>`;
+
+  h+=`<details open><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Group Stage Predictions (${Object.keys(sub.gs||{}).length} / 72)</summary>`;
+  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
+  GM.forEach(m=>{
+    const pr=(sub.gs||{})[m.n];
+    const real=S.admin.groupResults[m.n];
+    let bg='var(--gray-50)';
+    if(real&&pr){
+      const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pr.h-pr.a);
+      const exact=pr.h===real.h&&pr.a===real.a;
+      if(exact)bg='rgba(5,150,105,0.1)';
+      else if(rOut===pOut)bg='rgba(201,168,76,0.1)';
+      else bg='rgba(220,38,38,0.06)';
+    }
+    h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;">M${m.n}: ${m.h} <strong>${pr?pr.h:'-'}</strong> – <strong>${pr?pr.a:'-'}</strong> ${m.a}</div>`;
+  });
+  h+=`</div></details>`;
+
+  h+=`<details style="margin-top:8px;"><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Knockout Stage Predictions</summary>`;
+  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
+  ALLKO.forEach(m=>{
+    const pr=(sub.ko||{})[m.n];
+    const real=S.admin.koResults[m.n];
+    let bg='var(--gray-50)';
+    if(real&&real.winner&&pr&&pr.pick){
+      bg=pr.pick.toLowerCase()===real.winner.toLowerCase()?'rgba(5,150,105,0.1)':'rgba(220,38,38,0.06)';
+    }
+    let label='R'+m.n;
+    if(m.n>=89&&m.n<=96)label='R16 M'+m.n;
+    else if(m.n>=97&&m.n<=100)label='QF M'+m.n;
+    else if(m.n>=101&&m.n<=102)label='SF M'+m.n;
+    else if(m.n===104)label='FINAL';
+    else label='R32 M'+m.n;
+    h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;">${label}: Pick=<strong>${pr?pr.pick||'?':'?'}</strong> Score=<strong>${pr?pr.h+'-'+pr.a:'?'}</strong></div>`;
+  });
+  h+=`</div></details>`;
+  cont.innerHTML=h;
+}
+
+// ============================
 // INIT
 // ============================
-load();
-updateHomeStats();
-calcLeaderboard();
+firebase.auth().signInAnonymously()
+  .then(() => { load(); })
+  .catch(e => {
+    console.error('Auth error:', e);
+    alert('Could not connect securely. Please refresh the page.');
+  });
 </script>
 </body>
 </html>
