@@ -427,15 +427,16 @@ a { color:var(--black); }
       <span>🏆 R32: +10</span>
       <span>🏆 R16: +20</span>
       <span>🏆 QF: +25</span>
-      <span>🏆 SF: +38</span>
-      <span>🏆 Final: +50</span>
-      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +75</span>
+      <span>🏆 SF: +35</span>
+      <span>🏆 Final: +40</span>
+      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +60</span>
     </div>
-    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>218 total bonus points</strong>.</p>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>190 total bonus points</strong>.</p>
     <h3>Other Bonuses</h3>
     <div class="scoring">
       <span>⚽ +5 Closest Total Goals</span>
     </div>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;"><em>Note: Penalty shootout goals are excluded from the total goals count. Only goals scored during regular time and extra time count.</em></p>
     <p style="font-size:0.82em;color:var(--regent);margin-top:4px;"><strong>Knockout Update Window:</strong> After the group stage ends, the organizer will open a window for you to revise your knockout predictions based on final group standings.</p>
   </div>
 
@@ -458,8 +459,8 @@ a { color:var(--black); }
       <strong>10.</strong> The system automatically compares every participant's predictions against real results:<br>
       &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
       &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (3→5→8→12→20). Exact KO score = +3 bonus.<br>
-      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +38, Final: +50, <strong>Winner: +75</strong>.<br>
-      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (+5).<br>
+      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +35, Final: +40, <strong>Winner: +60</strong>.<br>
+      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (excluding knockout round Penalty Shootouts) (+5).<br>
       <strong>11.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
   </div>
@@ -486,7 +487,8 @@ a { color:var(--black); }
     <div id="predictForm">
       <div class="info-box" style="margin-bottom:12px;font-size:0.85em;">
         <strong>New participant?</strong> Enter your name and create a password — it prevents anyone else from using your name.<br>
-        <strong>Returning (draft)?</strong> Enter your name + password to resume your saved draft.
+        <strong>Returning (draft)?</strong> Enter your name + password to resume your saved draft.<br>
+        <strong>City:</strong> Select the city of the Bombardier site where you work. This determines your team in the City Competition.
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:10px;">
         <div>
@@ -498,7 +500,7 @@ a { color:var(--black); }
           <input type="password" id="predictPwd" placeholder="Create or enter password..." style="min-width:190px;">
         </div>
         <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your City</label>
+          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your City (work site)</label>
           <select id="predictCity" style="min-width:150px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;">
             <option value="">-- Select City --</option>
             <option value="Toronto">Toronto</option>
@@ -641,6 +643,15 @@ a { color:var(--black); }
       <p style="color:var(--gold-dark);font-size:0.82em;margin-top:4px;" id="tpCount">Selected: 0 / 8</p>
 
       <h3>Step 2: Predict Each Knockout Match</h3>
+      <div class="info-box" style="margin-bottom:14px;font-size:0.84em;line-height:1.7;">
+        <strong>How to predict each knockout match:</strong><br><br>
+        Each match shows two teams identified by their group position (e.g., "A2" = 2nd place from Group A, "3rd*" = a third-place qualifier).<br><br>
+        <strong>1. Pick the winner:</strong> Click on the team you think will advance. Your selection highlights in gold. This is the team you predict will win the match — whether they win in regular time, extra time, or penalties.<br><br>
+        <strong>2. Enter the score:</strong> Type the predicted final score (e.g., 2 - 1). This is the score at the end of regular/extra time. If you think the match goes to penalties, enter the score that led to penalties (e.g., 1 - 1) and still click the team you think will win the shootout.<br><br>
+        <strong>Example:</strong> You think A1 (Mexico) beats 3rd* in a penalty shootout after a 1-1 draw → Click "A1" as winner, enter score <strong>1 - 1</strong>.<br>
+        <strong>Example:</strong> You think C1 (Brazil) beats F2 in regular time 3-0 → Click "C1" as winner, enter score <strong>3 - 0</strong>.<br><br>
+        <em>The winner pick (+3 to +20 pts by round) and exact score (+3 pts) are scored independently. You earn points for each one you get right.</em>
+      </div>
       <div id="koMatches"></div>
     </div>
 
@@ -655,6 +666,7 @@ a { color:var(--black); }
         <div>
           <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">⚽ Total Tournament Goals</label>
           <input type="number" id="bonusGoals" placeholder="e.g. 172" style="width:100%;">
+          <p style="font-size:0.76em;color:var(--regent);margin-top:4px;font-style:italic;">Penalty shootout goals are excluded — only regular time and extra time goals count.</p>
         </div>
       </div>
     </div>
@@ -990,7 +1002,7 @@ const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
 const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
-const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:5,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:38,CHAMP_FIN:50,CHAMP_WIN:75};
+const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:5,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:35,CHAMP_FIN:40,CHAMP_WIN:60};
 
 // Country flag mapping (ISO codes for flagcdn.com)
 const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Bosnia and Herzegovina':'ba','Türkiye':'tr','DR Congo':'cd','Iraq':'iq','Sweden':'se','Czechia':'cz','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
@@ -1781,8 +1793,15 @@ function removePart(n){
 function renderParts(){
   document.getElementById('partList').innerHTML=S.participants.map(p=>{
     const locked=S.submissions[p]&&S.submissions[p].locked;
-    const city=S.submissions[p]&&S.submissions[p].city?(' · '+S.submissions[p].city):'';
-    let html=`<span class="ptag">${p}<span style="font-size:0.78em;color:var(--regent);">${city}</span> `;
+    const city=S.submissions[p]&&S.submissions[p].city||'';
+    let html=`<span class="ptag" style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;">${p} `;
+    // City selector
+    html+=`<select style="font-size:0.72em;padding:1px 4px;border:1px solid var(--gray-300);border-radius:4px;height:24px;" onchange="changeCity('${p.replace(/'/g,"\\'")}',this.value)">`;
+    html+=`<option value=""${!city?' selected':''}>No city</option>`;
+    ['Toronto','Montreal','Red Oak','Querétaro'].forEach(c=>{
+      html+=`<option value="${c}"${city===c?' selected':''}>${c}</option>`;
+    });
+    html+=`</select> `;
     if(locked){
       html+=`<span class="lock-badge lock-yes">Submitted</span> <button class="btn btn-sm" style="font-size:0.7em;padding:2px 8px;background:var(--gold);color:var(--black);border-color:var(--gold);margin-left:4px;" onclick="unlockSubmission('${p.replace(/'/g,"\\'")}')">Unlock for Edit</button>`;
     } else {
@@ -1791,6 +1810,11 @@ function renderParts(){
     html+=` <span class="rm" onclick="removePart('${p.replace(/'/g,"\\'")}')">&times;</span></span>`;
     return html;
   }).join('');
+}
+function changeCity(name,city){
+  if(!S.submissions[name])S.submissions[name]={};
+  S.submissions[name].city=city;
+  save();
 }
 function unlockSubmission(name){
   if(!confirm('Unlock predictions for "'+name+'"?\n\nThey will be able to log in, edit their predictions, and re-submit.'))return;
