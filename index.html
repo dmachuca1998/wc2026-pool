@@ -371,6 +371,18 @@ a { color:var(--black); }
     <p style="font-size:0.82em;color:var(--regent);margin-top:6px;">25% of the pool goes to a Team-selected charity. 10% is reserved for the final celebration party.</p>
   </div>
 
+  <!-- CITY COMPETITION -->
+  <div class="card">
+    <h2>🏙️ City Competition</h2>
+    <p style="font-size:0.84em;color:var(--gray-600);margin-bottom:10px;">Which Bombardier city predicts the best? Ranked by average points per participant.</p>
+    <div style="overflow-x:auto;">
+    <table class="lb-table" id="cityTable">
+      <thead><tr><th>#</th><th>City</th><th>Participants</th><th>Avg Group Stage</th><th>Avg Knockout</th><th>Avg Bonus</th><th>Avg Total</th></tr></thead>
+      <tbody id="cityBody"><tr><td colspan="7" style="text-align:center;color:var(--regent);padding:20px;">City standings will appear once results are entered.</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+
   <!-- LEADERBOARD -->
   <div class="card">
     <h2>Leaderboard</h2>
@@ -386,8 +398,8 @@ a { color:var(--black); }
     </div>
     <div style="overflow-x:auto;">
     <table class="lb-table" id="lbTable">
-      <thead><tr><th>#</th><th>Participant</th><th>Predicted Champion</th><th>Group Stage</th><th>Knockout</th><th>Bonus</th><th>Total</th></tr></thead>
-      <tbody id="lbBody"><tr><td colspan="7" style="text-align:center;color:var(--regent);padding:20px;">No results yet. Admin must enter real match results.</td></tr></tbody>
+      <thead><tr><th>#</th><th>Participant</th><th>City</th><th>Predicted Champion</th><th>Group Stage</th><th>Knockout</th><th>Bonus</th><th>Total</th></tr></thead>
+      <tbody id="lbBody"><tr><td colspan="8" style="text-align:center;color:var(--regent);padding:20px;">No results yet. Admin must enter real match results.</td></tr></tbody>
     </table>
     </div>
   </div>
@@ -484,6 +496,16 @@ a { color:var(--black); }
         <div>
           <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;" id="pwdLabel">Password (4+ chars)</label>
           <input type="password" id="predictPwd" placeholder="Create or enter password..." style="min-width:190px;">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your City</label>
+          <select id="predictCity" style="min-width:150px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;">
+            <option value="">-- Select City --</option>
+            <option value="Toronto">Toronto</option>
+            <option value="Montreal">Montreal</option>
+            <option value="Red Oak">Red Oak</option>
+            <option value="Querétaro">Querétaro</option>
+          </select>
         </div>
         <button class="btn btn-black" onclick="startPrediction()">Start / Resume</button>
       </div>
@@ -1269,6 +1291,8 @@ async function startPrediction(){
   if(S.predictionsLocked){alert('Predictions are now LOCKED by the organizer. No further submissions allowed.');return;}
   const name=document.getElementById('predictName').value.trim();
   const pwd=document.getElementById('predictPwd').value;
+  const cityEl=document.getElementById('predictCity');
+  const city=cityEl?cityEl.value:'';
   const statusEl=document.getElementById('predictEntryStatus');
   if(!name){statusEl.textContent='⚠ Please enter your name.';return;}
   if(!pwd||pwd.length<4){statusEl.textContent='⚠ Please enter a password of at least 4 characters.';return;}
@@ -1280,10 +1304,15 @@ async function startPrediction(){
     statusEl.textContent='Verifying password…';
     const ok=await verifyPassword(name,pwd);
     if(!ok){statusEl.innerHTML='<span style="color:var(--red);">❌ Wrong password. Try again.</span>';return;}
+    // If existing participant has a saved city, pre-fill the dropdown
+    if(S.submissions[name]&&S.submissions[name].city&&cityEl){
+      cityEl.value=S.submissions[name].city;
+    }
   } else {
+    // New participant — city required
+    if(!city){statusEl.textContent='⚠ Please select your city.';return;}
     // New participant — register password
     if(S.submissions[name]&&S.submissions[name].locked){
-      // Name exists with submission but no password entry (legacy) — block
       document.getElementById('alreadySubmitted').style.display='';
       document.getElementById('predictMain').style.display='none';
       return;
@@ -1315,6 +1344,8 @@ async function startPrediction(){
     if(draft.ko){Object.keys(draft.ko).forEach(k=>{if(draft.ko[k].pick)predKOPicks[k]=draft.ko[k].pick;});}
     renderGSForm();renderTPPicker();renderKOForm();
     loadDraftIntoForm(draft);
+    // Pre-fill city from draft
+    if(draft.city&&cityEl)cityEl.value=draft.city;
     statusEl.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — continue where you left off.</span>';
     const dst=document.getElementById('draftStatusTop');
     if(dst)dst.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — '+new Date(draft.draftTimestamp||Date.now()).toLocaleString()+'</span>';
@@ -1390,6 +1421,7 @@ function saveDraft(){
   });
   const champ=(document.getElementById('bonusChamp')||{}).value||'';
   const goals=(document.getElementById('bonusGoals')||{}).value||'';
+  const cityVal=(document.getElementById('predictCity')||{}).value||'';
   S.submissions[currentPredictor]={
     locked:false,
     draftTimestamp:new Date().toISOString(),
@@ -1397,7 +1429,8 @@ function saveDraft(){
     ko:ko,
     tp:predTP.slice(),
     champion:champ,
-    totalGoals:goals?parseInt(goals):null
+    totalGoals:goals?parseInt(goals):null,
+    city:cityVal||(S.submissions[currentPredictor]&&S.submissions[currentPredictor].city)||''
   };
   save();
   const msg='<span style="color:var(--green);">✓ Progress saved at '+new Date().toLocaleTimeString()+'</span>';
@@ -1512,6 +1545,11 @@ async function submitPrediction(){
   const goals=document.getElementById('bonusGoals').value.trim();
   if(!goals) errors.push('Total Goals: You must predict the total number of tournament goals.');
 
+  // 6. City required
+  const cityEl=document.getElementById('predictCity');
+  const city=cityEl?cityEl.value:'';
+  if(!city) errors.push('City: You must select the city you represent.');
+
   // Block if anything missing
   if(errors.length>0){
     alert('⚠️ Cannot submit — please complete the following:\n\n• '+errors.join('\n\n• '));
@@ -1527,7 +1565,8 @@ async function submitPrediction(){
     ko:ko,
     tp:predTP.slice(),
     champion:champ,
-    totalGoals:parseInt(goals)
+    totalGoals:parseInt(goals),
+    city:city
   };
   if(!S.participants.includes(currentPredictor))S.participants.push(currentPredictor);
   save();
@@ -1742,7 +1781,8 @@ function removePart(n){
 function renderParts(){
   document.getElementById('partList').innerHTML=S.participants.map(p=>{
     const locked=S.submissions[p]&&S.submissions[p].locked;
-    let html=`<span class="ptag">${p} `;
+    const city=S.submissions[p]&&S.submissions[p].city?(' · '+S.submissions[p].city):'';
+    let html=`<span class="ptag">${p}<span style="font-size:0.78em;color:var(--regent);">${city}</span> `;
     if(locked){
       html+=`<span class="lock-badge lock-yes">Submitted</span> <button class="btn btn-sm" style="font-size:0.7em;padding:2px 8px;background:var(--gold);color:var(--black);border-color:var(--gold);margin-left:4px;" onclick="unlockSubmission('${p.replace(/'/g,"\\'")}')">Unlock for Edit</button>`;
     } else {
@@ -1893,7 +1933,7 @@ function viewSubmittedPred(){
   if(!p||!S.submissions[p]){c.innerHTML='Select a participant.';return;}
   const sub=S.submissions[p];
   let h=`<p><strong>Submitted:</strong> ${sub.timestamp}</p>`;
-  h+=`<p><strong>Champion:</strong> ${sub.champion||'N/A'} | <strong>Total Goals:</strong> ${sub.totalGoals||'N/A'}</p>`;
+  h+=`<p><strong>City:</strong> ${sub.city||'N/A'} | <strong>Champion:</strong> ${sub.champion||'N/A'} | <strong>Total Goals:</strong> ${sub.totalGoals||'N/A'}</p>`;
   h+=`<p><strong>3rd Place Groups:</strong> ${(sub.tp||[]).join(', ')||'N/A'}</p>`;
   h+=`<h3 style="margin-top:10px;">Group Stage</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;font-size:0.82em;">`;
   GM.forEach(m=>{
@@ -2068,7 +2108,7 @@ function calcLeaderboard(){
     if(sub.totalGoals!==null&&S.admin.totalGoals!==null){
       // Closest total goals - calculated separately
     }
-    rows.push({name,champ:sub.champion||'-',gs:gsP,ko:koP,bonus:bonP,total:gsP+koP+bonP});
+    rows.push({name,champ:sub.champion||'-',gs:gsP,ko:koP,bonus:bonP,total:gsP+koP+bonP,city:sub.city||''});
   });
   // Closest total goals bonus
   if(S.admin.totalGoals!==null){
@@ -2084,13 +2124,47 @@ function calcLeaderboard(){
   }
   rows.sort((a,b)=>b.total-a.total);
   const tbody=document.getElementById('lbBody');
-  if(rows.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--regent);padding:20px;">No participants yet.</td></tr>';return;}
+  if(rows.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--regent);padding:20px;">No participants yet.</td></tr>';return;}
   tbody.innerHTML=rows.map((r,i)=>{
     const rank=i+1;
     const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
     const cls=rank<=3?'rank-'+rank:'';
-    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td>${r.name}</td><td>${r.champ}</td><td>${r.gs}</td><td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
+    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td>${r.name}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ}</td><td>${r.gs}</td><td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
   }).join('');
+
+  // ========== CITY COMPETITION TABLE ==========
+  const cityStats={};
+  const CITIES=['Toronto','Montreal','Red Oak','Querétaro'];
+  CITIES.forEach(c=>{cityStats[c]={count:0,gs:0,ko:0,bonus:0,total:0};});
+  rows.forEach(r=>{
+    if(r.city&&cityStats[r.city]){
+      cityStats[r.city].count++;
+      cityStats[r.city].gs+=r.gs;
+      cityStats[r.city].ko+=r.ko;
+      cityStats[r.city].bonus+=r.bonus;
+      cityStats[r.city].total+=r.total;
+    }
+  });
+  const cityRows=CITIES.map(c=>({
+    city:c,
+    count:cityStats[c].count,
+    avgGs:cityStats[c].count?cityStats[c].gs/cityStats[c].count:0,
+    avgKo:cityStats[c].count?cityStats[c].ko/cityStats[c].count:0,
+    avgBonus:cityStats[c].count?cityStats[c].bonus/cityStats[c].count:0,
+    avgTotal:cityStats[c].count?cityStats[c].total/cityStats[c].count:0
+  })).filter(c=>c.count>0).sort((a,b)=>b.avgTotal-a.avgTotal);
+  const cityTbody=document.getElementById('cityBody');
+  if(cityRows.length===0){
+    cityTbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--regent);padding:20px;">City standings will appear once results are entered.</td></tr>';
+  } else {
+    const cityEmoji={'Toronto':'🇨🇦','Montreal':'🇨🇦','Red Oak':'🇺🇸','Querétaro':'🇲🇽'};
+    cityTbody.innerHTML=cityRows.map((c,i)=>{
+      const rank=i+1;
+      const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+      const cls=rank<=3?'rank-'+rank:'';
+      return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td>${cityEmoji[c.city]||''} <strong>${c.city}</strong></td><td>${c.count}</td><td>${c.avgGs.toFixed(1)}</td><td>${c.avgKo.toFixed(1)}</td><td>${c.avgBonus.toFixed(1)}</td><td><strong>${c.avgTotal.toFixed(1)}</strong></td></tr>`;
+    }).join('');
+  }
 }
 
 // ============================
@@ -2299,7 +2373,7 @@ function renderMyPredictions(name,sub){
   h+=`<strong>${name}</strong> ${statusBadge}<br>`;
   if(sub.locked&&sub.timestamp)h+=`<span style="font-size:0.82em;color:var(--regent);">Submitted: ${new Date(sub.timestamp).toLocaleString()}</span><br>`;
   if(sub.koUpdateTimestamp)h+=`<span style="font-size:0.82em;color:var(--regent);">KO Updated: ${new Date(sub.koUpdateTimestamp).toLocaleString()}</span><br>`;
-  h+=`<span style="font-size:0.85em;">🏆 Champion: <strong>${sub.champion||'N/A'}</strong> &nbsp;⚽ Total Goals: <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>`;
+  h+=`<span style="font-size:0.85em;">🏙️ City: <strong>${sub.city||'N/A'}</strong> &nbsp;🏆 Champion: <strong>${sub.champion||'N/A'}</strong> &nbsp;⚽ Total Goals: <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>`;
   h+=`<span style="font-size:0.85em;">3rd-Place groups: <strong>${(sub.tp||[]).join(', ')||'N/A'}</strong></span>`;
   h+=`</div>`;
 
