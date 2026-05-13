@@ -567,7 +567,7 @@ a { color:var(--black); }
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Now that group results are known, update your knockout picks if you wish.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="bracket_chart.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
+        <img src="bracket_chart.png" alt="World Cup 2026 — Knockout Bracket" style="max-width:100%;border-radius:10px;">
       </div>
 
       <h3>Step 1: Your 8 Third-Place Qualifiers <span style="color:var(--red);font-weight:600;font-size:0.78em;">🔒 LOCKED</span></h3>
@@ -626,8 +626,8 @@ a { color:var(--black); }
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Pick 8 third-place qualifying groups, then select which group position advances from each knockout match. Also predict the score for each match.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="bracket_knockout.png" alt="World Cup 2026 — Knockout Round" style="max-width:100%;border-radius:10px;">
-        <p>World Cup 2026 Knockout Round" — use this as reference when selecting your 8 third-place qualifiers</p>
+        <img src="bracket_knockout.png" alt="World Cup 2026 — Knockout Bracket" style="max-width:100%;border-radius:10px;">
+        <p>World Cup 2026 Knockout Bracket — use this as reference when selecting your 8 third-place qualifiers</p>
       </div>
 
       <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
@@ -1978,7 +1978,7 @@ function renderAdminGS(){
   Object.keys(GROUPS).forEach(g=>{
     h+=`<div class="group-hdr"><h3>Group ${g}</h3></div>`;
     GM.filter(m=>m.g===g).forEach(m=>{
-      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d}</div><div class="scores"><input type="number" min="0" max="20" id="ah-${m.n}" placeholder="-" onchange="saveAdmin()"><span class="vs">vs</span><input type="number" min="0" max="20" id="aa-${m.n}" placeholder="-" onchange="saveAdmin()"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
+      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d}</div><div class="scores"><input type="number" min="0" max="20" id="ah-${m.n}" placeholder="-" onchange="saveAdmin()"><span class="vs">vs</span><input type="number" min="0" max="20" id="aa-${m.n}" placeholder="-" onchange="saveAdmin()"><button onclick="clearGSMatch(${m.n})" title="Clear this match result" style="margin-left:6px;background:transparent;border:1px solid var(--gray-300);color:var(--gray-500);border-radius:4px;width:24px;height:24px;font-size:0.8em;cursor:pointer;padding:0;line-height:1;">✕</button></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
     });
   });
   c.innerHTML=h;
@@ -1995,6 +1995,7 @@ function renderAdminKO(){
       h+=`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">`;
       h+=`<label style="font-size:0.82em;">Winner:</label><input type="text" id="akw-${m.n}" placeholder="Team name" style="width:150px;font-size:0.85em;" onchange="saveAdmin()">`;
       h+=`<label style="font-size:0.82em;">Score:</label><input type="number" id="akh-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()"><span style="color:var(--regent);">-</span><input type="number" id="aka-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()">`;
+      h+=`<button onclick="clearKOMatch(${m.n})" title="Clear this match result" style="margin-left:6px;background:transparent;border:1px solid var(--gray-300);color:var(--gray-500);border-radius:4px;width:24px;height:24px;font-size:0.8em;cursor:pointer;padding:0;line-height:1;">✕</button>`;
       h+=`</div></div>`;
     });
   }
@@ -2005,13 +2006,28 @@ function saveAdmin(){
   GM.forEach(m=>{
     const hv=document.getElementById('ah-'+m.n);
     const av=document.getElementById('aa-'+m.n);
-    if(hv&&av&&hv.value!==''&&av.value!=='')S.admin.groupResults[m.n]={h:parseInt(hv.value),a:parseInt(av.value)};
+    if(hv&&av&&hv.value!==''&&av.value!==''){
+      S.admin.groupResults[m.n]={h:parseInt(hv.value),a:parseInt(av.value)};
+    } else if(hv&&av&&hv.value===''&&av.value===''){
+      // Both cleared → delete the result entirely
+      delete S.admin.groupResults[m.n];
+    }
   });
   ALLKO.forEach(m=>{
     const w=document.getElementById('akw-'+m.n);
     const hv=document.getElementById('akh-'+m.n);
     const av=document.getElementById('aka-'+m.n);
-    if(w)S.admin.koResults[m.n]={winner:w.value.trim(),h:hv?parseInt(hv.value)||0:0,a:av?parseInt(av.value)||0:0};
+    if(w){
+      const winnerVal=w.value.trim();
+      const hVal=hv?hv.value:'';
+      const aVal=av?av.value:'';
+      // If everything is empty, delete the KO result
+      if(!winnerVal&&hVal===''&&aVal===''){
+        delete S.admin.koResults[m.n];
+      } else {
+        S.admin.koResults[m.n]={winner:winnerVal,h:hv?parseInt(hv.value)||0:0,a:av?parseInt(av.value)||0:0};
+      }
+    }
   });
   S.admin.champion=(document.getElementById('actChamp')||{}).value||'';
   const gv=(document.getElementById('actGoals')||{}).value;
@@ -2019,6 +2035,33 @@ function saveAdmin(){
   save();
   updateGroupStandings();
   updateScoresTicker();
+}
+// Clear a single group stage match result
+function clearGSMatch(n){
+  if(!confirm('Clear the result for Match '+n+'? This will remove the score and undo any points from this match.'))return;
+  delete S.admin.groupResults[n];
+  const h=document.getElementById('ah-'+n);
+  const a=document.getElementById('aa-'+n);
+  if(h)h.value='';
+  if(a)a.value='';
+  save();
+  updateGroupStandings();
+  updateScoresTicker();
+}
+// Clear a single KO match result
+function clearKOMatch(n){
+  if(!confirm('Clear the result for Match '+n+'?'))return;
+  delete S.admin.koResults[n];
+  const w=document.getElementById('akw-'+n);
+  const h=document.getElementById('akh-'+n);
+  const a=document.getElementById('aka-'+n);
+  if(w)w.value='';
+  if(h)h.value='';
+  if(a)a.value='';
+  save();
+  updateScoresTicker();
+  renderAdminKO();
+  loadAdminData();
 }
 function loadAdminData(){
   GM.forEach(m=>{
