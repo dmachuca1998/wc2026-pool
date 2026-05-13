@@ -563,22 +563,15 @@ a { color:var(--black); }
     </div>
 
     <div class="card">
-      <h2>Tournament Bracket Reference</h2>
-      <div class="bracket-img-wrap">
-        <img src="bracket_chart.png" alt="FIFA World Cup 2026 — Knockout Bracket">
-      </div>
-    </div>
-
-    <div class="card">
       <h2>Knockout Stage Predictions (Update)</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Now that group results are known, update your knockout picks if you wish.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="qualified_nations.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
+        <img src="bracket_chart.png" alt="World Cup 2026 — Knockout Bracket" style="max-width:100%;border-radius:10px;">
       </div>
 
-      <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
-      <p style="font-size:0.82em;color:var(--regent);margin-bottom:6px;">Select exactly 8 of 12 groups whose 3rd-place teams you think will advance.</p>
+      <h3>Step 1: Your 8 Third-Place Qualifiers <span style="color:var(--red);font-weight:600;font-size:0.78em;">🔒 LOCKED</span></h3>
+      <p style="font-size:0.82em;color:var(--regent);margin-bottom:6px;">Your original third-place qualifier picks are locked during the knockout update window — they were finalized at the time you first submitted your predictions. Only your bracket match picks and scores can be revised below.</p>
       <div class="tp-grid" id="koUpTpPicker"></div>
       <p style="color:var(--gold-dark);font-size:0.82em;margin-top:4px;" id="koUpTpCount">Selected: 0 / 8</p>
 
@@ -588,12 +581,12 @@ a { color:var(--black); }
 
     <!-- Bonus Predictions are LOCKED during KO update — only knockout bracket can be updated -->
     <div class="info-box" style="margin:8px 0;">
-      <strong>ℹ️ Note:</strong> Bonus Predictions (Champion & Total Goals) cannot be changed during the knockout update window. Only your bracket picks and scores can be revised.
+      <strong>ℹ️ Note:</strong> Your <strong>3rd-place qualifier picks</strong>, <strong>Champion prediction</strong>, and <strong>Total Goals prediction</strong> cannot be changed during the knockout update window — they remain as you originally submitted. Only your bracket match picks and scores can be revised below.
     </div>
 
     <div class="card" style="text-align:center;">
       <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitKOUpdate()">Save Updated KO Predictions</button>
-      <p style="font-size:0.78em;color:var(--regent);margin-top:8px;">This will overwrite only your knockout bracket predictions. Group stage predictions and bonus picks remain unchanged.</p>
+      <p style="font-size:0.78em;color:var(--regent);margin-top:8px;">This will overwrite only your knockout bracket match picks and scores. Group stage predictions, 3rd-place qualifier picks, Champion, and Total Goals remain unchanged.</p>
     </div>
   </div>
 
@@ -616,29 +609,33 @@ a { color:var(--black); }
     <div class="card">
       <h2>Group Stage Predictions</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Predict the exact score for each of the 72 group stage matches.</p>
+      <div class="info-box" style="margin-bottom:14px;font-size:0.84em;line-height:1.7;">
+        <strong>How group stage scoring works:</strong><br>
+        • <strong>+3 points</strong> for predicting the correct outcome (Win, Draw, or Loss) — even if the score is wrong<br>
+        • <strong>+2 bonus points</strong> for predicting the exact final score (total <strong>5 points</strong> for an exact match)<br>
+        • <strong>0 points</strong> if you predict the wrong outcome<br><br>
+        <em>Important: Group stage matches CAN end in a draw — there are no penalty shootouts in the group stage. If you predict a draw and the match ends in a draw, you earn the outcome points regardless of the exact score.</em>
+      </div>
       <div id="gsMatches"></div>
     </div>
 
     <!-- KNOCKOUT BRACKET -->
-    <div class="card">
-      <h2>Tournament Bracket Reference</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Use this bracket chart as reference when making your knockout stage predictions below.</p>
-      <div class="bracket-img-wrap">
-        <img src="qualified_nations.png" alt="FIFA World Cup 2026 — Knockout Bracket">
-      </div>
-    </div>
 
     <div class="card">
       <h2>Knockout Stage Predictions</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Pick 8 third-place qualifying groups, then select which group position advances from each knockout match. Also predict the score for each match.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="bracket_knockout.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
-        <p>World Cup 2026 group stage teams — use this as reference when selecting your 8 third-place qualifiers</p>
+        <img src="bracket_knockout.png" alt="World Cup 2026 — Knockout Branches" style="max-width:100%;border-radius:10px;">
+        <p>World Cup 2026 Knockout Branches — use this as reference when selecting your 8 third-place qualifiers</p>
       </div>
 
       <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
       <p style="font-size:0.82em;color:var(--regent);margin-bottom:6px;">Select exactly 8 of 12 groups whose 3rd-place teams you think will advance.</p>
+      <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:0.82em;color:var(--gray-600);">💡 Save time: auto-pick the 8 best third-place teams based on YOUR group stage score predictions.</span>
+        <button class="btn btn-sm btn-black" onclick="autoPickThirdPlace()" type="button">⚡ Auto-Pick from My Predictions</button>
+      </div>
       <div class="tp-grid" id="tpPicker"></div>
       <p style="color:var(--gold-dark);font-size:0.82em;margin-top:4px;" id="tpCount">Selected: 0 / 8</p>
 
@@ -988,14 +985,14 @@ const R32=[
   {n:88,tA:"D2",tB:"G2",d:"Jul 3"}
 ];
 const R16=[
-  {n:89,tA:"W73",tB:"W74",d:"Jul 4"},{n:90,tA:"W75",tB:"W76",d:"Jul 4"},
-  {n:91,tA:"W77",tB:"W78",d:"Jul 5"},{n:92,tA:"W79",tB:"W80",d:"Jul 5"},
-  {n:93,tA:"W81",tB:"W82",d:"Jul 6"},{n:94,tA:"W83",tB:"W84",d:"Jul 6"},
-  {n:95,tA:"W85",tB:"W86",d:"Jul 7"},{n:96,tA:"W87",tB:"W88",d:"Jul 7"}
+  {n:89,tA:"W74",tB:"W77",d:"Jul 4"},{n:90,tA:"W73",tB:"W75",d:"Jul 4"},
+  {n:91,tA:"W76",tB:"W78",d:"Jul 5"},{n:92,tA:"W79",tB:"W80",d:"Jul 5"},
+  {n:93,tA:"W83",tB:"W84",d:"Jul 6"},{n:94,tA:"W81",tB:"W82",d:"Jul 6"},
+  {n:95,tA:"W86",tB:"W88",d:"Jul 7"},{n:96,tA:"W85",tB:"W87",d:"Jul 7"}
 ];
 const QF=[
-  {n:97,tA:"W89",tB:"W90",d:"Jul 9"},{n:98,tA:"W91",tB:"W92",d:"Jul 10"},
-  {n:99,tA:"W93",tB:"W94",d:"Jul 10"},{n:100,tA:"W95",tB:"W96",d:"Jul 11"}
+  {n:97,tA:"W89",tB:"W90",d:"Jul 9"},{n:98,tA:"W93",tB:"W94",d:"Jul 10"},
+  {n:99,tA:"W91",tB:"W92",d:"Jul 10"},{n:100,tA:"W95",tB:"W96",d:"Jul 11"}
 ];
 const SF=[{n:101,tA:"W97",tB:"W98",d:"Jul 14"},{n:102,tA:"W99",tB:"W100",d:"Jul 15"}];
 const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
@@ -1480,6 +1477,106 @@ function toggleTP(g){
   document.getElementById('tpCount').textContent='Selected: '+predTP.length+' / 8';
 }
 
+// =====================================================
+// AUTO-PICK THIRD PLACE QUALIFIERS
+// =====================================================
+// Computes group standings from a set of {matchNum: {h,a}} score results
+// Returns: {A:[{team,pts,gd,gf},...], B:[...], ...} sorted within each group
+function computeStandingsFrom(results){
+  const standings={};
+  Object.keys(GROUPS).forEach(g=>{
+    const teams=GROUPS[g];
+    const t={};
+    teams.forEach(team=>{t[team]={team,pld:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0};});
+    GM.filter(m=>m.g===g).forEach(m=>{
+      const r=results[m.n];
+      if(!r||r.h===undefined||r.h===null||r.a===undefined||r.a===null)return;
+      const ht=t[m.h],at=t[m.a];
+      if(!ht||!at)return;
+      ht.pld++;at.pld++;
+      ht.gf+=r.h;ht.ga+=r.a;
+      at.gf+=r.a;at.ga+=r.h;
+      if(r.h>r.a){ht.w++;ht.pts+=3;at.l++;}
+      else if(r.h<r.a){at.w++;at.pts+=3;ht.l++;}
+      else{ht.d++;at.d++;ht.pts+=1;at.pts+=1;}
+    });
+    const sorted=Object.values(t).sort((a,b)=>{
+      if(b.pts!==a.pts)return b.pts-a.pts;
+      const gdA=a.gf-a.ga,gdB=b.gf-b.ga;
+      if(gdB!==gdA)return gdB-gdA;
+      return b.gf-a.gf;
+    });
+    sorted.forEach(x=>x.gd=x.gf-x.ga);
+    standings[g]=sorted;
+  });
+  return standings;
+}
+
+// Read current predicted scores from the GS form inputs
+function readPredictedGSResults(){
+  const r={};
+  GM.forEach(m=>{
+    const hv=document.getElementById('ph-'+m.n);
+    const av=document.getElementById('pa-'+m.n);
+    if(hv&&av&&hv.value!==''&&av.value!==''){
+      r[m.n]={h:parseInt(hv.value),a:parseInt(av.value)};
+    }
+  });
+  return r;
+}
+
+// Get the top 8 groups whose 3rd-place teams qualify, based on standings
+function topEightThirdPlace(standings){
+  const thirds=[];
+  Object.keys(standings).forEach(g=>{
+    const third=standings[g][2];
+    if(third)thirds.push({group:g,team:third.team,pts:third.pts,gd:third.gd,gf:third.gf,pld:third.pld});
+  });
+  thirds.sort((a,b)=>{
+    if(b.pts!==a.pts)return b.pts-a.pts;
+    if(b.gd!==a.gd)return b.gd-a.gd;
+    return b.gf-a.gf;
+  });
+  return thirds.slice(0,8).map(x=>x.group).sort();
+}
+
+function autoPickThirdPlace(){
+  const results=readPredictedGSResults();
+  const filled=Object.keys(results).length;
+  if(filled<72){
+    if(!confirm('You have only filled '+filled+' of 72 group stage scores.\n\nThe auto-pick works best when all scores are filled. Continue anyway? Groups with incomplete scores may have inaccurate standings.')){return;}
+  }
+  const standings=computeStandingsFrom(results);
+  const top8=topEightThirdPlace(standings);
+  if(top8.length<8){alert('Could not determine 8 third-place qualifiers — some groups have no predicted scores at all.');return;}
+  // Apply
+  predTP=top8.slice();
+  'ABCDEFGHIJKL'.split('').forEach(x=>{
+    const el=document.getElementById('ptp-'+x);
+    if(el)el.classList.toggle('sel',predTP.includes(x));
+  });
+  document.getElementById('tpCount').textContent='Selected: '+predTP.length+' / 8';
+  // Show standings summary
+  const thirdsInfo=Object.keys(standings).map(g=>{
+    const t=standings[g][2];
+    return {g,team:t?t.team:'—',pts:t?t.pts:0,gd:t?t.gd:0,gf:t?t.gf:0};
+  }).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+  let msg='✅ Auto-picked the 8 best third-place qualifiers based on your predictions:\n\n';
+  thirdsInfo.forEach((x,i)=>{
+    const mark=i<8?'✓':'✗';
+    msg+=`${mark} Group ${x.g}: ${x.team} — ${x.pts} pts, GD ${x.gd>=0?'+':''}${x.gd}, GF ${x.gf}\n`;
+  });
+  msg+='\nYou can still manually adjust by clicking groups above.';
+  alert(msg);
+}
+
+// Same but for the KO Update Window — uses actual admin results, not predictions
+// LOCKED in KO update window — kept for safety but blocked
+function autoPickThirdPlaceKOUp(){
+  alert('🔒 Third-place qualifier picks are locked during the knockout update window.\n\nYour original picks were finalized when you first submitted. Only your knockout match picks and scores can be revised.');
+  return;
+}
+
 function renderKOForm(){
   const c=document.getElementById('koMatches');let h='';
   function renderRound(title,matches,cls){
@@ -1655,10 +1752,16 @@ async function startKOUpdate(){
 }
 
 function renderKOUpdateForm(){
-  // TP picker
+  // TP picker — LOCKED during KO update window (display only)
   const tpc=document.getElementById('koUpTpPicker');
-  tpc.innerHTML='ABCDEFGHIJKL'.split('').map(g=>`<div class="tp-btn ${koUpTP.includes(g)?'sel':''}" id="koup-tp-${g}" onclick="toggleKOUpTP('${g}')">${g}3</div>`).join('');
-  document.getElementById('koUpTpCount').textContent='Selected: '+koUpTP.length+' / 8';
+  tpc.innerHTML='ABCDEFGHIJKL'.split('').map(g=>{
+    const isPicked=koUpTP.includes(g);
+    const lockStyle=isPicked
+      ?'opacity:0.85;cursor:not-allowed;border-color:var(--gold);background:rgba(201,168,76,0.18);'
+      :'opacity:0.4;cursor:not-allowed;';
+    return `<div class="tp-btn ${isPicked?'sel':''}" id="koup-tp-${g}" style="${lockStyle}" title="3rd-place picks are locked during the knockout update window">${g}3${isPicked?' 🔒':''}</div>`;
+  }).join('');
+  document.getElementById('koUpTpCount').innerHTML='🔒 Locked: '+koUpTP.length+' / 8 (cannot be changed)';
 
   // KO matches
   const c=document.getElementById('koUpMatches');let h='';
@@ -1703,14 +1806,9 @@ function loadKOUpdateData(sub){
 }
 
 function toggleKOUpTP(g){
-  const i=koUpTP.indexOf(g);
-  if(i>=0)koUpTP.splice(i,1);
-  else{if(koUpTP.length>=8){alert('Max 8 groups!');return;}koUpTP.push(g);}
-  'ABCDEFGHIJKL'.split('').forEach(x=>{
-    const el=document.getElementById('koup-tp-'+x);
-    if(el)el.classList.toggle('sel',koUpTP.includes(x));
-  });
-  document.getElementById('koUpTpCount').textContent='Selected: '+koUpTP.length+' / 8';
+  // Third-place picks are LOCKED during the knockout update window
+  alert('🔒 Third-place qualifier picks are locked during the knockout update window.\n\nYour original picks were finalized when you first submitted. Only your knockout match picks and scores can be revised.');
+  return;
 }
 
 function pickKOUp(mn,side){
@@ -1727,7 +1825,8 @@ function submitKOUpdate(){
 
   // Validate KO fields
   let errors=[];
-  if(koUpTP.length!==8) errors.push('Third-Place Qualifiers: You selected '+koUpTP.length+' groups. Must be exactly 8.');
+  // Third-place picks (tp) are LOCKED during KO update — no validation needed
+  // They remain at whatever the participant originally submitted
 
   let koMissingPick=0, koMissingScore=0;
   let ko={};
@@ -1749,13 +1848,13 @@ function submitKOUpdate(){
     return;
   }
 
-  // Update only KO bracket and 3rd-place picks — preserve GS AND bonus predictions
+  // Update only KO bracket — preserve GS, third-place picks (tp), and bonus predictions
   S.submissions[koUpdater].ko=ko;
-  S.submissions[koUpdater].tp=koUpTP.slice();
+  // tp is intentionally NOT updated — third-place picks are locked once originally submitted
   // champion and totalGoals are intentionally NOT updated
   S.submissions[koUpdater].koUpdateTimestamp=new Date().toISOString();
   save();
-  alert('✅ Knockout bracket predictions updated for '+koUpdater+'! Bonus predictions (Champion & Total Goals) remain as originally submitted.');
+  alert('✅ Knockout bracket predictions updated for '+koUpdater+'!\n\nNote: Your 3rd-place qualifier picks, Champion, and Total Goals predictions remain as originally submitted (these are locked during the update window).');
   document.getElementById('koUpdateMain').style.display='none';
   document.getElementById('koUpdatePwd').value='';
   document.getElementById('koUpdateStatus').innerHTML='<span style="color:var(--green);">✓ KO predictions updated at '+new Date().toLocaleString()+'</span>';
@@ -2023,11 +2122,15 @@ function renderComparison(){
     else if(m.n===104)roundPts=P.FIN;
     let winMatch=false,scoreM=false;
     if(pred&&real&&real.winner){
-      if(pred.pick&&pred.pick.toLowerCase()===real.winner.toLowerCase()){pts+=roundPts;winMatch=true;}
+      if(pred.pick){
+        const pickedSlot=pred.pick==='A'?m.tA:m.tB;
+        const pickedTeam=resolveSlot(pickedSlot);
+        if(pickedTeam&&pickedTeam.toLowerCase()===real.winner.toLowerCase()){pts+=roundPts;winMatch=true;}
+      }
       if(pred.h===real.h&&pred.a===real.a){pts+=P.KO_EX;scoreM=true;}
       totalKO+=pts;
     }
-    const pickStr=pred&&pred.pick?pred.pick:'-';
+    const pickStr=pred&&pred.pick?(pred.pick==='A'?resolveLabel(m.tA):resolveLabel(m.tB)):'-';
     const predSS=pred?pred.h+' - '+pred.a:'-';
     const realW=real&&real.winner?real.winner:'<span style="color:var(--regent)">Not played</span>';
     const realSS=real&&real.winner?real.h+' - '+real.a:'';
@@ -2106,7 +2209,12 @@ function calcLeaderboard(){
       else if(m.n>=97&&m.n<=100)rPts=P.QF;
       else if(m.n>=101&&m.n<=102)rPts=P.SF;
       else if(m.n===104)rPts=P.FIN;
-      if(pred.pick&&real.winner&&pred.pick.toLowerCase()===real.winner.toLowerCase())koP+=rPts;
+      // Resolve pred.pick (A/B) to the actual team name via match slots
+      if(pred.pick&&real.winner){
+        const pickedSlot=pred.pick==='A'?m.tA:m.tB;
+        const pickedTeam=resolveSlot(pickedSlot);
+        if(pickedTeam&&pickedTeam.toLowerCase()===real.winner.toLowerCase())koP+=rPts;
+      }
       if(pred.h===real.h&&pred.a===real.a)koP+=P.KO_EX;
     });
     // Champion progression bonus
