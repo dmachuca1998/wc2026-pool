@@ -487,7 +487,7 @@ a { color:var(--black); }
     <div id="predictForm">
       <div class="info-box" style="margin-bottom:12px;font-size:0.85em;">
         <strong>New participant?</strong> Enter your name and create a password — it prevents anyone else from using your name.<br>
-        <strong>Returning (draft)?</strong> Enter your name + password to resume your saved draft.<br>
+        <strong>Returning?</strong> Enter your name + password to resume your saved draft OR revise predictions you already submitted. You can keep editing until the organizer locks all submissions.<br>
         <strong>City:</strong> Select the city of the Bombardier site where you work. This determines your team in the City Competition.
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:10px;">
@@ -567,7 +567,7 @@ a { color:var(--black); }
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Now that group results are known, update your knockout picks if you wish.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="bracket_chart.png" alt="World Cup 2026 — Knockout Bracket" style="max-width:100%;border-radius:10px;">
+        <img src="bracket_chart.png" alt="World Cup 2026 — Group Stage Teams" style="max-width:100%;border-radius:10px;">
       </div>
 
       <h3>Step 1: Your 8 Third-Place Qualifiers <span style="color:var(--red);font-weight:600;font-size:0.78em;">🔒 LOCKED</span></h3>
@@ -626,8 +626,8 @@ a { color:var(--black); }
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Pick 8 third-place qualifying groups, then select which group position advances from each knockout match. Also predict the score for each match.</p>
 
       <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="bracket_knockout.png" alt="World Cup 2026 — Knockout Branches" style="max-width:100%;border-radius:10px;">
-        <p>World Cup 2026 Knockout Branches — use this as reference when selecting your 8 third-place qualifiers</p>
+        <img src="bracket_knockout.png" alt="World Cup 2026 — Knockout Round" style="max-width:100%;border-radius:10px;">
+        <p>World Cup 2026 Knockout Round" — use this as reference when selecting your 8 third-place qualifiers</p>
       </div>
 
       <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
@@ -1320,12 +1320,6 @@ async function startPrediction(){
   } else {
     // New participant — city required
     if(!city){statusEl.textContent='⚠ Please select your city.';return;}
-    // New participant — register password
-    if(S.submissions[name]&&S.submissions[name].locked){
-      document.getElementById('alreadySubmitted').style.display='';
-      document.getElementById('predictMain').style.display='none';
-      return;
-    }
     const h=await hashPassword(pwd);
     if(!S.passwords)S.passwords={};
     S.passwords[name]=h;
@@ -1334,30 +1328,30 @@ async function startPrediction(){
     statusEl.innerHTML='<span style="color:var(--green);">✓ Password created! Starting your prediction form…</span>';
   }
 
-  if(S.submissions[name]&&S.submissions[name].locked){
-    document.getElementById('alreadySubmitted').style.display='';
-    document.getElementById('predictMain').style.display='none';
-    return;
-  }
-
   currentPredictor=name;
   if(!S.participants.includes(name)){S.participants.push(name);save();}
   document.getElementById('alreadySubmitted').style.display='none';
   document.getElementById('predictWelcome').textContent='Predictions for '+name;
   document.getElementById('predictMain').style.display='';
-  // Load draft if it exists (unlocked submission)
-  const draft=S.submissions[name];
-  if(draft&&!draft.locked){
-    predTP=(draft.tp||[]).slice();
+
+  // Load existing data (works for BOTH drafts and previously submitted/locked submissions)
+  const existing=S.submissions[name];
+  if(existing&&(existing.gs||existing.ko)){
+    predTP=(existing.tp||[]).slice();
     predKOPicks={};
-    if(draft.ko){Object.keys(draft.ko).forEach(k=>{if(draft.ko[k].pick)predKOPicks[k]=draft.ko[k].pick;});}
+    if(existing.ko){Object.keys(existing.ko).forEach(k=>{if(existing.ko[k].pick)predKOPicks[k]=existing.ko[k].pick;});}
     renderGSForm();renderTPPicker();renderKOForm();
-    loadDraftIntoForm(draft);
-    // Pre-fill city from draft
-    if(draft.city&&cityEl)cityEl.value=draft.city;
-    statusEl.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — continue where you left off.</span>';
+    loadDraftIntoForm(existing);
+    // Pre-fill city
+    if(existing.city&&cityEl)cityEl.value=existing.city;
+    const wasSubmitted=existing.locked===true;
+    const label=wasSubmitted?'✏️ Revising your submitted predictions — make changes and click Submit again to save.':'📂 Draft loaded — continue where you left off.';
+    statusEl.innerHTML='<span style="color:var(--gold-dark);">'+label+'</span>';
     const dst=document.getElementById('draftStatusTop');
-    if(dst)dst.innerHTML='<span style="color:var(--gold-dark);">📂 Draft loaded — '+new Date(draft.draftTimestamp||Date.now()).toLocaleString()+'</span>';
+    if(dst){
+      const ts=existing.timestamp||existing.draftTimestamp||Date.now();
+      dst.innerHTML='<span style="color:var(--gold-dark);">'+(wasSubmitted?'✏️ Revising submission from ':'📂 Draft loaded — ')+new Date(ts).toLocaleString()+'</span>';
+    }
   } else {
     predTP=[];predKOPicks={};
     renderGSForm();renderTPPicker();renderKOForm();
@@ -1601,8 +1595,7 @@ function renderKOForm(){
   c.innerHTML=h;
 }
 function pickKO(n,side){
-  const mm=ALLKO.find(m=>m.n===n);if(!mm)return;
-  predKOPicks[n]=side==='A'?mm.tA:mm.tB;
+  predKOPicks[n]=side; // Store 'A' or 'B' (consistent with KO update and scoring logic)
   const eA=document.getElementById('pbo-'+n+'-A');
   const eB=document.getElementById('pbo-'+n+'-B');
   if(eA)eA.classList.toggle('sel',side==='A');
@@ -1666,10 +1659,13 @@ async function submitPrediction(){
   }
 
   // ========== SAVE ==========
+  const isRevision=S.submissions[currentPredictor]&&S.submissions[currentPredictor].locked;
   const ts=new Date().toISOString();
+  const prior=S.submissions[currentPredictor]||{};
   S.submissions[currentPredictor]={
     locked:true,
-    timestamp:ts,
+    timestamp:isRevision?(prior.timestamp||ts):ts,
+    lastRevised:isRevision?ts:null,
     gs:gs,
     ko:ko,
     tp:predTP.slice(),
@@ -1687,14 +1683,14 @@ async function submitPrediction(){
       headers:{'Accept':'application/json','Content-Type':'application/json'},
       body:JSON.stringify({
         name:currentPredictor,
-        message:'New WC2026 prediction submitted by '+currentPredictor+' at '+new Date().toLocaleString()+'. Champion pick: '+(champ||'N/A')+', Total Goals: '+(goals||'N/A')+'.'
+        message:(isRevision?'REVISED ':'New ')+'WC2026 prediction '+(isRevision?'updated':'submitted')+' by '+currentPredictor+' at '+new Date().toLocaleString()+'. Champion pick: '+(champ||'N/A')+', Total Goals: '+(goals||'N/A')+'.'
       })
     });
   }catch(e){/* Formspree notification optional */}
 
-  alert('✅ Predictions submitted successfully for '+currentPredictor+'! They are now locked.');
+  alert((isRevision?'✅ Predictions revised successfully for ':'✅ Predictions submitted successfully for ')+currentPredictor+'!\n\nYou can come back and revise again until the organizer locks all submissions.');
   document.getElementById('predictMain').style.display='none';
-  document.getElementById('alreadySubmitted').style.display='';
+  document.getElementById('alreadySubmitted').style.display='none';
   currentPredictor='';
   updateHomeStats();
 }
