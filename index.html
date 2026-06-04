@@ -6,7 +6,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <title>World Cup 2026 — Teambuilding Prediction Challenge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- Firebase Realtime Database (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -295,7 +295,41 @@ a { color:var(--black); }
   .nav button { padding:6px 10px;font-size:0.8em; }
   .nav { top:48px; }
 }
-</style>
+
+/* ===== COUNTDOWN TIMER ===== */
+.cd-unit{background:rgba(255,255,255,0.08);border:1px solid rgba(201,168,76,0.4);border-radius:12px;padding:12px 8px;min-width:78px;backdrop-filter:blur(4px);}
+.cd-num{font-family:'Bebas Neue','Arial Narrow',sans-serif;font-size:2.8em;font-weight:800;color:#fff;line-height:1;letter-spacing:1px;text-shadow:0 2px 12px rgba(201,168,76,0.5);}
+.cd-lbl{font-size:0.66em;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-top:4px;font-weight:600;}
+.cd-sep{font-size:2.4em;color:var(--gold);font-weight:700;align-self:flex-start;margin-top:8px;animation:cdBlink 1s infinite;}
+@keyframes cdBlink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+@media(max-width:560px){.cd-unit{min-width:58px;padding:8px 4px;}.cd-num{font-size:2em;}.cd-sep{font-size:1.6em;}}
+
+/* ===== MUSIC PLAYER ===== */
+#musicWidget{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+#musicPanel{background:rgba(20,22,30,0.96);border:1px solid var(--gold);border-radius:16px;padding:14px 16px;display:none;flex-direction:column;gap:10px;min-width:240px;box-shadow:0 10px 40px rgba(0,0,0,0.5);backdrop-filter:blur(10px);}
+#musicPanel.open{display:flex;animation:mpSlide 0.25s ease;}
+@keyframes mpSlide{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.mp-title{font-size:0.8em;font-weight:600;color:var(--gold);text-align:center;line-height:1.3;min-height:32px;display:flex;align-items:center;justify-content:center;}
+.mp-controls{display:flex;gap:8px;align-items:center;justify-content:center;}
+.mp-btn{background:transparent;border:none;color:#fff;font-size:1.3em;cursor:pointer;padding:4px 8px;border-radius:8px;transition:background 0.15s;line-height:1;}
+.mp-btn:hover{background:rgba(255,255,255,0.12);}
+.mp-btn.play{background:var(--gold);color:#000;width:46px;height:46px;border-radius:50%;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.mp-vol{display:flex;align-items:center;gap:8px;}
+.mp-vol input[type=range]{flex:1;-webkit-appearance:none;height:4px;background:rgba(255,255,255,0.25);border-radius:2px;outline:none;}
+.mp-vol input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer;}
+.mp-vol input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer;border:none;}
+.mp-track-list{font-size:0.68em;color:rgba(255,255,255,0.5);text-align:center;}
+#musicOrb{background:linear-gradient(135deg,var(--gold),#a0832e);color:#000;border:none;border-radius:50%;width:58px;height:58px;font-size:1.6em;cursor:pointer;box-shadow:0 6px 24px rgba(201,168,76,0.5);display:flex;align-items:center;justify-content:center;transition:transform 0.2s;position:relative;}
+#musicOrb:hover{transform:scale(1.08);}
+#musicOrb.playing{animation:orbPulse 2s infinite;}
+@keyframes orbPulse{0%,100%{box-shadow:0 6px 24px rgba(201,168,76,0.5);}50%{box-shadow:0 6px 36px rgba(201,168,76,0.9);}}
+#musicOrb .eq{position:absolute;bottom:8px;display:flex;gap:2px;align-items:flex-end;height:14px;}
+#musicOrb .eq span{width:3px;background:#000;border-radius:1px;animation:eqBar 0.8s infinite ease-in-out;}
+#musicOrb .eq span:nth-child(2){animation-delay:0.2s;}
+#musicOrb .eq span:nth-child(3){animation-delay:0.4s;}
+#musicOrb .eq span:nth-child(4){animation-delay:0.1s;}
+@keyframes eqBar{0%,100%{height:4px;}50%{height:14px;}}
+
 </head>
 <body>
 
@@ -342,12 +376,34 @@ a { color:var(--black); }
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
   <button onclick="showTab('predict')">Submit Prediction</button>
+  <button onclick="showTab('koupdate')">Update Knockout</button>
   <button onclick="showTab('admin')">Admin Panel</button>
   <button onclick="showTab('data')">Data</button>
 </div>
 
 <div class="container">
 <div id="tab-home" class="tab-content active">
+
+  <!-- WORLD CUP COUNTDOWN -->
+  <div class="card" id="countdownCard" style="background:linear-gradient(135deg,#0a1f3c 0%,#13294b 40%,#1a3a2e 100%);border:2px solid var(--gold);position:relative;overflow:hidden;text-align:center;padding:28px 20px;">
+    <div style="position:absolute;top:-30px;right:-30px;font-size:9em;opacity:0.06;transform:rotate(-15deg);pointer-events:none;">⚽</div>
+    <div style="position:absolute;bottom:-40px;left:-20px;font-size:7em;opacity:0.05;transform:rotate(20deg);pointer-events:none;">🏆</div>
+    <div style="position:relative;z-index:1;">
+      <div style="font-size:0.78em;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:4px;">FIFA World Cup 26 · Kick-Off</div>
+      <h2 style="color:#fff;border:none;justify-content:center;font-size:1.6em;margin-bottom:4px;display:block;">🌎 The Road to Glory Begins</h2>
+      <p style="color:rgba(255,255,255,0.7);font-size:0.84em;margin-bottom:18px;">First match: Mexico 🇲🇽 · Estadio Azteca · June 11, 2026</p>
+      <div id="countdownTimer" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+        <div class="cd-unit"><div class="cd-num" id="cdDays">--</div><div class="cd-lbl">Days</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cdHours">--</div><div class="cd-lbl">Hours</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cdMins">--</div><div class="cd-lbl">Minutes</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cdSecs">--</div><div class="cd-lbl">Seconds</div></div>
+      </div>
+      <div id="countdownLive" style="display:none;color:var(--gold);font-size:1.4em;font-weight:700;margin-top:10px;">🔴 The tournament is LIVE! Let the games begin! ⚽</div>
+    </div>
+  </div>
 
   <!-- GROUP STANDINGS -->
   <div class="card" id="groupStandingsCard">
@@ -434,8 +490,10 @@ a { color:var(--black); }
     <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>190 total bonus points</strong>.</p>
     <h3>Other Bonuses</h3>
     <div class="scoring">
-      <span>⚽ +5 Closest Total Goals</span>
+      <span>🥉 +2 per Correct 3rd-Place Qualifier</span>
+      <span>⚽ +15 Closest Total Goals</span>
     </div>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;"><strong>3rd-Place Qualifiers:</strong> You pick 8 of the 12 groups whose 3rd-place team you think will advance to the knockout round. Earn +2 for each group you correctly identify.</p>
     <p style="font-size:0.82em;color:var(--regent);margin-top:4px;"><em>Note: Penalty shootout goals are excluded from the total goals count. Only goals scored during regular time and extra time count.</em></p>
     <p style="font-size:0.82em;color:var(--regent);margin-top:4px;"><strong>Knockout Update Window:</strong> After the group stage ends, the organizer will open a window for you to revise your knockout predictions based on final group standings.</p>
   </div>
@@ -515,79 +573,21 @@ a { color:var(--black); }
     </div>
   </div>
 
-  <!-- VIEW MY PREDICTIONS CARD -->
+  <!-- VIEW & COMPARE PREDICTIONS CARD -->
   <div class="card" id="viewMyPredCard">
-    <h2>👁 View My Predictions</h2>
-    <p style="color:var(--gray-600);font-size:0.87em;margin-bottom:12px;">Already submitted? Enter your name and password to view your predictions on any device at any time.</p>
+    <h2>👁 View & Compare Predictions</h2>
+    <p style="color:var(--gray-600);font-size:0.87em;margin-bottom:12px;">Browse any participant's submitted predictions — no password needed. Select a second participant to compare side by side.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:10px;">
       <div>
-        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Name</label>
-        <input type="text" id="viewMyName" placeholder="Enter your full name..." style="min-width:220px;">
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Participant</label>
+        <select id="viewPerson1" onchange="renderComparison()" style="min-width:200px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- Select --</option></select>
       </div>
       <div>
-        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Password</label>
-        <input type="password" id="viewMyPwd" placeholder="Your password..." style="min-width:180px;">
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare with (optional)</label>
+        <select id="viewPerson2" onchange="renderComparison()" style="min-width:200px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
       </div>
-      <button class="btn btn-outline" onclick="viewMyPredictions()">View Predictions</button>
     </div>
-    <p id="viewMyStatus" style="font-size:0.85em;margin-bottom:6px;min-height:18px;"></p>
     <div id="viewMyContent" style="display:none;margin-top:8px;"></div>
-  </div>
-
-  <!-- KO UPDATE WINDOW (separate from first-time submission) -->
-  <div class="card" id="koUpdateCard" style="display:none;">
-    <h2>🔄 Update Knockout Predictions</h2>
-    <div class="info-box" style="margin-bottom:14px;">
-      <strong>The knockout prediction update window is now OPEN!</strong><br>
-      Since the group stage is complete, you can update your knockout predictions (3rd-place picks, match winners, scores, champion, and total goals). Your group stage predictions remain locked.
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px;">
-      <div>
-        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Name (must match original submission)</label>
-        <input type="text" id="koUpdateName" placeholder="Enter your full name..." style="min-width:220px;">
-      </div>
-      <div>
-        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Password</label>
-        <input type="password" id="koUpdatePwd" placeholder="Your password..." style="min-width:180px;">
-      </div>
-      <button class="btn btn-gold" onclick="startKOUpdate()">Open My KO Predictions</button>
-    </div>
-    <div id="koUpdateStatus" style="font-size:0.86em;color:var(--gray-600);"></div>
-  </div>
-
-  <!-- KO UPDATE FORM (appears after verification) -->
-  <div id="koUpdateMain" style="display:none;">
-    <div class="card" style="border-left:4px solid var(--gold);">
-      <h2 id="koUpdateWelcome">Updating KO Predictions for ...</h2>
-      <p style="color:var(--gray-600);font-size:0.88em;">Your group stage predictions are <strong>locked</strong>. Update your knockout picks below, then click <strong>Save Updated KO Predictions</strong>.</p>
-    </div>
-
-    <div class="card">
-      <h2>Knockout Stage Predictions (Update)</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Now that group results are known, update your knockout picks if you wish.</p>
-
-      <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="bracket_knockout.png" alt="World Cup 2026 — Knockout Bracket" style="max-width:100%;border-radius:10px;">
-      </div>
-
-      <h3>Step 1: Your 8 Third-Place Qualifiers <span style="color:var(--red);font-weight:600;font-size:0.78em;">🔒 LOCKED</span></h3>
-      <p style="font-size:0.82em;color:var(--regent);margin-bottom:6px;">Your original third-place qualifier picks are locked during the knockout update window — they were finalized at the time you first submitted your predictions. Only your bracket match picks and scores can be revised below.</p>
-      <div class="tp-grid" id="koUpTpPicker"></div>
-      <p style="color:var(--gold-dark);font-size:0.82em;margin-top:4px;" id="koUpTpCount">Selected: 0 / 8</p>
-
-      <h3>Step 2: Predict Each Knockout Match</h3>
-      <div id="koUpMatches"></div>
-    </div>
-
-    <!-- Bonus Predictions are LOCKED during KO update — only knockout bracket can be updated -->
-    <div class="info-box" style="margin:8px 0;">
-      <strong>ℹ️ Note:</strong> Your <strong>3rd-place qualifier picks</strong>, <strong>Champion prediction</strong>, and <strong>Total Goals prediction</strong> cannot be changed during the knockout update window — they remain as you originally submitted. Only your bracket match picks and scores can be revised below.
-    </div>
-
-    <div class="card" style="text-align:center;">
-      <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitKOUpdate()">Save Updated KO Predictions</button>
-      <p style="font-size:0.78em;color:var(--regent);margin-top:8px;">This will overwrite only your knockout bracket match picks and scores. Group stage predictions, 3rd-place qualifier picks, Champion, and Total Goals remain unchanged.</p>
-    </div>
   </div>
 
   <div id="predictMain" style="display:none;">
@@ -680,6 +680,87 @@ a { color:var(--black); }
   </div>
 </div>
 
+<!-- ============ UPDATE KNOCKOUT TAB ============ -->
+<div id="tab-koupdate" class="tab-content">
+
+  <!-- KO UPDATE LOGIN (when window open) -->
+  <div class="card" id="koUpdateCard" style="display:none;">
+    <h2>🔄 Update Knockout Predictions</h2>
+    <div class="info-box" style="margin-bottom:14px;">
+      <strong>The knockout prediction update window is now OPEN!</strong><br>
+      The group stage is complete and the real qualifiers are known. You can now revise your <strong>knockout bracket match picks and scores</strong> based on the actual teams that advanced. As you pick winners, they automatically flow into the next round to help you visualize the bracket.<br><br>
+      <em>Your group stage predictions, 3rd-place qualifier picks, Champion, and Total Goals predictions remain locked — only your knockout bracket can be revised.</em>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px;">
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Name (must match original submission)</label>
+        <input type="text" id="koUpdateName" placeholder="Enter your full name..." style="min-width:220px;">
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Password</label>
+        <input type="password" id="koUpdatePwd" placeholder="Your password..." style="min-width:180px;">
+      </div>
+      <button class="btn btn-gold" onclick="startKOUpdate()">Open My KO Predictions</button>
+    </div>
+    <div id="koUpdateStatus" style="font-size:0.86em;color:var(--gray-600);"></div>
+  </div>
+
+  <!-- KO UPDATE CLOSED MESSAGE -->
+  <div class="card" id="koUpdateClosedCard">
+    <h2>🔄 Update Knockout Predictions</h2>
+    <div class="info-box">
+      <strong>The knockout update window is currently CLOSED.</strong><br><br>
+      This tab opens after the group stage ends (after Match 72 on June 27th). Once it's open, you'll be able to revise your knockout bracket predictions based on the teams that actually qualified.<br><br>
+      Check back after the group stage concludes, or watch for an announcement from the organizer.
+    </div>
+  </div>
+
+  <!-- KO UPDATE FORM (appears after verification) -->
+  <div id="koUpdateMain" style="display:none;">
+    <div class="card" style="border-left:4px solid var(--gold);">
+      <h2 id="koUpdateWelcome">Updating KO Predictions for ...</h2>
+      <p style="color:var(--gray-600);font-size:0.88em;">Your knockout bracket now shows the <strong>real teams</strong> that qualified. Pick the winner of each match — your picks automatically advance to the next round. When done, click <strong>Save Updated KO Predictions</strong>.</p>
+    </div>
+
+    <!-- STICKY SAVE BAR for KO update -->
+    <div class="sticky-save-bar">
+      <div class="ssb-left">
+        <span class="ssb-status" id="koUpdateStatusTop">Revising knockout bracket</span>
+      </div>
+      <button class="btn btn-gold" style="font-size:0.92em;padding:9px 22px;" onclick="submitKOUpdate()">✅ Save Updated KO Predictions</button>
+    </div>
+
+    <div class="card">
+      <h2>Knockout Stage Predictions (Update)</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">The real qualifiers are shown below. Update your match picks and scores.</p>
+
+      <div class="bracket-img-wrap" style="margin:16px 0 20px;">
+        <img src="bracket_knockout.png" alt="World Cup 2026 — Knockout Bracket" style="max-width:100%;border-radius:10px;" onerror="this.style.display='none'">
+      </div>
+
+      <h3>Your 8 Third-Place Qualifiers <span style="color:var(--red);font-weight:600;font-size:0.78em;">🔒 LOCKED</span></h3>
+      <p style="font-size:0.82em;color:var(--regent);margin-bottom:6px;">Your original third-place qualifier picks were scored at submission and cannot be changed.</p>
+      <div class="tp-grid" id="koUpTpPicker"></div>
+      <p style="color:var(--gold-dark);font-size:0.82em;margin-top:4px;" id="koUpTpCount">Selected: 0 / 8</p>
+
+      <h3 style="margin-top:18px;">Predict Each Knockout Match</h3>
+      <div class="info-box" style="margin-bottom:14px;font-size:0.84em;line-height:1.7;">
+        <strong>How to update:</strong> Click the team you think wins each match. Your pick is highlighted in <span style="color:var(--gold-dark);font-weight:700;">gold</span> and automatically becomes a team in the next round's matchup. Enter the score (end of regular/extra time). For penalty shootouts, enter the tied score and pick your shootout winner.
+      </div>
+      <div id="koUpMatches"></div>
+    </div>
+
+    <div class="info-box" style="margin:8px 0;">
+      <strong>ℹ️ Note:</strong> Your <strong>3rd-place qualifier picks</strong>, <strong>Champion prediction</strong>, and <strong>Total Goals prediction</strong> cannot be changed during the knockout update window. Only your bracket match picks and scores can be revised.
+    </div>
+
+    <div class="card" style="text-align:center;">
+      <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitKOUpdate()">Save Updated KO Predictions</button>
+      <p style="font-size:0.78em;color:var(--regent);margin-top:8px;">This overwrites only your knockout bracket match picks and scores. Everything else remains unchanged.</p>
+    </div>
+  </div>
+</div>
+
 <!-- ============ ADMIN TAB ============ -->
 <div id="tab-admin" class="tab-content">
   <div class="card" id="adminLoginCard">
@@ -716,17 +797,27 @@ a { color:var(--black); }
 
     <div class="card">
       <h2>🔄 Knockout Update Window</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">After the group stage ends (Match 72, June 27th), open this window to allow participants to <strong>update only their knockout predictions</strong>. Group stage scores remain locked. Close the window before Match 73 begins.</p>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">After the group stage ends (Match 72, June 27th), open this window to allow participants to <strong>update only their knockout bracket</strong> via the dedicated "Update Knockout" tab. Group stage scores, 3rd-place picks, champion, and total goals remain locked. Close the window before Match 73 begins.</p>
       <div class="info-box" style="margin-bottom:12px;">
         <strong>How it works:</strong><br>
-        • Participants who already submitted can go to "Submit Prediction" → "Update Knockout Predictions"<br>
-        • They can change their 3rd-place picks, knockout match picks/scores, champion, and total goals<br>
-        • Group stage predictions are <strong>frozen</strong> and cannot be changed<br>
+        • Participants who already submitted go to the <strong>"Update Knockout"</strong> tab<br>
+        • They can revise only their knockout match picks and scores<br>
+        • The bracket shows the <strong>real qualifiers</strong> (enter 3rd-place teams above first) and flows their picks into the next round<br>
+        • Group stage, 3rd-place picks, champion, and total goals are <strong>frozen</strong><br>
         • Close this window before Round of 32 begins
       </div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <span id="koWindowStatus" style="font-weight:600;font-size:1em;"></span>
         <button class="btn btn-sm" id="koWindowBtn" onclick="toggleKOWindow()"></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🎵 Background Music</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Toggle the floating World Cup music player for all visitors. When off, the music orb is hidden site-wide.</p>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <span id="musicToggleStatus" style="font-weight:600;font-size:1em;"></span>
+        <button class="btn btn-sm" id="musicToggleBtn" onclick="toggleMusicEnabled()"></button>
       </div>
     </div>
 
@@ -794,6 +885,10 @@ a { color:var(--black); }
 
       <div class="round-hdr">Group Stage Results</div>
       <div id="adminGS"></div>
+
+      <div class="round-hdr">3rd-Place Qualifiers (8 teams that advanced)</div>
+      <div class="info-box">After the group stage, enter the actual team that fills each "3rd-place" knockout slot. These names then appear (with flags) in the participants' Update Knockout bracket instead of "3rd*", and are used to score the +2 third-place qualifier bonus. Type the exact team name (e.g. "Brazil").</div>
+      <div id="adminThirdPlace" style="display:grid;gap:8px;margin-top:10px;"></div>
 
       <div class="round-hdr">Knockout Results</div>
       <div class="info-box">Enter the <strong>team that advanced</strong> and the score for each knockout match.</div>
@@ -999,7 +1094,7 @@ const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
 const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
-const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:5,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:35,CHAMP_FIN:40,CHAMP_WIN:60};
+const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:15,TP:2,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:35,CHAMP_FIN:40,CHAMP_WIN:60};
 
 // Country flag mapping (ISO codes for flagcdn.com)
 const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Bosnia and Herzegovina':'ba','Türkiye':'tr','DR Congo':'cd','Iraq':'iq','Sweden':'se','Czechia':'cz','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
@@ -1035,9 +1130,10 @@ let S = {
   participants:[],
   passwords:{},
   submissions:{},
-  admin:{groupResults:{},koResults:{},champion:"",totalGoals:null},
+  admin:{groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{}},
   predictionsLocked:false,
   koUpdateOpen:false,
+  musicEnabled:true,
   adminPwd:"David2026",
   apiKey:""
 };
@@ -1046,13 +1142,15 @@ function ensureDefaults(){
   if(!S.submissions)S.submissions={};
   if(!S.passwords)S.passwords={};
   if(!S.participants)S.participants=[];
-  if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null};
+  if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{}};
   if(!S.admin.groupResults)S.admin.groupResults={};
   if(!S.admin.koResults)S.admin.koResults={};
+  if(!S.admin.thirdPlace)S.admin.thirdPlace={};
   if(!S.adminPwd)S.adminPwd="David2026";
   if(!S.apiKey)S.apiKey="";
   if(S.predictionsLocked===undefined)S.predictionsLocked=false;
   if(S.koUpdateOpen===undefined)S.koUpdateOpen=false;
+  if(S.musicEnabled===undefined)S.musicEnabled=true;
 }
 
 let _saveTimer=null;
@@ -1071,6 +1169,8 @@ function load(){
     updateHomeStats();
     calcLeaderboard();
     checkKOUpdateVisibility();
+    applyMusicVisibility();
+    startCountdown();
     if(!_realtimeReady){
       _realtimeReady=true;
       fbDb.ref(DB_ROOT).on('value',snap2=>{
@@ -1084,6 +1184,7 @@ function load(){
             S.admin=fresh.admin||S.admin;
             S.predictionsLocked=fresh.predictionsLocked!==undefined?fresh.predictionsLocked:S.predictionsLocked;
             S.koUpdateOpen=fresh.koUpdateOpen!==undefined?fresh.koUpdateOpen:S.koUpdateOpen;
+            S.musicEnabled=fresh.musicEnabled!==undefined?fresh.musicEnabled:S.musicEnabled;
             // Always refresh participants and leaderboard-facing data
             S.participants=fresh.participants||S.participants;
             S.submissions=fresh.submissions||S.submissions;
@@ -1092,6 +1193,7 @@ function load(){
           updateHomeStats();
           calcLeaderboard();
           checkKOUpdateVisibility();
+          applyMusicVisibility();
         }
       });
     }
@@ -1099,6 +1201,31 @@ function load(){
     console.error('Firebase load error:',e);
     alert('⚠️ Could not connect to the database. Check your Firebase config in index.html.');
   });
+}
+
+// ===== COUNTDOWN TIMER =====
+let _countdownInterval=null;
+function startCountdown(){
+  if(_countdownInterval)return; // only start once
+  const target=new Date('2026-06-11T11:00:00-05:00').getTime(); // first match kickoff (CDT)
+  function tick(){
+    const now=Date.now();
+    let diff=Math.floor((target-now)/1000);
+    const live=document.getElementById('countdownLive');
+    const timer=document.getElementById('countdownTimer');
+    if(diff<=0){
+      if(timer)timer.style.display='none';
+      if(live)live.style.display='block';
+      return;
+    }
+    const d=Math.floor(diff/86400);diff-=d*86400;
+    const hh=Math.floor(diff/3600);diff-=hh*3600;
+    const mm=Math.floor(diff/60);const ss=diff-mm*60;
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v).padStart(2,'0');};
+    set('cdDays',d);set('cdHours',hh);set('cdMins',mm);set('cdSecs',ss);
+  }
+  tick();
+  _countdownInterval=setInterval(tick,1000);
 }
 
 // ============================
@@ -1124,7 +1251,8 @@ function showTab(t){
   document.getElementById('tab-'+t).classList.add('active');
   event.target.classList.add('active');
   if(t==='home'){updateHomeStats();calcLeaderboard();}
-  if(t==='predict')checkKOUpdateVisibility();
+  if(t==='predict')populateViewSelectors();
+  if(t==='koupdate')checkKOUpdateVisibility();
   if(t==='admin')renderAdminView();
   if(t==='data'&&adminLoggedIn){document.getElementById('dataLoginCard').style.display='none';document.getElementById('dataMain').style.display='';}
 }
@@ -1193,6 +1321,26 @@ function updateScoresTicker(){
 // ============================
 // GROUP STANDINGS
 // ============================
+// Returns array of group letters whose 3rd-place team actually qualified,
+// based on the teams the admin assigned to the eight "3rd*" R32 slots.
+function getActualThirdPlaceGroups(){
+  const tp=S.admin.thirdPlace||{};
+  const groups=[];
+  // Build a reverse lookup: team name -> group letter (for 3rd place teams)
+  const standings=getGroupStandings();
+  Object.values(tp).forEach(teamName=>{
+    if(!teamName)return;
+    // Find which group this team belongs to
+    for(const g of Object.keys(GROUPS)){
+      if(GROUPS[g].includes(teamName)){
+        if(!groups.includes(g))groups.push(g);
+        break;
+      }
+    }
+  });
+  return groups;
+}
+
 function getGroupStandings(){
   const standings={};
   Object.keys(GROUPS).forEach(g=>{
@@ -1261,13 +1409,18 @@ function updateGroupStandings(){
 // RESOLVE KNOCKOUT SLOTS
 // ============================
 // Maps position codes (A1, B2, 3rd*) to actual team names based on group standings
-function resolveSlot(code){
+function resolveSlot(code,matchNum){
   if(!code)return code;
-  // Handle "W73", "W74" etc (winner of match N)
+  // Handle "W73", "W74" etc (winner of match N) — from admin results
   if(code.startsWith('W')){
     const mn=parseInt(code.substring(1));
     const r=S.admin.koResults[mn];
     return (r&&r.winner)?r.winner:code;
+  }
+  // Handle "3rd*" — admin assigns actual third-place team per match
+  if(code==='3rd*'){
+    if(matchNum&&S.admin.thirdPlace&&S.admin.thirdPlace[matchNum])return S.admin.thirdPlace[matchNum];
+    return code;
   }
   // Handle "A1","A2","B1" etc
   const m=code.match(/^([A-L])(\d)$/);
@@ -1278,14 +1431,54 @@ function resolveSlot(code){
     if(g&&g[pos]&&g[pos].pld>0)return g[pos].team;
     return code;
   }
-  // Handle "3rd*" - can't resolve without context
   return code;
 }
 
 // Get a resolved label for a KO team slot, with flag if available
-function resolveLabel(code){
-  const name=resolveSlot(code);
+function resolveLabel(code,matchNum){
+  const name=resolveSlot(code,matchNum);
   if(name===code)return code; // unresolved, show code as-is
+  return fl(name)+name;
+}
+
+// ===== KO UPDATE RESOLVER (flows the PARTICIPANT's own picks into next rounds) =====
+// For a given slot code, resolves to a team name using:
+//  1. participant's own pick for a "W{n}" feeder match (during update)
+//  2. admin's actual third-place assignment for "3rd*"
+//  3. actual group standings for "A1" etc.
+function resolveSlotKOUp(code,matchNum,picksObj){
+  if(!code)return code;
+  if(code.startsWith('W')){
+    const mn=parseInt(code.substring(1));
+    // First: did the participant pick a winner for that feeder match?
+    if(picksObj&&picksObj[mn]){
+      const feeder=ALLKO.find(x=>x.n===mn);
+      if(feeder){
+        const slot=picksObj[mn]==='A'?feeder.tA:feeder.tB;
+        return resolveSlotKOUp(slot,mn,picksObj);
+      }
+    }
+    // Fallback: admin's actual result
+    const r=S.admin.koResults[mn];
+    return (r&&r.winner)?r.winner:code;
+  }
+  if(code==='3rd*'){
+    if(matchNum&&S.admin.thirdPlace&&S.admin.thirdPlace[matchNum])return S.admin.thirdPlace[matchNum];
+    return code;
+  }
+  const m=code.match(/^([A-L])(\d)$/);
+  if(m){
+    const standings=getGroupStandings();
+    const g=standings[m[1]];
+    const pos=parseInt(m[2])-1;
+    if(g&&g[pos]&&g[pos].pld>0)return g[pos].team;
+    return code;
+  }
+  return code;
+}
+function resolveLabelKOUp(code,matchNum,picksObj){
+  const name=resolveSlotKOUp(code,matchNum,picksObj);
+  if(name===code)return code;
   return fl(name)+name;
 }
 
@@ -1701,11 +1894,15 @@ async function submitPrediction(){
 let koUpdater='';
 let koUpTP=[];
 let koUpPicks={};
+let koUpScores={};
 
 function checkKOUpdateVisibility(){
   const card=document.getElementById('koUpdateCard');
-  if(!card)return;
-  card.style.display=S.koUpdateOpen?'':'none';
+  const closed=document.getElementById('koUpdateClosedCard');
+  const main=document.getElementById('koUpdateMain');
+  if(card)card.style.display=S.koUpdateOpen?'':'none';
+  if(closed)closed.style.display=S.koUpdateOpen?'none':'';
+  if(main&&!S.koUpdateOpen)main.style.display='none';
 }
 
 async function startKOUpdate(){
@@ -1742,9 +1939,10 @@ async function startKOUpdate(){
     const pk=sub.ko[m.n];
     if(pk&&pk.pick)koUpPicks[m.n]=pk.pick;
   });
-
-  renderKOUpdateForm();
+  // loadKOUpdateData sets up koUpScores and renders the form
   loadKOUpdateData(sub);
+  // Scroll to form
+  document.getElementById('koUpdateMain').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function renderKOUpdateForm(){
@@ -1759,18 +1957,20 @@ function renderKOUpdateForm(){
   }).join('');
   document.getElementById('koUpTpCount').innerHTML='🔒 Locked: '+koUpTP.length+' / 8 (cannot be changed)';
 
-  // KO matches
+  // KO matches — picks flow into next round via resolveLabelKOUp
   const c=document.getElementById('koUpMatches');let h='';
   function renderRound(title,matches,cls){
     h+=`<div class="round-hdr">${title}</div><div class="bracket-grid ${cls}">`;
     matches.forEach(m=>{
       const arr=Array.isArray(m)?m:[m];
       arr.forEach(mm=>{
-        const rA=resolveLabel(mm.tA),rB=resolveLabel(mm.tB);
-        h+=`<div class="bkt-match"><div class="bkt-label">M${mm.n} · ${mm.d}${mm.tp?' · 3rd from: '+mm.tp:''}</div>`;
+        const rA=resolveLabelKOUp(mm.tA,mm.n,koUpPicks),rB=resolveLabelKOUp(mm.tB,mm.n,koUpPicks);
+        const sh=koUpScores[mm.n]&&koUpScores[mm.n].h!==undefined?koUpScores[mm.n].h:'';
+        const sa=koUpScores[mm.n]&&koUpScores[mm.n].a!==undefined?koUpScores[mm.n].a:'';
+        h+=`<div class="bkt-match"><div class="bkt-label">M${mm.n} · ${mm.d}</div>`;
         h+=`<div class="bkt-opt${koUpPicks[mm.n]==='A'?' sel':''}" id="koup-bo-${mm.n}-A" onclick="pickKOUp(${mm.n},'A')">${rA}</div>`;
         h+=`<div class="bkt-opt${koUpPicks[mm.n]==='B'?' sel':''}" id="koup-bo-${mm.n}-B" onclick="pickKOUp(${mm.n},'B')">${rB}</div>`;
-        h+=`<div class="bkt-scores"><input type="number" min="0" max="20" id="koup-s-${mm.n}-h" placeholder="-"><span class="vs">vs</span><input type="number" min="0" max="20" id="koup-s-${mm.n}-a" placeholder="-"></div>`;
+        h+=`<div class="bkt-scores"><input type="number" min="0" max="20" id="koup-s-${mm.n}-h" placeholder="-" value="${sh}" oninput="koUpScoreInput(${mm.n})"><span class="vs">vs</span><input type="number" min="0" max="20" id="koup-s-${mm.n}-a" placeholder="-" value="${sa}" oninput="koUpScoreInput(${mm.n})"></div>`;
         h+=`</div>`;
       });
     });
@@ -1785,20 +1985,23 @@ function renderKOUpdateForm(){
 }
 
 function loadKOUpdateData(sub){
-  // Load existing KO picks and scores into the update form
+  // Load existing KO scores into koUpScores (picks already in koUpPicks)
+  koUpScores={};
   ALLKO.forEach(m=>{
     const pk=sub.ko[m.n];
     if(!pk)return;
-    if(pk.pick){
-      const el=document.getElementById('koup-bo-'+m.n+'-'+pk.pick);
-      if(el)el.classList.add('sel');
-    }
-    const hv=document.getElementById('koup-s-'+m.n+'-h');
-    const av=document.getElementById('koup-s-'+m.n+'-a');
-    if(hv&&pk.h!==undefined)hv.value=pk.h;
-    if(av&&pk.a!==undefined)av.value=pk.a;
+    koUpScores[m.n]={h:pk.h!==undefined?pk.h:'',a:pk.a!==undefined?pk.a:''};
   });
+  renderKOUpdateForm();
   // Bonus predictions (champion, totalGoals) are NOT loaded or editable here
+}
+
+function koUpScoreInput(mn){
+  const hv=document.getElementById('koup-s-'+mn+'-h');
+  const av=document.getElementById('koup-s-'+mn+'-a');
+  if(!koUpScores[mn])koUpScores[mn]={};
+  koUpScores[mn].h=hv&&hv.value!==''?parseInt(hv.value):'';
+  koUpScores[mn].a=av&&av.value!==''?parseInt(av.value):'';
 }
 
 function toggleKOUpTP(g){
@@ -1808,11 +2011,19 @@ function toggleKOUpTP(g){
 }
 
 function pickKOUp(mn,side){
+  // Save current scores before re-rendering
+  ALLKO.forEach(m=>{
+    const hv=document.getElementById('koup-s-'+m.n+'-h');
+    const av=document.getElementById('koup-s-'+m.n+'-a');
+    if(hv||av){
+      if(!koUpScores[m.n])koUpScores[m.n]={};
+      koUpScores[m.n].h=hv&&hv.value!==''?parseInt(hv.value):'';
+      koUpScores[m.n].a=av&&av.value!==''?parseInt(av.value):'';
+    }
+  });
   koUpPicks[mn]=side;
-  const a=document.getElementById('koup-bo-'+mn+'-A');
-  const b=document.getElementById('koup-bo-'+mn+'-B');
-  if(a)a.classList.toggle('sel',side==='A');
-  if(b)b.classList.toggle('sel',side==='B');
+  // Re-render so the pick flows into the next round's matchup
+  renderKOUpdateForm();
 }
 
 function submitKOUpdate(){
@@ -1826,12 +2037,21 @@ function submitKOUpdate(){
 
   let koMissingPick=0, koMissingScore=0;
   let ko={};
+  // Sync any visible inputs into koUpScores first
   ALLKO.forEach(m=>{
-    const pick=koUpPicks[m.n]||'';
     const hv=document.getElementById('koup-s-'+m.n+'-h');
     const av=document.getElementById('koup-s-'+m.n+'-a');
-    const hVal=hv?hv.value:'';
-    const aVal=av?av.value:'';
+    if(hv||av){
+      if(!koUpScores[m.n])koUpScores[m.n]={};
+      koUpScores[m.n].h=hv&&hv.value!==''?parseInt(hv.value):'';
+      koUpScores[m.n].a=av&&av.value!==''?parseInt(av.value):'';
+    }
+  });
+  ALLKO.forEach(m=>{
+    const pick=koUpPicks[m.n]||'';
+    const sc=koUpScores[m.n]||{};
+    const hVal=(sc.h!==''&&sc.h!==undefined)?sc.h:'';
+    const aVal=(sc.a!==''&&sc.a!==undefined)?sc.a:'';
     ko[m.n]={pick:pick,h:hVal!==''?parseInt(hVal):0,a:aVal!==''?parseInt(aVal):0};
     if(!pick)koMissingPick++;
     if(hVal===''||aVal==='')koMissingScore++;
@@ -1963,7 +2183,7 @@ function updateKOWindowUI(){
 }
 function renderAdminView(){
   if(!adminLoggedIn)return;
-  renderParts();renderAdminGS();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();
+  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();
   // Populate view predictions selector
   const sel=document.getElementById('viewPredPerson');
   const cur=sel.value;
@@ -1972,6 +2192,64 @@ function renderAdminView(){
   const csel=document.getElementById('comparePerson');
   const ccur=csel.value;
   csel.innerHTML='<option value="">-- Select --</option>'+S.participants.filter(p=>S.submissions[p]&&S.submissions[p].locked).map(p=>`<option value="${p}" ${p===ccur?'selected':''}>${p}</option>`).join('');
+}
+// The 8 R32 matches that have a 3rd-place slot (the ones with a tp field)
+function getThirdPlaceMatches(){
+  return R32.filter(m=>m.tA==='3rd*'||m.tB==='3rd*');
+}
+function renderAdminThirdPlace(){
+  const c=document.getElementById('adminThirdPlace');
+  if(!c)return;
+  const tpMatches=getThirdPlaceMatches();
+  let h='';
+  tpMatches.forEach(m=>{
+    const slotSide=m.tA==='3rd*'?'A':'B';
+    const opponent=slotSide==='A'?m.tB:m.tA;
+    const oppLabel=resolveLabel(opponent,m.n);
+    const cur=S.admin.thirdPlace&&S.admin.thirdPlace[m.n]?S.admin.thirdPlace[m.n]:'';
+    const fromGroups=m.tp?(' (from groups: '+m.tp.split('').join(', ')+')'):'';
+    h+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--gray-200);border-radius:6px;">`;
+    h+=`<span style="font-size:0.82em;color:var(--regent);min-width:160px;">M${m.n} · 3rd-place vs ${oppLabel}${fromGroups}</span>`;
+    h+=`<input type="text" id="atp-${m.n}" placeholder="3rd-place team name" value="${cur}" onchange="saveThirdPlace()" style="flex:1;min-width:160px;font-size:0.88em;">`;
+    h+=`<span id="atpFlag-${m.n}" style="font-size:0.82em;">${cur?fl(cur)+cur:''}</span>`;
+    h+=`</div>`;
+  });
+  c.innerHTML=h;
+}
+function saveThirdPlace(){
+  if(!S.admin.thirdPlace)S.admin.thirdPlace={};
+  getThirdPlaceMatches().forEach(m=>{
+    const el=document.getElementById('atp-'+m.n);
+    if(el){
+      const v=el.value.trim();
+      if(v)S.admin.thirdPlace[m.n]=v;
+      else delete S.admin.thirdPlace[m.n];
+      const fe=document.getElementById('atpFlag-'+m.n);
+      if(fe)fe.innerHTML=v?fl(v)+v:'';
+    }
+  });
+  save();
+  calcLeaderboard();
+}
+function toggleMusicEnabled(){
+  S.musicEnabled=!S.musicEnabled;
+  save();
+  updateMusicToggleUI();
+  applyMusicVisibility();
+}
+function updateMusicToggleUI(){
+  const st=document.getElementById('musicToggleStatus');
+  const btn=document.getElementById('musicToggleBtn');
+  if(!st||!btn)return;
+  if(S.musicEnabled){
+    st.innerHTML='<span style="color:var(--green);">🎵 Music player is ON</span>';
+    btn.textContent='Turn Off Music';
+    btn.style.background='var(--red)';btn.style.color='var(--white)';btn.style.borderColor='var(--red)';
+  } else {
+    st.innerHTML='<span style="color:var(--gray-500);">🔇 Music player is OFF</span>';
+    btn.textContent='Turn On Music';
+    btn.style.background='var(--gold)';btn.style.color='var(--black)';btn.style.borderColor='var(--gold)';
+  }
 }
 function renderAdminGS(){
   const c=document.getElementById('adminGS');let h='';
@@ -2182,25 +2460,32 @@ function renderComparison(){
   let bonP=0;
   h+=`<h3 style="margin:20px 0 8px;border-bottom:2px solid var(--gold);display:inline-block;padding-bottom:4px;">Bonus & Champion Progression</h3>`;
 
-  // Champion progression bonus
+  // Champion progression bonus (same semantics as leaderboard)
   if(sub.champion){
     const champLower=sub.champion.toLowerCase();
-    const checkRound=(matchNums,pts,label)=>{
-      for(const mn of matchNums){
-        const r=S.admin.koResults[mn];
-        if(r&&r.winner&&r.winner.toLowerCase()===champLower){bonP+=pts;return `<span class="pts-badge pts-5">+${pts}</span> ${label}`;}
+    // "Reaches X" is credited by winning the prior round's match
+    const reachRow=(matchNums,pts,label,isReachR32)=>{
+      let achieved=false;
+      if(isReachR32){
+        achieved=ALLKO.filter(m=>m.n>=73&&m.n<=88).some(m=>{
+          const tA=resolveSlot(m.tA,m.n),tB=resolveSlot(m.tB,m.n);
+          return (tA&&tA.toLowerCase()===champLower)||(tB&&tB.toLowerCase()===champLower);
+        });
+      } else {
+        achieved=matchNums.some(mn=>{const r=S.admin.koResults[mn];return r&&r.winner&&r.winner.toLowerCase()===champLower;});
       }
-      const anyPlayed=matchNums.some(mn=>S.admin.koResults[mn]&&S.admin.koResults[mn].winner);
+      if(achieved){bonP+=pts;return `<span class="pts-badge pts-5">+${pts}</span> ${label}`;}
+      const anyPlayed=isReachR32?Object.keys(S.admin.groupResults).length>0:matchNums.some(mn=>S.admin.koResults[mn]&&S.admin.koResults[mn].winner);
       if(anyPlayed)return `<span class="pts-badge pts-0">0</span> ${label}`;
       return `<span style="color:var(--regent);">TBD</span> ${label}`;
     };
     h+=`<p style="margin-bottom:4px;"><strong>Champion Pick:</strong> ${sub.champion}</p>`;
     h+=`<div style="display:grid;gap:3px;font-size:0.88em;margin:6px 0 12px;">`;
-    h+=`<div>${checkRound([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],P.CHAMP_R32,'Reaches R32')}</div>`;
-    h+=`<div>${checkRound([89,90,91,92,93,94,95,96],P.CHAMP_R16,'Reaches R16')}</div>`;
-    h+=`<div>${checkRound([97,98,99,100],P.CHAMP_QF,'Reaches QF')}</div>`;
-    h+=`<div>${checkRound([101,102],P.CHAMP_SF,'Reaches SF')}</div>`;
-    h+=`<div>${checkRound([104],P.CHAMP_FIN,'Reaches Final')}</div>`;
+    h+=`<div>${reachRow(null,P.CHAMP_R32,'Reaches R32',true)}</div>`;
+    h+=`<div>${reachRow([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],P.CHAMP_R16,'Reaches R16')}</div>`;
+    h+=`<div>${reachRow([89,90,91,92,93,94,95,96],P.CHAMP_QF,'Reaches QF')}</div>`;
+    h+=`<div>${reachRow([97,98,99,100],P.CHAMP_SF,'Reaches SF')}</div>`;
+    h+=`<div>${reachRow([101,102],P.CHAMP_FIN,'Reaches Final')}</div>`;
     // Champion Winner bonus: if predicted champion = actual tournament champion
     if(S.admin.champion){
       const champWon=sub.champion.toLowerCase()===S.admin.champion.toLowerCase();
@@ -2212,7 +2497,7 @@ function renderComparison(){
     h+=`</div>`;
   }
 
-  h+=`<p>Total Goals: <strong>${sub.totalGoals!==null?sub.totalGoals:'-'}</strong> vs Actual: <strong>${S.admin.totalGoals!==null?S.admin.totalGoals:'TBD'}</strong> <span style="font-size:0.82em;color:var(--regent);">(Closest wins +5)</span></p>`;
+  h+=`<p>Total Goals: <strong>${sub.totalGoals!==null?sub.totalGoals:'-'}</strong> vs Actual: <strong>${S.admin.totalGoals!==null?S.admin.totalGoals:'TBD'}</strong> <span style="font-size:0.82em;color:var(--regent);">(Closest wins +15)</span></p>`;
   h+=`<div style="background:var(--black);color:var(--gold);padding:16px;border-radius:8px;margin-top:16px;text-align:center;font-size:1.2em;font-weight:700;">Grand Total: ${totalGS+totalKO+bonP} points</div>`;
   c.innerHTML=h;
 }
@@ -2257,23 +2542,33 @@ function calcLeaderboard(){
       if(pred.h===real.h&&pred.a===real.a)koP+=P.KO_EX;
     });
     // Champion progression bonus
+    // Semantics: reaching a round is credited by WINNING the prior round's match.
+    //   Reaches R32 (+10): champion is a participant in the R32 (qualified from group)
+    //   Reaches R16 (+20): won an R32 match (M73-88)
+    //   Reaches QF  (+25): won an R16 match (M89-96)
+    //   Reaches SF  (+35): won a QF match (M97-100)
+    //   Reaches Final (+40): won a SF match (M101-102) — credited even if they LOSE the final
+    //   Champion Winner (+60): won the Final (M104)
     if(sub.champion){
       const champLower=sub.champion.toLowerCase();
-      // Check each round for champion advancement
-      const checkRound=(matchNums,pts)=>{
-        for(const mn of matchNums){
-          const r=S.admin.koResults[mn];
-          if(r&&r.winner&&r.winner.toLowerCase()===champLower)return pts;
-        }
-        return 0;
-      };
-      bonP+=checkRound([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],P.CHAMP_R32);
-      bonP+=checkRound([89,90,91,92,93,94,95,96],P.CHAMP_R16);
-      bonP+=checkRound([97,98,99,100],P.CHAMP_QF);
-      bonP+=checkRound([101,102],P.CHAMP_SF);
-      bonP+=checkRound([104],P.CHAMP_FIN);
+      const wonAny=(matchNums)=>matchNums.some(mn=>{const r=S.admin.koResults[mn];return r&&r.winner&&r.winner.toLowerCase()===champLower;});
+      // Reaches R32: champion appears as a participant in any R32 match slot
+      const inR32=ALLKO.filter(m=>m.n>=73&&m.n<=88).some(m=>{
+        const tA=resolveSlot(m.tA,m.n),tB=resolveSlot(m.tB,m.n);
+        return (tA&&tA.toLowerCase()===champLower)||(tB&&tB.toLowerCase()===champLower);
+      });
+      if(inR32)bonP+=P.CHAMP_R32;
+      if(wonAny([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88]))bonP+=P.CHAMP_R16;
+      if(wonAny([89,90,91,92,93,94,95,96]))bonP+=P.CHAMP_QF;
+      if(wonAny([97,98,99,100]))bonP+=P.CHAMP_SF;
+      if(wonAny([101,102]))bonP+=P.CHAMP_FIN; // reached final (won semi) — even if they lose the final
       // Champion Winner bonus: predicted champion = actual tournament winner
-      if(S.admin.champion&&sub.champion.toLowerCase()===S.admin.champion.toLowerCase())bonP+=P.CHAMP_WIN;
+      if(S.admin.champion&&champLower===S.admin.champion.toLowerCase())bonP+=P.CHAMP_WIN;
+    }
+    // Third-place qualifier scoring: +2 per correctly predicted 3rd-place group that qualified
+    const actualTPGroups=getActualThirdPlaceGroups();
+    if(actualTPGroups.length>0&&sub.tp&&sub.tp.length){
+      sub.tp.forEach(g=>{ if(actualTPGroups.includes(g))bonP+=P.TP; });
     }
     // Other bonuses
     if(sub.totalGoals!==null&&S.admin.totalGoals!==null){
@@ -2516,73 +2811,97 @@ function importData(){
 // ============================
 // VIEW MY PREDICTIONS (participant self-service)
 // ============================
-async function viewMyPredictions(){
-  const name=document.getElementById('viewMyName').value.trim();
-  const pwd=document.getElementById('viewMyPwd').value;
-  const st=document.getElementById('viewMyStatus');
-  const cont=document.getElementById('viewMyContent');
-  cont.style.display='none';
-  if(!name){st.innerHTML='<span style="color:var(--red);">⚠ Please enter your name.</span>';return;}
-  if(!pwd){st.innerHTML='<span style="color:var(--red);">⚠ Please enter your password.</span>';return;}
-  st.textContent='Verifying…';
-  const ok=await verifyPassword(name,pwd);
-  if(!ok){st.innerHTML='<span style="color:var(--red);">❌ Wrong password.</span>';return;}
-  const sub=S.submissions[name];
-  if(!sub){st.innerHTML='<span style="color:var(--gold-dark);">ℹ No predictions found for "'+name+'" yet.</span>';return;}
-  st.innerHTML='<span style="color:var(--green);">✓ Verified — showing your predictions below.</span>';
-  renderMyPredictions(name,sub);
-  cont.style.display='';
+// Populate the view/compare selectors (called when predict tab shown)
+function populateViewSelectors(){
+  const s1=document.getElementById('viewPerson1');
+  const s2=document.getElementById('viewPerson2');
+  if(!s1||!s2)return;
+  const submitted=S.participants.filter(p=>S.submissions[p]&&S.submissions[p].locked);
+  const cur1=s1.value,cur2=s2.value;
+  s1.innerHTML='<option value="">-- Select --</option>'+submitted.map(p=>`<option value="${p}"${p===cur1?' selected':''}>${p}</option>`).join('');
+  s2.innerHTML='<option value="">-- None --</option>'+submitted.map(p=>`<option value="${p}"${p===cur2?' selected':''}>${p}</option>`).join('');
 }
 
-function renderMyPredictions(name,sub){
+function renderComparison(){
+  const p1=document.getElementById('viewPerson1').value;
+  const p2=document.getElementById('viewPerson2').value;
   const cont=document.getElementById('viewMyContent');
+  if(!p1){cont.style.display='none';return;}
+  cont.style.display='';
+  const sub1=S.submissions[p1];
+  const sub2=p2?S.submissions[p2]:null;
+  if(!sub1){cont.innerHTML='<p style="color:var(--regent);">No predictions found.</p>';return;}
+
   let h='';
-  const statusBadge=sub.locked
-    ?'<span style="background:rgba(5,150,105,0.12);color:var(--green);padding:3px 10px;border-radius:12px;font-size:0.82em;font-weight:600;">✓ Final Submission</span>'
-    :'<span style="background:rgba(201,168,76,0.15);color:var(--gold-dark);padding:3px 10px;border-radius:12px;font-size:0.82em;font-weight:600;">📂 Draft (not submitted yet)</span>';
-  h+=`<div style="padding:12px 16px;background:var(--gray-50);border-radius:8px;margin-bottom:10px;">`;
-  h+=`<strong>${name}</strong> ${statusBadge}<br>`;
-  if(sub.locked&&sub.timestamp)h+=`<span style="font-size:0.82em;color:var(--regent);">Submitted: ${new Date(sub.timestamp).toLocaleString()}</span><br>`;
-  if(sub.koUpdateTimestamp)h+=`<span style="font-size:0.82em;color:var(--regent);">KO Updated: ${new Date(sub.koUpdateTimestamp).toLocaleString()}</span><br>`;
-  h+=`<span style="font-size:0.85em;">🏙️ City: <strong>${sub.city||'N/A'}</strong> &nbsp;🏆 Champion: <strong>${sub.champion||'N/A'}</strong> &nbsp;⚽ Total Goals: <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>`;
-  h+=`<span style="font-size:0.85em;">3rd-Place groups: <strong>${(sub.tp||[]).join(', ')||'N/A'}</strong></span>`;
-  h+=`</div>`;
+  // Header summary row(s)
+  const summary=(name,sub)=>{
+    if(!sub)return '';
+    return `<div style="flex:1;min-width:240px;padding:12px 16px;background:var(--gray-50);border-radius:8px;">
+      <strong>${name}</strong><br>
+      <span style="font-size:0.85em;">🏙️ <strong>${sub.city||'N/A'}</strong> &nbsp;🏆 <strong>${sub.champion||'N/A'}</strong> &nbsp;⚽ <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>
+      <span style="font-size:0.82em;color:var(--regent);">3rd-place groups: ${(sub.tp||[]).join(', ')||'N/A'}</span>
+    </div>`;
+  };
+  h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">${summary(p1,sub1)}${summary(p2,sub2)}</div>`;
 
-  h+=`<details open><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Group Stage Predictions (${Object.keys(sub.gs||{}).length} / 72)</summary>`;
-  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
-  GM.forEach(m=>{
-    const pr=(sub.gs||{})[m.n];
-    const real=S.admin.groupResults[m.n];
-    let bg='var(--gray-50)';
-    if(real&&pr){
-      const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pr.h-pr.a);
-      const exact=pr.h===real.h&&pr.a===real.a;
-      if(exact)bg='rgba(5,150,105,0.1)';
-      else if(rOut===pOut)bg='rgba(201,168,76,0.1)';
-      else bg='rgba(220,38,38,0.06)';
-    }
-    h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;">M${m.n}: ${m.h} <strong>${pr?pr.h:'-'}</strong> – <strong>${pr?pr.a:'-'}</strong> ${m.a}</div>`;
-  });
-  h+=`</div></details>`;
+  // Group stage
+  h+=`<details open><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Group Stage Predictions</summary>`;
+  if(!sub2){
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
+    GM.forEach(m=>{
+      const pr=(sub1.gs||{})[m.n];
+      const real=S.admin.groupResults[m.n];
+      let bg='var(--gray-50)';
+      if(real&&pr){
+        const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pr.h-pr.a);
+        const exact=pr.h===real.h&&pr.a===real.a;
+        if(exact)bg='rgba(5,150,105,0.1)';else if(rOut===pOut)bg='rgba(201,168,76,0.1)';else bg='rgba(220,38,38,0.06)';
+      }
+      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;">M${m.n}: ${fl(m.h)}${m.h} <strong>${pr?pr.h:'-'}</strong> – <strong>${pr?pr.a:'-'}</strong> ${fl(m.a)}${m.a}</div>`;
+    });
+    h+=`</div>`;
+  } else {
+    // Side-by-side comparison
+    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;">Match</th><th>${p1}</th><th>${p2}</th></tr></thead><tbody>`;
+    GM.forEach(m=>{
+      const a=(sub1.gs||{})[m.n],b=(sub2.gs||{})[m.n];
+      const aS=a?`${a.h}-${a.a}`:'-',bS=b?`${b.h}-${b.a}`:'-';
+      const same=a&&b&&a.h===b.h&&a.a===b.a;
+      h+=`<tr${same?' style="background:rgba(201,168,76,0.08);"':''}><td style="font-size:0.92em;">M${m.n} ${fl(m.h)}${m.h} v ${fl(m.a)}${m.a}</td><td style="text-align:center;font-weight:600;">${aS}</td><td style="text-align:center;font-weight:600;">${bS}</td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  }
+  h+=`</details>`;
 
+  // Knockout
   h+=`<details style="margin-top:8px;"><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Knockout Stage Predictions</summary>`;
-  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
-  ALLKO.forEach(m=>{
-    const pr=(sub.ko||{})[m.n];
-    const real=S.admin.koResults[m.n];
-    let bg='var(--gray-50)';
-    if(real&&real.winner&&pr&&pr.pick){
-      bg=pr.pick.toLowerCase()===real.winner.toLowerCase()?'rgba(5,150,105,0.1)':'rgba(220,38,38,0.06)';
-    }
-    let label='R'+m.n;
-    if(m.n>=89&&m.n<=96)label='R16 M'+m.n;
-    else if(m.n>=97&&m.n<=100)label='QF M'+m.n;
-    else if(m.n>=101&&m.n<=102)label='SF M'+m.n;
-    else if(m.n===104)label='FINAL';
-    else label='R32 M'+m.n;
-    h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;">${label}: Pick=<strong>${pr?pr.pick||'?':'?'}</strong> Score=<strong>${pr?pr.h+'-'+pr.a:'?'}</strong></div>`;
-  });
-  h+=`</div></details>`;
+  const koLabel=(n)=>{if(n>=89&&n<=96)return 'R16 M'+n;if(n>=97&&n<=100)return 'QF M'+n;if(n>=101&&n<=102)return 'SF M'+n;if(n===104)return 'FINAL';return 'R32 M'+n;};
+  const pickName=(sub,m)=>{const pr=(sub.ko||{})[m.n];if(!pr||!pr.pick)return '?';const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);return t===slot?('('+pr.pick+')'):t;};
+  if(!sub2){
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
+    ALLKO.forEach(m=>{
+      const pr=(sub1.ko||{})[m.n];
+      const real=S.admin.koResults[m.n];
+      let bg='var(--gray-50)';
+      if(real&&real.winner&&pr&&pr.pick){
+        const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);
+        bg=(t&&t.toLowerCase()===real.winner.toLowerCase())?'rgba(5,150,105,0.1)':'rgba(220,38,38,0.06)';
+      }
+      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;">${koLabel(m.n)}: <strong>${pickName(sub1,m)}</strong> &nbsp;(${pr?pr.h+'-'+pr.a:'?'})</div>`;
+    });
+    h+=`</div>`;
+  } else {
+    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;">Match</th><th>${p1}</th><th>${p2}</th></tr></thead><tbody>`;
+    ALLKO.forEach(m=>{
+      const an=pickName(sub1,m),bn=pickName(sub2,m);
+      const a=(sub1.ko||{})[m.n],b=(sub2.ko||{})[m.n];
+      const same=an===bn&&an!=='?';
+      h+=`<tr${same?' style="background:rgba(201,168,76,0.08);"':''}><td>${koLabel(m.n)}</td><td style="text-align:center;">${an} <span style="color:var(--regent);font-size:0.85em;">(${a?a.h+'-'+a.a:'?'})</span></td><td style="text-align:center;">${bn} <span style="color:var(--regent);font-size:0.85em;">(${b?b.h+'-'+b.a:'?'})</span></td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  }
+  h+=`</details>`;
+
   cont.innerHTML=h;
 }
 
@@ -2595,6 +2914,104 @@ firebase.auth().signInAnonymously()
     console.error('Auth error:', e);
     alert('Could not connect securely. Please refresh the page.');
   });
+</script>
+
+<!-- ===== FLOATING MUSIC PLAYER ===== -->
+<div id="musicWidget" style="display:none;">
+  <div id="musicPanel">
+    <div class="mp-title" id="mpTitle">Loading playlist…</div>
+    <div class="mp-controls">
+      <button class="mp-btn" onclick="mpPrev()" title="Previous">⏮</button>
+      <button class="mp-btn play" id="mpPlayBtn" onclick="mpTogglePlay()" title="Play/Pause">▶</button>
+      <button class="mp-btn" onclick="mpNext()" title="Next">⏭</button>
+    </div>
+    <div class="mp-vol">
+      <span style="font-size:0.9em;">🔉</span>
+      <input type="range" min="0" max="100" value="35" id="mpVol" oninput="mpSetVol(this.value)">
+    </div>
+    <div class="mp-track-list" id="mpTrackInfo">Track 1 of 5</div>
+  </div>
+  <button id="musicOrb" onclick="mpToggizePanel()" title="World Cup Music">
+    <span id="mpOrbIcon">🎵</span>
+  </button>
+</div>
+
+<div id="ytMusicPlayer" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+// ===== WORLD CUP MUSIC PLAYLIST =====
+// 5 World Cup songs (YouTube video IDs). Swap IDs anytime.
+const WC_SONGS=[
+  {id:"dzsuE5ugxf4",title:"Shakira — Waka Waka (This Time for Africa)"},
+  {id:"WTJSt4wP2ME",title:"K'naan — Wavin' Flag (Coca-Cola Celebration Mix)"},
+  {id:"jzWl8AvLxuU",title:"K'naan — Bandera de Libertad (Wavin' Flag Spanish)"},
+  {id:"T2D1c5563d8",title:"Ricky Martin — La Copa de la Vida (The Cup of Life)"},
+  {id:"dvgZkm1xWPE",title:"Pitbull — We Are One (Ole Ola) [2014 Anthem]"}
+];
+let ytMusic=null, ytMusicReady=false, mpPlaying=false, mpIndex=0, mpPanelOpen=false;
+
+function onYouTubeIframeAPIReady(){
+  ytMusic=new YT.Player('ytMusicPlayer',{
+    height:'1',width:'1',
+    videoId:WC_SONGS[0].id,
+    playerVars:{autoplay:0,controls:0,disablekb:1,modestbranding:1,playsinline:1},
+    events:{
+      onReady:()=>{ytMusicReady=true;ytMusic.setVolume(35);updateMpUI();},
+      onStateChange:(e)=>{
+        if(e.data===YT.PlayerState.PLAYING){mpPlaying=true;}
+        else if(e.data===YT.PlayerState.PAUSED){mpPlaying=false;}
+        else if(e.data===YT.PlayerState.ENDED){mpNext();}
+        updateMpUI();
+      },
+      onError:()=>{ /* skip broken track */ mpNext(); }
+    }
+  });
+}
+function updateMpUI(){
+  const t=document.getElementById('mpTitle');
+  const ti=document.getElementById('mpTrackInfo');
+  const pb=document.getElementById('mpPlayBtn');
+  const orb=document.getElementById('musicOrb');
+  const orbIcon=document.getElementById('mpOrbIcon');
+  if(t)t.textContent=WC_SONGS[mpIndex].title;
+  if(ti)ti.textContent='Track '+(mpIndex+1)+' of '+WC_SONGS.length;
+  if(pb)pb.textContent=mpPlaying?'⏸':'▶';
+  if(orb)orb.classList.toggle('playing',mpPlaying);
+  if(orbIcon){
+    if(mpPlaying){orbIcon.innerHTML='<span class="eq"><span></span><span></span><span></span><span></span></span>';}
+    else{orbIcon.textContent='🎵';}
+  }
+}
+function mpToggizePanel(){
+  mpPanelOpen=!mpPanelOpen;
+  document.getElementById('musicPanel').classList.toggle('open',mpPanelOpen);
+}
+function mpTogglePlay(){
+  if(!ytMusicReady)return;
+  if(mpPlaying)ytMusic.pauseVideo();
+  else ytMusic.playVideo();
+}
+function mpLoadIndex(i,autoplay){
+  mpIndex=(i+WC_SONGS.length)%WC_SONGS.length;
+  if(!ytMusicReady)return;
+  if(autoplay)ytMusic.loadVideoById(WC_SONGS[mpIndex].id);
+  else ytMusic.cueVideoById(WC_SONGS[mpIndex].id);
+  updateMpUI();
+}
+function mpNext(){mpLoadIndex(mpIndex+1,true);}
+function mpPrev(){mpLoadIndex(mpIndex-1,true);}
+function mpSetVol(v){if(ytMusicReady)ytMusic.setVolume(parseInt(v));}
+// Show/hide widget based on admin toggle
+function applyMusicVisibility(){
+  const w=document.getElementById('musicWidget');
+  if(!w)return;
+  if(S.musicEnabled){
+    w.style.display='flex';
+  } else {
+    w.style.display='none';
+    if(ytMusicReady&&mpPlaying)ytMusic.pauseVideo();
+  }
+}
 </script>
 </body>
 </html>
