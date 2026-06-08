@@ -7,6 +7,9 @@
 <title>World Cup 2026 — Teambuilding Prediction Challenge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.6.0/dist/jsvectormap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.6.0/dist/jsvectormap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.6.0/dist/maps/world.js"></script>
 <!-- Firebase Realtime Database (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -381,7 +384,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip">Predictions lock on June 8th, 2026 at 11:59 PM ET — Submit before the first match!</div>
+<div class="deadline-strip">Predictions lock on June 4th, 2026 at 11:59 PM ET — Submit before the first match!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -443,7 +446,7 @@ a { color:var(--black); }
     <p style="font-size:0.84em;color:var(--gray-600);margin-bottom:10px;">Which city predicts the best? Ranked by average points per participant.</p>
     <div style="overflow-x:auto;">
     <table class="lb-table" id="cityTable">
-      <thead><tr><th>#</th><th>City</th><th>Participants</th><th>Avg Group Stage</th><th>Avg Knockout</th><th>Avg Bonus</th><th>Avg Total</th></tr></thead>
+      <thead id="cityHead"><tr><th>#</th><th>City</th><th>Participants</th><th>Avg Group Stage</th><th>Avg Knockout</th><th>Avg Bonus</th><th>Avg Total</th></tr></thead>
       <tbody id="cityBody"><tr><td colspan="7" style="text-align:center;color:var(--regent);padding:20px;">City standings will appear once results are entered.</td></tr></tbody>
     </table>
     </div>
@@ -468,6 +471,22 @@ a { color:var(--black); }
       <tbody id="lbBody"><tr><td colspan="8" style="text-align:center;color:var(--regent);padding:20px;">No results yet. Admin must enter real match results.</td></tr></tbody>
     </table>
     </div>
+  </div>
+
+  <!-- CHAMPION PICK DISTRIBUTION -->
+  <div class="card" id="champDistCard">
+    <h2>🏆 Predicted Champions</h2>
+    <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:12px;">How the pool's championship picks are distributed across teams.</p>
+    <div id="champPieWrap" style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:center;">
+      <canvas id="champPie" width="360" height="360" style="max-width:100%;"></canvas>
+      <div id="champLegend" style="font-size:0.86em;min-width:200px;"></div>
+    </div>
+    <p id="champDistEmpty" style="text-align:center;color:var(--regent);padding:20px;">No champion picks submitted yet.</p>
+
+    <h3 style="margin-top:24px;font-size:0.95em;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">🌎 Selected Champion Nations</h3>
+    <p style="color:var(--gray-600);font-size:0.84em;margin-bottom:10px;">Countries highlighted in gold have been picked as champion by at least one participant.</p>
+    <div id="worldMap" style="width:100%;height:420px;max-width:900px;margin:0 auto;"></div>
+    <p id="worldMapFallback" style="display:none;text-align:center;color:var(--regent);padding:14px;font-size:0.86em;"></p>
   </div>
 
   <!-- SCORING SYSTEM -->
@@ -495,9 +514,9 @@ a { color:var(--black); }
       <span>🏆 QF: +25</span>
       <span>🏆 SF: +35</span>
       <span>🏆 Final: +40</span>
-      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +60</span>
+      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +55</span>
     </div>
-    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>190 total bonus points</strong>.</p>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>185 total bonus points</strong>.</p>
     <h3>Other Bonuses</h3>
     <div class="scoring">
       <span>🥉 +2 per Correct 3rd-Place Qualifier</span>
@@ -527,7 +546,7 @@ a { color:var(--black); }
       <strong>10.</strong> The system automatically compares every participant's predictions against real results:<br>
       &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
       &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (3→5→8→12→20). Exact KO score = +3 bonus.<br>
-      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +35, Final: +40, <strong>Winner: +60</strong>.<br>
+      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +35, Final: +40, <strong>Winner: +55</strong>.<br>
       &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (excluding knockout round Penalty Shootouts) (+5).<br>
       <strong>11.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
@@ -841,6 +860,18 @@ a { color:var(--black); }
     </div>
 
     <div class="card">
+      <h2>👑 City Leaders</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Add a "Leaders" column to the City Competition table showing 1–5 representative names for each city. Toggle the column on or off, and enter names separated by commas.</p>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
+        <span id="cityLeadersToggleStatus" style="font-weight:600;font-size:1em;"></span>
+        <button class="btn btn-sm" id="cityLeadersToggleBtn" onclick="toggleCityLeaders()"></button>
+      </div>
+      <div id="cityLeadersInputs" style="display:grid;gap:10px;"></div>
+      <button class="btn btn-gold btn-sm" style="margin-top:12px;" onclick="saveCityLeaders()">Save City Leaders</button>
+      <p id="cityLeadersStatus" style="font-size:0.84em;margin-top:6px;min-height:16px;"></p>
+    </div>
+
+    <div class="card">
       <h2>Live Comparison Tracker</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">See how each participant's predictions compare to the real results, match by match.</p>
       <div class="person-sel">
@@ -1113,11 +1144,42 @@ const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
 const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
-const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:15,TP:2,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:35,CHAMP_FIN:40,CHAMP_WIN:60};
+const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:15,TP:2,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:35,CHAMP_FIN:40,CHAMP_WIN:55};
+
+// Submissions lock ONLY when the organizer manually locks them in the Admin Panel.
+function arePredictionsLocked(){ return S.predictionsLocked; }
+function lockMessage(){ return 'Predictions are now LOCKED by the organizer. No further submissions allowed.'; }
 
 // Country flag mapping (ISO codes for flagcdn.com)
 const FC={'Mexico':'mx','South Africa':'za','South Korea':'kr','Bosnia and Herzegovina':'ba','Türkiye':'tr','DR Congo':'cd','Iraq':'iq','Sweden':'se','Czechia':'cz','Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma','Haiti':'ht','Scotland':'gb-sct','USA':'us','Paraguay':'py','Australia':'au','Germany':'de','Curaçao':'cw','Ivory Coast':'ci','Ecuador':'ec','Netherlands':'nl','Japan':'jp','Tunisia':'tn','Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz','Spain':'es','Cape Verde':'cv','Saudi Arabia':'sa','Uruguay':'uy','France':'fr','Senegal':'sn','Norway':'no','Argentina':'ar','Algeria':'dz','Austria':'at','Jordan':'jo','Portugal':'pt','Uzbekistan':'uz','Colombia':'co','England':'gb-eng','Croatia':'hr','Ghana':'gh','Panama':'pa'};
 function fl(n){const c=FC[n];return c?'<img src="https://flagcdn.com/w20/'+c+'.png" alt="" style="width:18px;height:13px;vertical-align:middle;margin-right:4px;border-radius:2px;box-shadow:0 0 2px rgba(0,0,0,0.2);">':'';}
+// Team -> ISO2 (uppercase) for the world map. England & Scotland both map to GB.
+const TEAM_ISO={};
+Object.keys(FC).forEach(team=>{let c=FC[team];if(c==='gb-eng'||c==='gb-sct')c='gb';if(c.length===2)TEAM_ISO[team]=c.toUpperCase();});
+
+// Canonicalize a team name to its official spelling/casing (case-insensitive, trimmed).
+// e.g. "france", "FRANCE", " France " -> "France". Unknown names returned trimmed as-is.
+function canonicalTeam(name){
+  if(!name)return name;
+  const t=String(name).trim().toLowerCase();
+  const all=Object.values(GROUPS).flat();
+  const match=all.find(x=>x.toLowerCase()===t);
+  return match||String(name).trim();
+}
+
+// Resolve a typed participant name to the existing record's exact key, case-insensitively.
+// e.g. typing "baljinder" finds the existing "BALJINDER". New names returned trimmed as-is.
+function resolveParticipantName(name){
+  if(!name)return name;
+  const t=String(name).trim().toLowerCase();
+  const inList=(S.participants||[]).find(p=>p.toLowerCase()===t);
+  if(inList)return inList;
+  const inPwd=Object.keys(S.passwords||{}).find(p=>p.toLowerCase()===t);
+  if(inPwd)return inPwd;
+  const inSub=Object.keys(S.submissions||{}).find(p=>p.toLowerCase()===t);
+  if(inSub)return inSub;
+  return String(name).trim();
+}
 
 // ============================
 // FIREBASE CONFIG
@@ -1154,6 +1216,8 @@ let S = {
   koUpdateOpen:false,
   musicEnabled:true,
   countdownEnabled:true,
+  cityLeadersEnabled:false,
+  cityLeaders:{},
   adminPwd:"David2026",
   apiKey:""
 };
@@ -1172,6 +1236,8 @@ function ensureDefaults(){
   if(S.koUpdateOpen===undefined)S.koUpdateOpen=false;
   if(S.musicEnabled===undefined)S.musicEnabled=true;
   if(S.countdownEnabled===undefined)S.countdownEnabled=true;
+  if(S.cityLeadersEnabled===undefined)S.cityLeadersEnabled=false;
+  if(!S.cityLeaders)S.cityLeaders={};
 }
 
 let _saveTimer=null;
@@ -1208,6 +1274,8 @@ function load(){
             S.koUpdateOpen=fresh.koUpdateOpen!==undefined?fresh.koUpdateOpen:S.koUpdateOpen;
             S.musicEnabled=fresh.musicEnabled!==undefined?fresh.musicEnabled:S.musicEnabled;
             S.countdownEnabled=fresh.countdownEnabled!==undefined?fresh.countdownEnabled:S.countdownEnabled;
+            S.cityLeadersEnabled=fresh.cityLeadersEnabled!==undefined?fresh.cityLeadersEnabled:S.cityLeadersEnabled;
+            S.cityLeaders=fresh.cityLeaders||S.cityLeaders;
             // Always refresh participants and leaderboard-facing data
             S.participants=fresh.participants||S.participants;
             S.submissions=fresh.submissions||S.submissions;
@@ -1343,16 +1411,21 @@ function updateScoresTicker(){
     allM.push({n:m.n,d:m.d,t:'',label:label,h:rA,a:rB,hS:r?r.h||0:'-',aS:r?r.a||0:'-',status:status,played:!!(r&&r.winner)});
   });
   allM.sort((a,b)=>a.n-b.n);
-  // Find closest match to today for auto-scroll
-  const today=new Date();
-  const yr=2026;
-  const monthMap={Jun:5,Jul:6};
-  let scrollIdx=0;
-  for(let i=0;i<allM.length;i++){
-    const parts=allM[i].d.split(' ');
-    if(parts.length===2&&monthMap[parts[0]]!==undefined){
-      const mDate=new Date(yr,monthMap[parts[0]],parseInt(parts[1]));
-      if(mDate<=today)scrollIdx=i;
+  // Auto-scroll target: the LATEST match that has been played (results entered).
+  // Falls back to the nearest match by today's date if nothing has been played yet.
+  let scrollIdx=-1;
+  for(let i=0;i<allM.length;i++){ if(allM[i].played)scrollIdx=i; }
+  if(scrollIdx<0){
+    const today=new Date();
+    const yr=2026;
+    const monthMap={Jun:5,Jul:6};
+    scrollIdx=0;
+    for(let i=0;i<allM.length;i++){
+      const parts=allM[i].d.split(' ');
+      if(parts.length===2&&monthMap[parts[0]]!==undefined){
+        const mDate=new Date(yr,monthMap[parts[0]],parseInt(parts[1]));
+        if(mDate<=today)scrollIdx=i;
+      }
     }
   }
   let chips=allM.map((m,i)=>{
@@ -1540,14 +1613,16 @@ let predTP=[];
 let predKOPicks={};
 
 async function startPrediction(){
-  if(S.predictionsLocked){alert('Predictions are now LOCKED by the organizer. No further submissions allowed.');return;}
-  const name=document.getElementById('predictName').value.trim();
+  if(arePredictionsLocked()){alert(lockMessage());return;}
+  const rawName=document.getElementById('predictName').value.trim();
   const pwd=document.getElementById('predictPwd').value;
   const cityEl=document.getElementById('predictCity');
   const city=cityEl?cityEl.value:'';
   const statusEl=document.getElementById('predictEntryStatus');
-  if(!name){statusEl.textContent='⚠ Please enter your name.';return;}
+  if(!rawName){statusEl.textContent='⚠ Please enter your name.';return;}
   if(!pwd||pwd.length<4){statusEl.textContent='⚠ Please enter a password of at least 4 characters.';return;}
+  // Match existing participants case-insensitively (e.g. "baljinder" -> "BALJINDER")
+  const name=resolveParticipantName(rawName);
 
   const isExisting=S.passwords&&S.passwords[name];
 
@@ -1666,20 +1741,28 @@ function saveDraft(){
   const champ=(document.getElementById('bonusChamp')||{}).value||'';
   const goals=(document.getElementById('bonusGoals')||{}).value||'';
   const cityVal=(document.getElementById('predictCity')||{}).value||'';
+  // If this person ALREADY submitted (locked), never downgrade them to a draft —
+  // keep their entry locked so they stay scored on the leaderboard. Their edits are saved live.
+  const prior=S.submissions[currentPredictor];
+  const wasLocked=!!(prior&&prior.locked===true);
   S.submissions[currentPredictor]={
-    locked:false,
+    locked:wasLocked,
+    timestamp:wasLocked?(prior.timestamp||new Date().toISOString()):undefined,
     draftTimestamp:new Date().toISOString(),
     gs:gs,
     ko:ko,
     tp:predTP.slice(),
-    champion:champ,
+    champion:champ?canonicalTeam(champ):champ,
     totalGoals:goals?parseInt(goals):null,
-    city:cityVal||(S.submissions[currentPredictor]&&S.submissions[currentPredictor].city)||''
+    city:cityVal||(prior&&prior.city)||''
   };
   save();
-  const msg='<span style="color:var(--green);">✓ Progress saved at '+new Date().toLocaleTimeString()+'</span>';
+  const ts=new Date().toLocaleTimeString();
+  const msg=wasLocked
+    ? '<span style="color:var(--green);">✓ Your submitted predictions were updated and saved at '+ts+' — you remain on the leaderboard.</span>'
+    : '<span style="color:var(--green);">✓ Progress saved at '+ts+'</span>';
   const ds=document.getElementById('draftStatus');
-  if(ds)ds.innerHTML=msg+'<span style="color:var(--regent);font-size:0.9em;"> — You can safely close this tab and resume later.</span>';
+  if(ds)ds.innerHTML=msg+(wasLocked?'':'<span style="color:var(--regent);font-size:0.9em;"> — You can safely close this tab and resume later.</span>');
   const dst=document.getElementById('draftStatusTop');
   if(dst)dst.innerHTML=msg;
 }
@@ -1951,7 +2034,7 @@ function pickKO(n,side){
 
 async function submitPrediction(){
   if(!currentPredictor){alert('No predictor selected.');return;}
-  if(S.predictionsLocked){alert('Predictions are now LOCKED by the organizer. No further submissions allowed.');return;}
+  if(arePredictionsLocked()){alert(lockMessage());return;}
 
   // ========== STRICT VALIDATION ==========
   let errors=[];
@@ -1987,8 +2070,9 @@ async function submitPrediction(){
   if(koMissingScore>0) errors.push('Knockout Stage: '+koMissingScore+' match(es) missing scores. Fill in scores for every KO match.');
 
   // 4. Champion required
-  const champ=document.getElementById('bonusChamp').value.trim();
+  let champ=document.getElementById('bonusChamp').value.trim();
   if(!champ) errors.push('Championship Winner: You must predict which team will win the World Cup.');
+  else champ=canonicalTeam(champ); // normalize casing so e.g. "france" stores as "France"
 
   // 5. Total goals required
   const goals=document.getElementById('bonusGoals').value.trim();
@@ -2060,13 +2144,15 @@ function checkKOUpdateVisibility(){
 }
 
 async function startKOUpdate(){
-  const name=document.getElementById('koUpdateName').value.trim();
+  const rawName=document.getElementById('koUpdateName').value.trim();
   const pwd=document.getElementById('koUpdatePwd').value;
   const st=document.getElementById('koUpdateStatus');
-  if(!name){alert('Please enter your name.');return;}
+  if(!rawName){alert('Please enter your name.');return;}
   if(!pwd){st.innerHTML='<span style="color:var(--red);">❌ Please enter your password.</span>';return;}
+  // Match existing participant case-insensitively
+  const name=resolveParticipantName(rawName);
   if(!S.submissions[name]||!S.submissions[name].locked){
-    st.innerHTML='<span style="color:var(--red);">❌ No submitted prediction found for "'+name+'". You must have submitted predictions during the initial window.</span>';
+    st.innerHTML='<span style="color:var(--red);">❌ No submitted prediction found for "'+rawName+'". You must have submitted predictions during the initial window.</span>';
     return;
   }
   if(!S.koUpdateOpen){
@@ -2308,7 +2394,7 @@ function setAdminPwd(){
 function addParticipant(){
   const n=document.getElementById('newPart').value.trim();
   if(!n)return;
-  if(S.participants.includes(n)){alert(n+' already exists.');return;}
+  if(S.participants.some(p=>p.toLowerCase()===n.toLowerCase())){alert(n+' already exists (names are matched case-insensitively).');return;}
   S.participants.push(n);document.getElementById('newPart').value='';save();renderParts();
 }
 function removePart(n){
@@ -2330,7 +2416,14 @@ function renderParts(){
     if(locked){
       html+=`<span class="lock-badge lock-yes">Submitted</span> <button class="btn btn-sm" style="font-size:0.7em;padding:2px 8px;background:var(--gold);color:var(--black);border-color:var(--gold);margin-left:4px;" onclick="unlockSubmission('${p.replace(/'/g,"\\'")}')">Unlock for Edit</button>`;
     } else {
+      const sub=S.submissions[p];
+      // A "draft" that actually has substantial data is likely someone who submitted
+      // and was later downgraded — offer to restore them to the leaderboard.
+      const hasData=sub&&((sub.gs&&Object.keys(sub.gs).length>0)||(sub.ko&&Object.keys(sub.ko).length>0)||sub.champion);
       html+=`<span class="lock-badge lock-no">Pending</span>`;
+      if(hasData){
+        html+=` <button class="btn btn-sm" style="font-size:0.7em;padding:2px 8px;background:var(--green);color:var(--white);border-color:var(--green);margin-left:4px;" onclick="restoreSubmission('${p.replace(/'/g,"\\'")}')">Restore to Leaderboard</button>`;
+      }
     }
     html+=` <span class="rm" onclick="removePart('${p.replace(/'/g,"\\'")}')">&times;</span></span>`;
     return html;
@@ -2349,6 +2442,19 @@ function unlockSubmission(name){
     renderParts();
     alert(name+'\'s predictions are now unlocked. They can go to "Submit Prediction" and re-edit.');
   }
+}
+function restoreSubmission(name){
+  const sub=S.submissions[name];
+  if(!sub)return;
+  const gsCount=sub.gs?Object.keys(sub.gs).length:0;
+  const koCount=sub.ko?Object.keys(sub.ko).length:0;
+  if(!confirm('Restore "'+name+'" to the leaderboard?\n\nThis marks their saved predictions as submitted (locked) so they are scored again.\n\nSaved data: '+gsCount+'/72 group matches, '+koCount+' knockout matches, champion: '+(sub.champion||'none')+'.'))return;
+  sub.locked=true;
+  if(!sub.timestamp)sub.timestamp=sub.draftTimestamp||new Date().toISOString();
+  save();
+  renderParts();
+  calcLeaderboard();
+  alert(name+' has been restored to the leaderboard and will be scored.');
 }
 function togglePredLock(){
   S.predictionsLocked=!S.predictionsLocked;
@@ -2393,7 +2499,7 @@ function updateKOWindowUI(){
 }
 function renderAdminView(){
   if(!adminLoggedIn)return;
-  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();
+  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();updateCityLeadersUI();
   // Populate view predictions selector
   const sel=document.getElementById('viewPredPerson');
   const cur=sel.value;
@@ -2484,6 +2590,57 @@ function updateCountdownToggleUI(){
 function applyCountdownVisibility(){
   const card=document.getElementById('countdownCard');
   if(card)card.style.display=S.countdownEnabled?'':'none';
+}
+// ===== CITY LEADERS =====
+const CITY_LIST=['Toronto','Montreal','Red Oak','Querétaro'];
+function toggleCityLeaders(){
+  S.cityLeadersEnabled=!S.cityLeadersEnabled;
+  save();
+  updateCityLeadersUI();
+  calcLeaderboard();
+}
+function updateCityLeadersUI(){
+  const st=document.getElementById('cityLeadersToggleStatus');
+  const btn=document.getElementById('cityLeadersToggleBtn');
+  const inputs=document.getElementById('cityLeadersInputs');
+  if(st&&btn){
+    if(S.cityLeadersEnabled){
+      st.innerHTML='<span style="color:var(--green);">👑 Leaders column is ON</span>';
+      btn.textContent='Hide Leaders Column';
+      btn.style.background='var(--red)';btn.style.color='var(--white)';btn.style.borderColor='var(--red)';
+    } else {
+      st.innerHTML='<span style="color:var(--gray-500);">👑 Leaders column is OFF</span>';
+      btn.textContent='Show Leaders Column';
+      btn.style.background='var(--gold)';btn.style.color='var(--black)';btn.style.borderColor='var(--gold)';
+    }
+  }
+  if(inputs){
+    const leaders=S.cityLeaders||{};
+    inputs.innerHTML=CITY_LIST.map(c=>{
+      const list=Array.isArray(leaders[c])?leaders[c]:[];
+      const val=list.join(', ');
+      return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <label style="min-width:90px;font-size:0.86em;font-weight:600;">${c}:</label>
+        <input type="text" id="cityLead-${c.replace(/[^A-Za-z]/g,'')}" value="${val.replace(/"/g,'&quot;')}" placeholder="Up to 5 names, comma-separated" style="flex:1;min-width:220px;font-size:0.88em;">
+      </div>`;
+    }).join('');
+  }
+}
+function saveCityLeaders(){
+  if(!S.cityLeaders)S.cityLeaders={};
+  let trimmedAny=false;
+  CITY_LIST.forEach(c=>{
+    const el=document.getElementById('cityLead-'+c.replace(/[^A-Za-z]/g,''));
+    if(!el)return;
+    let names=el.value.split(',').map(s=>s.trim()).filter(Boolean);
+    if(names.length>5){names=names.slice(0,5);trimmedAny=true;}
+    S.cityLeaders[c]=names;
+  });
+  save();
+  updateCityLeadersUI();
+  calcLeaderboard();
+  const st=document.getElementById('cityLeadersStatus');
+  if(st)st.innerHTML='<span style="color:var(--green);">✓ City leaders saved'+(trimmedAny?' (limited to 5 names per city)':'')+'.</span>';
 }
 function renderAdminGS(){
   const c=document.getElementById('adminGS');let h='';
@@ -2824,12 +2981,12 @@ function calcLeaderboard(){
   }
   rows.sort((a,b)=>b.total-a.total);
   const tbody=document.getElementById('lbBody');
-  if(rows.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--regent);padding:20px;">No participants yet.</td></tr>';return;}
+  if(rows.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--regent);padding:20px;">No participants yet.</td></tr>';renderChampDistribution();return;}
   tbody.innerHTML=rows.map((r,i)=>{
     const rank=i+1;
     const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
     const cls=rank<=3?'rank-'+rank:'';
-    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td>${r.name}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ}</td><td>${r.gs}</td><td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
+    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td>${r.name}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td><td>${r.gs}</td><td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
   }).join('');
 
   // ========== CITY COMPETITION TABLE ==========
@@ -2854,16 +3011,131 @@ function calcLeaderboard(){
     avgTotal:cityStats[c].count?cityStats[c].total/cityStats[c].count:0
   })).filter(c=>c.count>0).sort((a,b)=>b.avgTotal-a.avgTotal);
   const cityTbody=document.getElementById('cityBody');
+  const cityHead=document.getElementById('cityHead');
+  const showLeaders=S.cityLeadersEnabled===true;
+  const leaders=S.cityLeaders||{};
+  // Header reflects whether the Leaders column is shown
+  if(cityHead){
+    cityHead.innerHTML='<tr><th>#</th><th>City</th>'+(showLeaders?'<th>Leaders</th>':'')+'<th>Participants</th><th>Avg Group Stage</th><th>Avg Knockout</th><th>Avg Bonus</th><th>Avg Total</th></tr>';
+  }
+  const colSpan=showLeaders?8:7;
   if(cityRows.length===0){
-    cityTbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--regent);padding:20px;">City standings will appear once results are entered.</td></tr>';
+    cityTbody.innerHTML='<tr><td colspan="'+colSpan+'" style="text-align:center;color:var(--regent);padding:20px;">City standings will appear once results are entered.</td></tr>';
   } else {
     const cityEmoji={'Toronto':'🇨🇦','Montreal':'🇨🇦','Red Oak':'🇺🇸','Querétaro':'🇲🇽'};
     cityTbody.innerHTML=cityRows.map((c,i)=>{
       const rank=i+1;
       const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
       const cls=rank<=3?'rank-'+rank:'';
-      return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td>${cityEmoji[c.city]||''} <strong>${c.city}</strong></td><td>${c.count}</td><td>${c.avgGs.toFixed(1)}</td><td>${c.avgKo.toFixed(1)}</td><td>${c.avgBonus.toFixed(1)}</td><td><strong>${c.avgTotal.toFixed(1)}</strong></td></tr>`;
+      let leaderCell='';
+      if(showLeaders){
+        const list=Array.isArray(leaders[c.city])?leaders[c.city]:[];
+        const txt=list.length?list.join(', '):'<span style="color:var(--regent);">—</span>';
+        leaderCell=`<td style="font-size:0.86em;">${txt}</td>`;
+      }
+      return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td>${cityEmoji[c.city]||''} <strong>${c.city}</strong></td>${leaderCell}<td>${c.count}</td><td>${c.avgGs.toFixed(1)}</td><td>${c.avgKo.toFixed(1)}</td><td>${c.avgBonus.toFixed(1)}</td><td><strong>${c.avgTotal.toFixed(1)}</strong></td></tr>`;
     }).join('');
+  }
+  renderChampDistribution();
+}
+
+// ============================
+// CHAMPION PICK DISTRIBUTION (pie chart + world map)
+// ============================
+function getChampionCounts(){
+  const counts={};
+  S.participants.forEach(name=>{
+    const sub=S.submissions[name];
+    if(sub&&sub.locked&&sub.champion){const t=canonicalTeam(sub.champion);counts[t]=(counts[t]||0)+1;}
+  });
+  return counts;
+}
+let _champFlagCache={};
+function renderChampDistribution(){
+  const counts=getChampionCounts();
+  const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const canvas=document.getElementById('champPie');
+  const legend=document.getElementById('champLegend');
+  const empty=document.getElementById('champDistEmpty');
+  const wrap=document.getElementById('champPieWrap');
+  if(!canvas)return;
+  if(entries.length===0){
+    if(empty)empty.style.display='';
+    if(wrap)wrap.style.display='none';
+    updateWorldMap([]);
+    return;
+  }
+  if(empty)empty.style.display='none';
+  if(wrap)wrap.style.display='flex';
+  const total=entries.reduce((s,e)=>s+e[1],0);
+  const palette=['#c9a84c','#3b82f6','#10b981','#ef4444','#8b5cf6','#f59e0b','#ec4899','#14b8a6','#6366f1','#84cc16','#f97316','#06b6d4','#a855f7','#dc2626','#22c55e','#eab308','#0ea5e9','#f43f5e'];
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=Math.min(W,H)/2-12;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    let start=-Math.PI/2;
+    entries.forEach((e,i)=>{
+      const team=e[0],cnt=e[1];
+      const frac=cnt/total,ang=frac*Math.PI*2,col=palette[i%palette.length];
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+ang);ctx.closePath();
+      ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+      if(ang>0.30){ // label slices that are big enough
+        const mid=start+ang/2;
+        const lx=cx+Math.cos(mid)*r*0.62,ly=cy+Math.sin(mid)*r*0.62;
+        const img=_champFlagCache[team];
+        if(img&&img.complete&&img.naturalWidth){ctx.drawImage(img,lx-13,ly-18,26,17);}
+        ctx.fillStyle='#fff';ctx.font='bold 11px Inter,sans-serif';ctx.textAlign='center';
+        ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=4;
+        ctx.fillText(team.length>13?team.slice(0,12)+'…':team,lx,ly+13);
+        ctx.shadowBlur=0;
+      }
+      start+=ang;
+    });
+  }
+  legend.innerHTML=entries.map((e,i)=>{
+    const team=e[0],cnt=e[1],col=palette[i%palette.length],pct=Math.round(cnt/total*100);
+    return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0;"><span style="width:13px;height:13px;border-radius:3px;background:${col};display:inline-block;flex-shrink:0;"></span>${fl(team)}<span style="flex:1;">${team}</span><strong>${cnt}</strong> <span style="color:var(--regent);font-size:0.9em;">(${pct}%)</span></div>`;
+  }).join('');
+  // Preload flag images for slices, redraw as they arrive
+  entries.forEach(e=>{
+    const team=e[0],c=FC[team];
+    if(c&&!_champFlagCache[team]){
+      const img=new Image();img.crossOrigin='anonymous';img.src='https://flagcdn.com/w40/'+c+'.png';
+      _champFlagCache[team]=img;img.onload=draw;img.onerror=draw;
+    }
+  });
+  draw();
+  updateWorldMap(entries.map(e=>e[0]));
+}
+
+let _worldMapObj=null,_worldMapSelected='__init__';
+function updateWorldMap(teams){
+  const container=document.getElementById('worldMap');
+  const fallback=document.getElementById('worldMapFallback');
+  if(!container)return;
+  const codes=[...new Set(teams.map(t=>TEAM_ISO[t]).filter(Boolean))];
+  const key=codes.slice().sort().join(',');
+  if(typeof jsVectorMap==='undefined'){
+    container.style.display='none';
+    if(fallback){fallback.style.display='';fallback.textContent=teams.length?('Selected champion nations: '+teams.join(', ')):'No champion picks yet.';}
+    return;
+  }
+  try{
+    if(!_worldMapObj){
+      _worldMapObj=new jsVectorMap({
+        selector:'#worldMap',map:'world',zoomButtons:true,regionsSelectable:false,
+        regionStyle:{initial:{fill:'#2a2f3a',stroke:'#11141a','stroke-width':0.4},hover:{fill:'#3a4150'},selected:{fill:'#c9a84c'}},
+        backgroundColor:'transparent'
+      });
+    }
+    if(key!==_worldMapSelected){
+      if(_worldMapObj.clearSelectedRegions)_worldMapObj.clearSelectedRegions();
+      if(codes.length&&_worldMapObj.setSelectedRegions)_worldMapObj.setSelectedRegions(codes);
+      _worldMapSelected=key;
+    }
+  }catch(e){
+    console.error('World map error:',e);
+    if(fallback){fallback.style.display='';fallback.textContent=teams.length?('Selected champion nations: '+teams.join(', ')):'';}
   }
 }
 
