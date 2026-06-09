@@ -384,7 +384,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip">Predictions lock on June 9th, 2026 at 11:59 PM ET — Submit before the first match!</div>
+<div class="deadline-strip">Predictions lock on June 10th, 2026 at 11:59 PM ET — Submit before the first match!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -467,8 +467,8 @@ a { color:var(--black); }
     </div>
     <div style="overflow-x:auto;">
     <table class="lb-table" id="lbTable">
-      <thead><tr><th>#</th><th>Participant</th><th>City</th><th>Predicted Champion</th><th>Group Stage</th><th>Knockout</th><th>Bonus</th><th>Total</th></tr></thead>
-      <tbody id="lbBody"><tr><td colspan="8" style="text-align:center;color:var(--regent);padding:20px;">No results yet. Admin must enter real match results.</td></tr></tbody>
+      <thead><tr><th>#</th><th>Move</th><th>Participant</th><th>City</th><th>Predicted Champion</th><th>Group Stage</th><th>Knockout</th><th>Bonus</th><th>Total</th></tr></thead>
+      <tbody id="lbBody"><tr><td colspan="9" style="text-align:center;color:var(--regent);padding:20px;">No results yet. Admin must enter real match results.</td></tr></tbody>
     </table>
     </div>
   </div>
@@ -860,6 +860,19 @@ a { color:var(--black); }
     </div>
 
     <div class="card">
+      <h2>📊 Leaderboard Movement</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">The leaderboard's "Move" column shows how far each person climbed (green ▲) or dropped (red ▼) versus a saved baseline. <strong>Capture a snapshot</strong> of the current standings, then enter the next batch of results — everyone's movement will display relative to that snapshot.</p>
+      <div class="info-box" style="margin-bottom:12px;font-size:0.84em;">
+        <strong>Suggested workflow:</strong> Before each matchday, click <em>Capture Snapshot</em>. After you finish entering that day's scores, the leaderboard shows who rose and fell since the snapshot. Capture again before the next round to reset the comparison.
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-gold btn-sm" onclick="captureRankSnapshot()">📸 Capture Snapshot Now</button>
+        <button class="btn btn-outline btn-sm" onclick="clearRankSnapshot()">Clear Snapshot</button>
+        <span id="snapshotStatus" style="font-size:0.84em;color:var(--gray-600);"></span>
+      </div>
+    </div>
+
+    <div class="card">
       <h2>👑 City Leaders</h2>
       <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Add a "Leaders" column to the City Competition table showing 1–5 representative names for each city. Toggle the column on or off, and enter names separated by commas.</p>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
@@ -1218,6 +1231,7 @@ let S = {
   countdownEnabled:true,
   cityLeadersEnabled:false,
   cityLeaders:{},
+  rankSnapshot:{},
   adminPwd:"David2026",
   apiKey:""
 };
@@ -1238,6 +1252,7 @@ function ensureDefaults(){
   if(S.countdownEnabled===undefined)S.countdownEnabled=true;
   if(S.cityLeadersEnabled===undefined)S.cityLeadersEnabled=false;
   if(!S.cityLeaders)S.cityLeaders={};
+  if(!S.rankSnapshot)S.rankSnapshot={};
 }
 
 let _saveTimer=null;
@@ -1249,6 +1264,7 @@ function save(){
 }
 
 let _realtimeReady=false;
+let _currentRanks={}; // latest computed leaderboard ranks {name:rank}, used for the movement snapshot
 function load(){
   fbDb.ref(DB_ROOT).once('value').then(snap=>{
     if(snap.exists()){S=snap.val();ensureDefaults();}
@@ -1276,6 +1292,7 @@ function load(){
             S.countdownEnabled=fresh.countdownEnabled!==undefined?fresh.countdownEnabled:S.countdownEnabled;
             S.cityLeadersEnabled=fresh.cityLeadersEnabled!==undefined?fresh.cityLeadersEnabled:S.cityLeadersEnabled;
             S.cityLeaders=fresh.cityLeaders||S.cityLeaders;
+            S.rankSnapshot=fresh.rankSnapshot||S.rankSnapshot;
             // Always refresh participants and leaderboard-facing data
             S.participants=fresh.participants||S.participants;
             S.submissions=fresh.submissions||S.submissions;
@@ -2507,7 +2524,7 @@ function updateKOWindowUI(){
 }
 function renderAdminView(){
   if(!adminLoggedIn)return;
-  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();updateCityLeadersUI();
+  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();updateCityLeadersUI();updateSnapshotStatus();
   // Populate view predictions selector
   const sel=document.getElementById('viewPredPerson');
   const cur=sel.value;
@@ -2599,7 +2616,41 @@ function applyCountdownVisibility(){
   const card=document.getElementById('countdownCard');
   if(card)card.style.display=S.countdownEnabled?'':'none';
 }
-// ===== CITY LEADERS =====
+// ===== LEADERBOARD MOVEMENT SNAPSHOT =====
+function captureRankSnapshot(){
+  // Ensure ranks are current
+  calcLeaderboard();
+  if(!_currentRanks||Object.keys(_currentRanks).length===0){
+    alert('No ranked participants yet to snapshot. Enter some results first.');
+    return;
+  }
+  if(!confirm('Capture the current standings as the movement baseline?\n\nThe leaderboard "Move" column will then show how each person rises or falls from this point as you enter new results.'))return;
+  S.rankSnapshot=Object.assign({},_currentRanks);
+  S.rankSnapshotTime=new Date().toISOString();
+  save();
+  calcLeaderboard();
+  updateSnapshotStatus();
+  alert('✅ Snapshot captured for '+Object.keys(S.rankSnapshot).length+' participants. Movement now resets to zero and will update as new results are entered.');
+}
+function clearRankSnapshot(){
+  if(!confirm('Clear the movement baseline? The "Move" column will show dashes until you capture a new snapshot.'))return;
+  S.rankSnapshot={};
+  S.rankSnapshotTime=null;
+  save();
+  calcLeaderboard();
+  updateSnapshotStatus();
+}
+function updateSnapshotStatus(){
+  const el=document.getElementById('snapshotStatus');
+  if(!el)return;
+  const n=S.rankSnapshot?Object.keys(S.rankSnapshot).length:0;
+  if(n>0){
+    const when=S.rankSnapshotTime?new Date(S.rankSnapshotTime).toLocaleString():'';
+    el.innerHTML='<span style="color:var(--green);">✓ Baseline set for '+n+' participants'+(when?' on '+when:'')+'</span>';
+  } else {
+    el.innerHTML='<span style="color:var(--gray-500);">No baseline set — movement column shows dashes.</span>';
+  }
+}
 const CITY_LIST=['Toronto','Montreal','Red Oak','Querétaro'];
 function toggleCityLeaders(){
   S.cityLeadersEnabled=!S.cityLeadersEnabled;
@@ -2989,13 +3040,27 @@ function calcLeaderboard(){
   }
   rows.sort((a,b)=>b.total-a.total);
   const tbody=document.getElementById('lbBody');
-  if(rows.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--regent);padding:20px;">No participants yet.</td></tr>';renderChampDistribution();return;}
+  if(rows.length===0){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--regent);padding:20px;">No participants yet.</td></tr>';renderChampDistribution();return;}
+  const snap=S.rankSnapshot||{};
+  const haveSnap=Object.keys(snap).length>0;
+  function moveCell(name,curRank){
+    if(!haveSnap)return '<span style="color:var(--gray-300);">–</span>';
+    const prev=snap[name];
+    if(prev===undefined)return '<span style="color:var(--gold-dark);font-size:0.72em;font-weight:700;">NEW</span>';
+    const delta=prev-curRank; // positive = climbed
+    if(delta>0)return '<span style="color:#059669;font-weight:700;white-space:nowrap;">▲ '+delta+'</span>';
+    if(delta<0)return '<span style="color:#dc2626;font-weight:700;white-space:nowrap;">▼ '+Math.abs(delta)+'</span>';
+    return '<span style="color:var(--gray-400);">–</span>';
+  }
   tbody.innerHTML=rows.map((r,i)=>{
     const rank=i+1;
     const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
     const cls=rank<=3?'rank-'+rank:'';
-    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td>${r.name}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td><td>${r.gs}</td><td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
+    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td style="text-align:center;">${moveCell(r.name,rank)}</td><td>${r.name}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td><td>${r.gs}</td><td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
   }).join('');
+  // Expose the current ranking so the admin can capture it as the next snapshot baseline
+  _currentRanks={};
+  rows.forEach((r,i)=>{_currentRanks[r.name]=i+1;});
 
   // ========== CITY COMPETITION TABLE ==========
   const cityStats={};
