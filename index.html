@@ -2254,21 +2254,29 @@ function reconcileKOUpdate(sub){
     return code;
   }
   let cleared=0;
-  const clearMatch=(n)=>{ if(koUpPicks[n]!==undefined){delete koUpPicks[n];} if(koUpScores[n]){koUpScores[n]={h:'',a:''};} cleared++; };
-  // PASS 1 — Round of 32: clear where the actual matchup differs from the original
+  const clearedSet=new Set();
+  const clearMatch=(n)=>{ if(koUpPicks[n]!==undefined){delete koUpPicks[n];} if(koUpScores[n]){koUpScores[n]={h:'',a:''};} clearedSet.add(n); cleared++; };
+  const hasPickOrScore=(n)=>(koUpPicks[n]!==undefined)||(koUpScores[n]&&(koUpScores[n].h!==''||koUpScores[n].a!==''));
+  // Which feeder match numbers does a match depend on (its W-codes)?
+  const feedersOf=(m)=>{const f=[];[m.tA,m.tB].forEach(code=>{if(code&&code[0]==='W'){const n=parseInt(code.substring(1));if(!isNaN(n))f.push(n);}});return f;};
+
+  // PASS 1 — Round of 32: clear a match ONLY if the actual teams in its slots differ
+  // from the teams the user originally predicted there. Matches that still align are kept.
   R32.forEach(m=>{
     const actA=resolveSlotKOUp(m.tA,m.n,koUpPicks),actB=resolveSlotKOUp(m.tB,m.n,koUpPicks);
-    const actResolved=(actA!==m.tA)&&(actB!==m.tB); // only act if real teams are known
+    const actResolved=(actA!==m.tA)&&(actB!==m.tB); // only act once the real qualifiers are known
     if(!actResolved)return;
     const origA=resolveOrig(m.tA,m.n),origB=resolveOrig(m.tB,m.n);
     const differs=(actA!==origA)||(actB!==origB);
-    if(differs&&(koUpPicks[m.n]!==undefined||(koUpScores[m.n]&&(koUpScores[m.n].h!==''||koUpScores[m.n].a!=='')))) clearMatch(m.n);
+    if(differs&&hasPickOrScore(m.n))clearMatch(m.n);
   });
-  // PASS 2 — later rounds: cascade-clear any match whose feeder is no longer determined
+
+  // PASS 2 — later rounds: clear a match ONLY if one of its feeder matches was cleared
+  // above (its matchup is now undetermined). Picks whose feeders still stand are kept.
+  // Processed in bracket order so clearing cascades naturally through the rounds.
   [...R16,...QF,...SF,FINAL].forEach(m=>{
-    const aRes=resolveSlotKOUp(m.tA,m.n,koUpPicks)!==m.tA;
-    const bRes=resolveSlotKOUp(m.tB,m.n,koUpPicks)!==m.tB;
-    if((!aRes||!bRes)&&(koUpPicks[m.n]!==undefined||(koUpScores[m.n]&&(koUpScores[m.n].h!==''||koUpScores[m.n].a!==''))))clearMatch(m.n);
+    const feeders=feedersOf(m);
+    if(feeders.some(f=>clearedSet.has(f))&&hasPickOrScore(m.n))clearMatch(m.n);
   });
   return cleared;
 }
@@ -2764,7 +2772,7 @@ function viewSubmittedPred(){
   if(!p||!S.submissions[p]){c.innerHTML='Select a participant.';return;}
   const sub=S.submissions[p];
   let h=`<p><strong>Submitted:</strong> ${sub.timestamp}</p>`;
-  h+=`<p><strong>City:</strong> ${sub.city||'N/A'} | <strong>Champion:</strong> ${sub.champion||'N/A'} | <strong>Total Goals:</strong> ${sub.totalGoals||'N/A'}</p>`;
+  h+=`<p><strong>City:</strong> ${sub.city||'N/A'} | <strong>Champion:</strong> ${sub.champion?fl(canonicalTeam(sub.champion))+canonicalTeam(sub.champion):'N/A'} | <strong>Total Goals:</strong> ${sub.totalGoals||'N/A'}</p>`;
   h+=`<p><strong>3rd Place Groups:</strong> ${(sub.tp||[]).join(', ')||'N/A'}</p>`;
   h+=`<h3 style="margin-top:10px;">Group Stage</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;font-size:0.82em;">`;
   GM.forEach(m=>{
@@ -2870,7 +2878,7 @@ function renderComparison(){
       if(anyPlayed)return `<span class="pts-badge pts-0">0</span> ${label}`;
       return `<span style="color:var(--regent);">TBD</span> ${label}`;
     };
-    h+=`<p style="margin-bottom:4px;"><strong>Champion Pick:</strong> ${sub.champion}</p>`;
+    h+=`<p style="margin-bottom:4px;"><strong>Champion Pick:</strong> ${fl(canonicalTeam(sub.champion))}${canonicalTeam(sub.champion)}</p>`;
     h+=`<div style="display:grid;gap:3px;font-size:0.88em;margin:6px 0 12px;">`;
     h+=`<div>${reachRow(null,P.CHAMP_R32,'Reaches R32',true)}</div>`;
     h+=`<div>${reachRow([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88],P.CHAMP_R16,'Reaches R16')}</div>`;
@@ -2965,7 +2973,7 @@ function calcLeaderboard(){
     if(sub.totalGoals!==null&&S.admin.totalGoals!==null){
       // Closest total goals - calculated separately
     }
-    rows.push({name,champ:sub.champion||'-',gs:gsP,ko:koP,bonus:bonP,total:gsP+koP+bonP,city:sub.city||''});
+    rows.push({name,champ:sub.champion?canonicalTeam(sub.champion):'-',gs:gsP,ko:koP,bonus:bonP,total:gsP+koP+bonP,city:sub.city||''});
   });
   // Closest total goals bonus
   if(S.admin.totalGoals!==null){
@@ -3344,7 +3352,7 @@ function renderComparison(){
     if(!sub)return '';
     return `<div style="flex:1;min-width:240px;padding:12px 16px;background:var(--gray-50);border-radius:8px;">
       <strong>${name}</strong><br>
-      <span style="font-size:0.85em;">🏙️ <strong>${sub.city||'N/A'}</strong> &nbsp;🏆 <strong>${sub.champion||'N/A'}</strong> &nbsp;⚽ <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>
+      <span style="font-size:0.85em;">🏙️ <strong>${sub.city||'N/A'}</strong> &nbsp;🏆 <strong>${sub.champion?fl(canonicalTeam(sub.champion))+canonicalTeam(sub.champion):'N/A'}</strong> &nbsp;⚽ <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>
       <span style="font-size:0.82em;color:var(--regent);">3rd-place groups: ${(sub.tp||[]).join(', ')||'N/A'}</span>
     </div>`;
   };
