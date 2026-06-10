@@ -404,7 +404,7 @@ a { color:var(--black); }
     <div style="position:relative;z-index:1;">
       <div style="font-size:0.78em;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:4px;">FIFA World Cup 26 · Kick-Off</div>
       <h2 style="color:#fff;border:none;justify-content:center;font-size:1.6em;margin-bottom:4px;display:block;">🏆 Road to the World Cup Begins</h2>
-      <p style="color:rgba(255,255,255,0.7);font-size:0.84em;margin-bottom:18px;">First match: Mexico 🇲🇽 · Estadio Azteca · June 11, 2026</p>
+      <p id="countdownSubtitle" style="color:rgba(255,255,255,0.7);font-size:0.84em;margin-bottom:18px;">First match: Mexico 🇲🇽 · Estadio Azteca · June 11, 2026</p>
       <div id="countdownTimer" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
         <div class="cd-unit"><div class="cd-num" id="cdDays">--</div><div class="cd-lbl">Days</div></div>
         <div class="cd-sep">:</div>
@@ -861,15 +861,19 @@ a { color:var(--black); }
 
     <div class="card">
       <h2>📊 Leaderboard Movement</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">The leaderboard's "Move" column shows how far each person climbed (green ▲) or dropped (red ▼) versus a saved baseline. <strong>Capture a snapshot</strong> of the current standings, then enter the next batch of results — everyone's movement will display relative to that snapshot.</p>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">The leaderboard's "Move" column shows how far each person climbed (green ▲) or dropped (red ▼). With <strong>Automatic</strong> on, this happens on its own as you enter results — no need to capture anything. A fresh comparison baseline starts whenever you begin a new round of entries after a break.</p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+        <button class="btn btn-sm" id="autoMoveBtn" onclick="toggleAutoMovement()">Automatic: ON</button>
+        <span style="font-size:0.8em;color:var(--regent);">Leave this on for live tracking during the tournament.</span>
+      </div>
       <div class="info-box" style="margin-bottom:12px;font-size:0.84em;">
-        <strong>Suggested workflow:</strong> Before each matchday, click <em>Capture Snapshot</em>. After you finish entering that day's scores, the leaderboard shows who rose and fell since the snapshot. Capture again before the next round to reset the comparison.
+        <strong>Manual override (optional):</strong> Use <em>Capture Snapshot</em> to force the comparison to restart from right now, or <em>Clear</em> to blank the Move column.
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <button class="btn btn-gold btn-sm" onclick="captureRankSnapshot()">📸 Capture Snapshot Now</button>
         <button class="btn btn-outline btn-sm" onclick="clearRankSnapshot()">Clear Snapshot</button>
-        <span id="snapshotStatus" style="font-size:0.84em;color:var(--gray-600);"></span>
       </div>
+      <p id="snapshotStatus" style="font-size:0.84em;color:var(--gray-600);margin-top:10px;"></p>
     </div>
 
     <div class="card">
@@ -1232,6 +1236,7 @@ let S = {
   cityLeadersEnabled:false,
   cityLeaders:{},
   rankSnapshot:{},
+  autoMovement:true,
   adminPwd:"David2026",
   apiKey:""
 };
@@ -1253,6 +1258,7 @@ function ensureDefaults(){
   if(S.cityLeadersEnabled===undefined)S.cityLeadersEnabled=false;
   if(!S.cityLeaders)S.cityLeaders={};
   if(!S.rankSnapshot)S.rankSnapshot={};
+  if(S.autoMovement===undefined)S.autoMovement=true;
 }
 
 let _saveTimer=null;
@@ -1293,6 +1299,9 @@ function load(){
             S.cityLeadersEnabled=fresh.cityLeadersEnabled!==undefined?fresh.cityLeadersEnabled:S.cityLeadersEnabled;
             S.cityLeaders=fresh.cityLeaders||S.cityLeaders;
             S.rankSnapshot=fresh.rankSnapshot||S.rankSnapshot;
+            S.autoMovement=fresh.autoMovement!==undefined?fresh.autoMovement:S.autoMovement;
+            S.rankSnapshotTime=fresh.rankSnapshotTime!==undefined?fresh.rankSnapshotTime:S.rankSnapshotTime;
+            S.lastScoreUpdateTime=fresh.lastScoreUpdateTime!==undefined?fresh.lastScoreUpdateTime:S.lastScoreUpdateTime;
             // Always refresh participants and leaderboard-facing data
             S.participants=fresh.participants||S.participants;
             S.submissions=fresh.submissions||S.submissions;
@@ -1314,9 +1323,33 @@ function load(){
 
 // ===== COUNTDOWN TIMER =====
 let _countdownInterval=null;
+// Interpret a match's date ("Jun 11") + time ("3:00 PM") as Toronto Eastern time.
+// The whole tournament window (Jun 11 – Jul 19, 2026) is in EDT = UTC-04:00,
+// so we anchor every match time to -04:00. ("EST" is the winter label / UTC-5.)
+function matchKickoffET(m){
+  const MON={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const dm=(m.d||'').match(/([A-Za-z]{3})\s+(\d+)/);
+  if(!dm)return null;
+  const mon=MON[dm[1]],day=parseInt(dm[2],10);
+  if(mon===undefined||isNaN(day))return null;
+  let hh=12,mi=0;
+  const tm=(m.t||'').match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if(tm){hh=parseInt(tm[1],10)%12;if(/PM/i.test(tm[3]))hh+=12;mi=parseInt(tm[2],10);}
+  const pad=n=>String(n).padStart(2,'0');
+  return new Date(`2026-${pad(mon+1)}-${pad(day)}T${pad(hh)}:${pad(mi)}:00-04:00`);
+}
+function firstMatchKickoffET(){
+  let best=null;
+  GM.forEach(m=>{const d=matchKickoffET(m);if(d&&(!best||d.getTime()<best.getTime()))best=d;});
+  return best||new Date('2026-06-11T15:00:00-04:00');
+}
 function startCountdown(){
   if(_countdownInterval)return; // only start once
-  const target=new Date('2026-06-11T11:00:00-05:00').getTime(); // first match kickoff (CDT)
+  const first=firstMatchKickoffET();
+  const target=first.getTime(); // first match kickoff, anchored to Toronto Eastern (EDT, UTC-4)
+  // Keep the subtitle's kickoff time in sync with the schedule data, labelled ET.
+  const sub=document.getElementById('countdownSubtitle');
+  if(sub){const firstM=GM.slice().sort((a,b)=>{const da=matchKickoffET(a),db=matchKickoffET(b);return (da?da.getTime():0)-(db?db.getTime():0);})[0];if(firstM)sub.textContent=`First match: ${firstM.h} · ${firstM.d}, ${firstM.t} ET (Toronto)`;}
   function tick(){
     const now=Date.now();
     let diff=Math.floor((target-now)/1000);
@@ -1791,7 +1824,7 @@ function renderGSForm(){
     const teams=GROUPS[g];
     h+=`<div class="group-hdr"><h3>Group ${g}</h3><div class="teams">${teams.map(t=>fl(t)+t).join(' · ')}</div></div>`;
     GM.filter(m=>m.g===g).forEach(m=>{
-      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d} · ${m.t}</div><div class="scores"><input type="number" min="0" max="20" id="ph-${m.n}" placeholder="-"><span class="vs">vs</span><input type="number" min="0" max="20" id="pa-${m.n}" placeholder="-"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
+      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d} · ${m.t} ET</div><div class="scores"><input type="number" min="0" max="20" id="ph-${m.n}" placeholder="-"><span class="vs">vs</span><input type="number" min="0" max="20" id="pa-${m.n}" placeholder="-"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
     });
   });
   c.innerHTML=h;
@@ -2558,6 +2591,7 @@ function renderAdminThirdPlace(){
   c.innerHTML=h;
 }
 function saveThirdPlace(){
+  maybeAutoSnapshot();
   if(!S.admin.thirdPlace)S.admin.thirdPlace={};
   getThirdPlaceMatches().forEach(m=>{
     const el=document.getElementById('atp-'+m.n);
@@ -2644,12 +2678,58 @@ function updateSnapshotStatus(){
   const el=document.getElementById('snapshotStatus');
   if(!el)return;
   const n=S.rankSnapshot?Object.keys(S.rankSnapshot).length:0;
+  const auto=S.autoMovement!==false;
+  let txt='';
   if(n>0){
     const when=S.rankSnapshotTime?new Date(S.rankSnapshotTime).toLocaleString():'';
-    el.innerHTML='<span style="color:var(--green);">✓ Baseline set for '+n+' participants'+(when?' on '+when:'')+'</span>';
+    txt='<span style="color:var(--green);">✓ Baseline set for '+n+' participants'+(when?' since '+when:'')+'</span>';
   } else {
-    el.innerHTML='<span style="color:var(--gray-500);">No baseline set — movement column shows dashes.</span>';
+    txt='<span style="color:var(--gray-500);">No baseline yet — '+(auto?'it will be set automatically when you enter the next results.':'movement column shows dashes.')+'</span>';
   }
+  if(auto)txt+=' <span style="color:var(--regent);">· Auto mode ON: a new baseline starts after a '+Math.round(MOVEMENT_SESSION_GAP_MS/60000)+'-min break between updates.</span>';
+  el.innerHTML=txt;
+  const btn=document.getElementById('autoMoveBtn');
+  if(btn){
+    btn.textContent=auto?'Automatic: ON':'Automatic: OFF';
+    btn.style.background=auto?'var(--green)':'var(--gray-300)';
+    btn.style.color=auto?'var(--white)':'var(--gray-700)';
+    btn.style.borderColor=auto?'var(--green)':'var(--gray-300)';
+  }
+}
+
+// How long a pause between result entries starts a fresh "movement session".
+const MOVEMENT_SESSION_GAP_MS=2*60*60*1000; // 2 hours
+
+// Called automatically whenever the admin saves/clears results. When auto mode is on,
+// it sets the comparison baseline to the standings as they were BEFORE this batch of
+// updates — but only when a new session begins (first-ever results, or after a gap).
+// Within an active session it leaves the baseline alone so movement accumulates.
+function maybeAutoSnapshot(){
+  if(S.autoMovement===false)return;
+  const now=Date.now();
+  const last=S.lastScoreUpdateTime?new Date(S.lastScoreUpdateTime).getTime():0;
+  const noBaseline=!S.rankSnapshot||Object.keys(S.rankSnapshot).length===0;
+  const newSession=noBaseline||(now-last)>MOVEMENT_SESSION_GAP_MS;
+  if(newSession){
+    try{calcLeaderboard();}catch(e){} // refresh _currentRanks from the PRE-save standings
+    if(_currentRanks&&Object.keys(_currentRanks).length>0){
+      S.rankSnapshot=Object.assign({},_currentRanks);
+      S.rankSnapshotTime=new Date(now).toISOString();
+    }
+  }
+  S.lastScoreUpdateTime=new Date(now).toISOString();
+}
+function toggleAutoMovement(){
+  S.autoMovement=!(S.autoMovement!==false);
+  if(S.autoMovement){
+    // Starting auto mode fresh: baseline begins from the current standings.
+    calcLeaderboard();
+    if(_currentRanks&&Object.keys(_currentRanks).length>0){S.rankSnapshot=Object.assign({},_currentRanks);S.rankSnapshotTime=new Date().toISOString();}
+    S.lastScoreUpdateTime=new Date().toISOString();
+  }
+  save();
+  calcLeaderboard();
+  updateSnapshotStatus();
 }
 const CITY_LIST=['Toronto','Montreal','Red Oak','Querétaro'];
 function toggleCityLeaders(){
@@ -2731,6 +2811,7 @@ function renderAdminKO(){
   c.innerHTML=h;
 }
 function saveAdmin(){
+  maybeAutoSnapshot(); // capture pre-update standings as movement baseline if a new session
   GM.forEach(m=>{
     const hv=document.getElementById('ah-'+m.n);
     const av=document.getElementById('aa-'+m.n);
@@ -2767,6 +2848,7 @@ function saveAdmin(){
 // Clear a single group stage match result
 function clearGSMatch(n){
   if(!confirm('Clear the result for Match '+n+'? This will remove the score and undo any points from this match.'))return;
+  maybeAutoSnapshot();
   delete S.admin.groupResults[n];
   const h=document.getElementById('ah-'+n);
   const a=document.getElementById('aa-'+n);
@@ -2779,6 +2861,7 @@ function clearGSMatch(n){
 // Clear a single KO match result
 function clearKOMatch(n){
   if(!confirm('Clear the result for Match '+n+'?'))return;
+  maybeAutoSnapshot();
   delete S.admin.koResults[n];
   const w=document.getElementById('akw-'+n);
   const h=document.getElementById('akh-'+n);
@@ -3411,43 +3494,110 @@ function renderComparison(){
   const sub2=p2?S.submissions[p2]:null;
   if(!sub1){cont.innerHTML='<p style="color:var(--regent);">No predictions found.</p>';return;}
 
+  // ---- Per-prediction scoring helpers (mirror calcLeaderboard exactly) ----
+  const gsPts=(pr,real)=>{ // null = not scorable yet
+    if(!pr||!real)return null;
+    const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pr.h-pr.a);
+    if(rOut!==pOut)return 0;
+    let pts=P.OUT;if(pr.h===real.h&&pr.a===real.a)pts+=P.EX_BONUS;return pts;
+  };
+  const koPts=(m,pr,real)=>{
+    if(!pr||!real||!real.winner)return null;
+    let rPts=0;
+    if(m.n>=73&&m.n<=88)rPts=P.R32;else if(m.n>=89&&m.n<=96)rPts=P.R16;else if(m.n>=97&&m.n<=100)rPts=P.QF;else if(m.n>=101&&m.n<=102)rPts=P.SF;else if(m.n===104)rPts=P.FIN;
+    let pts=0;
+    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase())pts+=rPts;}
+    if(pr.h===real.h&&pr.a===real.a)pts+=P.KO_EX;
+    return pts;
+  };
+  const champBreakdown=(sub)=>{
+    const steps=[];let total=0;
+    if(!sub.champion)return{total:0,steps:[]};
+    const cl=sub.champion.toLowerCase();
+    const wonAny=(mns)=>mns.some(mn=>{const r=S.admin.koResults[mn];return r&&r.winner&&r.winner.toLowerCase()===cl;});
+    const inR32=ALLKO.filter(m=>m.n>=73&&m.n<=88).some(m=>{const tA=resolveSlot(m.tA,m.n),tB=resolveSlot(m.tB,m.n);return(tA&&tA.toLowerCase()===cl)||(tB&&tB.toLowerCase()===cl);});
+    const anyKO=Object.keys(S.admin.koResults||{}).length>0;
+    const anyGS=Object.keys(S.admin.groupResults||{}).length>0;
+    const push=(label,pts,hit,known)=>{steps.push({label,pts,hit,known});if(hit)total+=pts;};
+    push('Reaches R32',P.CHAMP_R32,inR32,anyGS||anyKO);
+    push('Reaches R16',P.CHAMP_R16,wonAny([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88]),anyKO);
+    push('Reaches QF',P.CHAMP_QF,wonAny([89,90,91,92,93,94,95,96]),anyKO);
+    push('Reaches SF',P.CHAMP_SF,wonAny([97,98,99,100]),anyKO);
+    push('Reaches Final',P.CHAMP_FIN,wonAny([101,102]),anyKO);
+    push('Wins it all',P.CHAMP_WIN,!!(S.admin.champion&&cl===S.admin.champion.toLowerCase()),!!S.admin.champion);
+    return{total,steps};
+  };
+  const tpPtsFor=(sub)=>{
+    const actual=(typeof getActualThirdPlaceGroups==='function')?getActualThirdPlaceGroups():[];
+    if(!(actual.length>0&&sub.tp&&sub.tp.length))return{total:0,hits:[],actual};
+    const hits=sub.tp.filter(g=>actual.includes(g));
+    return{total:hits.length*P.TP,hits,actual};
+  };
+  const goalsBonusFor=(name)=>{
+    if(S.admin.totalGoals===null||S.admin.totalGoals===undefined)return null;
+    const sub=S.submissions[name];if(!sub||sub.totalGoals===null||sub.totalGoals===undefined)return 0;
+    let minDiff=Infinity;
+    S.participants.forEach(n=>{const s=S.submissions[n];if(s&&s.locked&&s.totalGoals!==null&&s.totalGoals!==undefined){const d=Math.abs(s.totalGoals-S.admin.totalGoals);if(d<minDiff)minDiff=d;}});
+    return Math.abs(sub.totalGoals-S.admin.totalGoals)===minDiff?P.GOALS:0;
+  };
+  const badge=(pts)=>{
+    if(pts===null||pts===undefined)return '<span style="color:var(--regent);font-size:0.82em;">–</span>';
+    if(pts>0)return `<span style="color:#059669;font-weight:700;">+${pts}</span>`;
+    return '<span style="color:#dc2626;">0</span>';
+  };
+  // aggregate per person
+  const scoreAll=(sub)=>{
+    const gsMap={},koMap={};let gs=0,ko=0;
+    GM.forEach(m=>{const pts=gsPts((sub.gs||{})[m.n],S.admin.groupResults[m.n]);gsMap[m.n]=pts;if(pts)gs+=pts;});
+    ALLKO.forEach(m=>{const pts=koPts(m,(sub.ko||{})[m.n],S.admin.koResults[m.n]);koMap[m.n]=pts;if(pts)ko+=pts;});
+    const champ=champBreakdown(sub),tp=tpPtsFor(sub);
+    return{gsMap,koMap,gs,ko,champ,tp};
+  };
+  const sc1=scoreAll(sub1),goals1=goalsBonusFor(p1);
+  const sc2=sub2?scoreAll(sub2):null,goals2=sub2?goalsBonusFor(p2):null;
+  const total1=sc1.gs+sc1.ko+sc1.champ.total+sc1.tp.total+(goals1||0);
+  const total2=sc2?(sc2.gs+sc2.ko+sc2.champ.total+sc2.tp.total+(goals2||0)):0;
+
   let h='';
   // Header summary row(s)
-  const summary=(name,sub)=>{
+  const summary=(name,sub,sc,goals,total)=>{
     if(!sub)return '';
     return `<div style="flex:1;min-width:240px;padding:12px 16px;background:var(--gray-50);border-radius:8px;">
-      <strong>${name}</strong><br>
+      <strong>${name}</strong> &nbsp;<span style="background:var(--black);color:var(--gold);border-radius:6px;padding:2px 10px;font-weight:700;font-size:0.9em;">${total} pts</span><br>
       <span style="font-size:0.85em;">🏙️ <strong>${sub.city||'N/A'}</strong> &nbsp;🏆 <strong>${sub.champion?fl(canonicalTeam(sub.champion))+canonicalTeam(sub.champion):'N/A'}</strong> &nbsp;⚽ <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>
+      <span style="font-size:0.8em;color:var(--gray-600);">GS ${sc.gs} · KO ${sc.ko} · Champion ${sc.champ.total} · 3rd ${sc.tp.total}${goals?(' · Goals +'+goals):''}</span><br>
       <span style="font-size:0.82em;color:var(--regent);">3rd-place groups: ${(sub.tp||[]).join(', ')||'N/A'}</span>
     </div>`;
   };
-  h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">${summary(p1,sub1)}${summary(p2,sub2)}</div>`;
+  h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">${summary(p1,sub1,sc1,goals1,total1)}${summary(p2,sub2,sc2,goals2,total2)}</div>`;
 
   // Group stage
-  h+=`<details open><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Group Stage Predictions</summary>`;
+  h+=`<details open><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Group Stage Predictions <span style="color:var(--regent);font-weight:400;">— points shown once results are entered</span></summary>`;
   if(!sub2){
-    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
     GM.forEach(m=>{
       const pr=(sub1.gs||{})[m.n];
       const real=S.admin.groupResults[m.n];
+      const pts=sc1.gsMap[m.n];
       let bg='var(--gray-50)';
       if(real&&pr){
         const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pr.h-pr.a);
         const exact=pr.h===real.h&&pr.a===real.a;
         if(exact)bg='rgba(5,150,105,0.1)';else if(rOut===pOut)bg='rgba(201,168,76,0.1)';else bg='rgba(220,38,38,0.06)';
       }
-      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;">M${m.n}: ${fl(m.h)}${m.h} <strong>${pr?pr.h:'-'}</strong> – <strong>${pr?pr.a:'-'}</strong> ${fl(m.a)}${m.a}</div>`;
+      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;display:flex;justify-content:space-between;gap:6px;"><span>M${m.n}: ${fl(m.h)}${m.h} <strong>${pr?pr.h:'-'}</strong>–<strong>${pr?pr.a:'-'}</strong> ${fl(m.a)}${m.a}</span><span>${badge(pts)}</span></div>`;
     });
-    h+=`</div>`;
+    h+=`</div><div style="text-align:right;font-weight:700;margin-top:6px;font-size:0.86em;">Group Stage subtotal: <span style="color:#059669;">${sc1.gs} pts</span></div>`;
   } else {
-    // Side-by-side comparison
-    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;">Match</th><th>${p1}</th><th>${p2}</th></tr></thead><tbody>`;
+    // Side-by-side comparison with points
+    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;">Match</th><th>${p1}</th><th>Pts</th><th>${p2}</th><th>Pts</th></tr></thead><tbody>`;
     GM.forEach(m=>{
       const a=(sub1.gs||{})[m.n],b=(sub2.gs||{})[m.n];
       const aS=a?`${a.h}-${a.a}`:'-',bS=b?`${b.h}-${b.a}`:'-';
       const same=a&&b&&a.h===b.h&&a.a===b.a;
-      h+=`<tr${same?' style="background:rgba(201,168,76,0.08);"':''}><td style="font-size:0.92em;">M${m.n} ${fl(m.h)}${m.h} v ${fl(m.a)}${m.a}</td><td style="text-align:center;font-weight:600;">${aS}</td><td style="text-align:center;font-weight:600;">${bS}</td></tr>`;
+      h+=`<tr${same?' style="background:rgba(201,168,76,0.08);"':''}><td style="font-size:0.92em;">M${m.n} ${fl(m.h)}${m.h} v ${fl(m.a)}${m.a}</td><td style="text-align:center;font-weight:600;">${aS}</td><td style="text-align:center;">${badge(sc1.gsMap[m.n])}</td><td style="text-align:center;font-weight:600;">${bS}</td><td style="text-align:center;">${badge(sc2.gsMap[m.n])}</td></tr>`;
     });
+    h+=`<tr style="background:var(--gray-50);font-weight:700;"><td style="text-align:right;">Subtotal</td><td></td><td style="text-align:center;color:#059669;">${sc1.gs}</td><td></td><td style="text-align:center;color:#059669;">${sc2.gs}</td></tr>`;
     h+=`</tbody></table></div>`;
   }
   h+=`</details>`;
@@ -3457,28 +3607,51 @@ function renderComparison(){
   const koLabel=(n)=>{if(n>=89&&n<=96)return 'R16 M'+n;if(n>=97&&n<=100)return 'QF M'+n;if(n>=101&&n<=102)return 'SF M'+n;if(n===104)return 'FINAL';return 'R32 M'+n;};
   const pickName=(sub,m)=>{const pr=(sub.ko||{})[m.n];if(!pr||!pr.pick)return '?';const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);return t===slot?('('+pr.pick+')'):t;};
   if(!sub2){
-    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
     ALLKO.forEach(m=>{
       const pr=(sub1.ko||{})[m.n];
       const real=S.admin.koResults[m.n];
+      const pts=sc1.koMap[m.n];
       let bg='var(--gray-50)';
       if(real&&real.winner&&pr&&pr.pick){
         const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);
         bg=(t&&t.toLowerCase()===real.winner.toLowerCase())?'rgba(5,150,105,0.1)':'rgba(220,38,38,0.06)';
       }
-      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;">${koLabel(m.n)}: <strong>${pickName(sub1,m)}</strong> &nbsp;(${pr?pr.h+'-'+pr.a:'?'})</div>`;
+      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;display:flex;justify-content:space-between;gap:6px;"><span>${koLabel(m.n)}: <strong>${pickName(sub1,m)}</strong> <span style="color:var(--regent);">(${pr?pr.h+'-'+pr.a:'?'})</span></span><span>${badge(pts)}</span></div>`;
     });
-    h+=`</div>`;
+    h+=`</div><div style="text-align:right;font-weight:700;margin-top:6px;font-size:0.86em;">Knockout subtotal: <span style="color:#059669;">${sc1.ko} pts</span></div>`;
   } else {
-    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;">Match</th><th>${p1}</th><th>${p2}</th></tr></thead><tbody>`;
+    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;">Match</th><th>${p1}</th><th>Pts</th><th>${p2}</th><th>Pts</th></tr></thead><tbody>`;
     ALLKO.forEach(m=>{
       const an=pickName(sub1,m),bn=pickName(sub2,m);
       const a=(sub1.ko||{})[m.n],b=(sub2.ko||{})[m.n];
       const same=an===bn&&an!=='?';
-      h+=`<tr${same?' style="background:rgba(201,168,76,0.08);"':''}><td>${koLabel(m.n)}</td><td style="text-align:center;">${an} <span style="color:var(--regent);font-size:0.85em;">(${a?a.h+'-'+a.a:'?'})</span></td><td style="text-align:center;">${bn} <span style="color:var(--regent);font-size:0.85em;">(${b?b.h+'-'+b.a:'?'})</span></td></tr>`;
+      h+=`<tr${same?' style="background:rgba(201,168,76,0.08);"':''}><td>${koLabel(m.n)}</td><td style="text-align:center;">${an} <span style="color:var(--regent);font-size:0.85em;">(${a?a.h+'-'+a.a:'?'})</span></td><td style="text-align:center;">${badge(sc1.koMap[m.n])}</td><td style="text-align:center;">${bn} <span style="color:var(--regent);font-size:0.85em;">(${b?b.h+'-'+b.a:'?'})</span></td><td style="text-align:center;">${badge(sc2.koMap[m.n])}</td></tr>`;
     });
+    h+=`<tr style="background:var(--gray-50);font-weight:700;"><td style="text-align:right;">Subtotal</td><td></td><td style="text-align:center;color:#059669;">${sc1.ko}</td><td></td><td style="text-align:center;color:#059669;">${sc2.ko}</td></tr>`;
     h+=`</tbody></table></div>`;
   }
+  h+=`</details>`;
+
+  // Bonus & Champion points
+  h+=`<details style="margin-top:8px;" open><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Bonus & Champion Points</summary>`;
+  const champStepRow=(sc)=>sc.champ.steps.map(s=>{
+    const val=s.hit?`<span style="color:#059669;font-weight:700;">+${s.pts}</span>`:(s.known?'<span style="color:#dc2626;">0</span>':'<span style="color:var(--regent);">TBD</span>');
+    return `<div style="display:flex;justify-content:space-between;gap:8px;"><span>${s.label}</span><span>${val}</span></div>`;
+  }).join('');
+  const bonusBlock=(name,sub,sc,goals,total)=>{
+    if(!sub)return '';
+    const goalsRow=goals===null?'<span style="color:var(--regent);">TBD</span>':(goals?`<span style="color:#059669;font-weight:700;">+${goals}</span>`:'<span style="color:#dc2626;">0</span>');
+    return `<div style="flex:1;min-width:240px;padding:12px 14px;background:var(--gray-50);border-radius:8px;font-size:0.85em;">
+      <strong>${name}</strong>
+      <div style="margin-top:8px;"><em>Champion (${sub.champion?fl(canonicalTeam(sub.champion))+canonicalTeam(sub.champion):'N/A'}) — total ${sc.champ.total}</em></div>
+      <div style="margin:4px 0 8px;display:grid;gap:2px;">${sub.champion?champStepRow(sc):'<span style="color:var(--regent);">No champion picked</span>'}</div>
+      <div style="display:flex;justify-content:space-between;gap:8px;"><span>3rd-place qualifiers (${sc.tp.hits.length}/8 correct)</span><span>${sc.tp.total?('<span style="color:#059669;font-weight:700;">+'+sc.tp.total+'</span>'):(sc.tp.actual.length?'<span style="color:#dc2626;">0</span>':'<span style="color:var(--regent);">TBD</span>')}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:8px;"><span>Closest total goals</span><span>${goalsRow}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--gray-200);margin-top:8px;padding-top:8px;font-weight:700;"><span>GRAND TOTAL</span><span style="color:var(--gold-dark);">${total} pts</span></div>
+    </div>`;
+  };
+  h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">${bonusBlock(p1,sub1,sc1,goals1,total1)}${bonusBlock(p2,sub2,sc2,goals2,total2)}</div>`;
   h+=`</details>`;
 
   cont.innerHTML=h;
