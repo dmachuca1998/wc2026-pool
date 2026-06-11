@@ -840,6 +840,17 @@ a { color:var(--black); }
     </div>
 
     <div class="card">
+      <h2>🛟 Restore a Saved Submission</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">Recover a lost entry from exported data. Paste either a full data export <em>or</em> just one person's submission JSON, type their name, and click Restore. It rebuilds their prediction (locked &amp; on the leaderboard). If you paste a full export, it finds that person inside it automatically.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <input type="text" id="restoreSubName" placeholder="Participant name (e.g. Mubarak Adedeji)" style="min-width:280px;">
+      </div>
+      <textarea id="restoreSubJSON" placeholder="Paste exported JSON here..." style="width:100%;min-height:120px;font-family:monospace;font-size:0.8em;border:1px solid var(--gray-300);border-radius:6px;padding:8px;"></textarea>
+      <button class="btn btn-gold" style="margin-top:8px;" onclick="restoreSubmissionFromJSON()">🛟 Restore Submission</button>
+      <p id="restoreSubStatus" style="font-size:0.86em;margin-top:8px;"></p>
+    </div>
+
+    <div class="card">
       <h2>Manage Participants</h2>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
         <input type="text" id="newPart" placeholder="Participant name..." style="min-width:200px;">
@@ -2668,6 +2679,53 @@ async function adminRefresh(){
   }catch(e){
     if(status)status.innerHTML='<span style="color:var(--red);">⚠ Reload failed: '+(e&&e.message?e.message:e)+'</span>';
   }
+}
+
+// Recover a lost prediction from exported data. Accepts a full export ({...submissions:{...}})
+// or a single submission object. Rebuilds the entry, locks it, and puts it on the leaderboard.
+function restoreSubmissionFromJSON(){
+  const status=document.getElementById('restoreSubStatus');
+  const name=document.getElementById('restoreSubName').value.trim();
+  const raw=document.getElementById('restoreSubJSON').value.trim();
+  const fail=(m)=>{if(status)status.innerHTML='<span style="color:var(--red);">⚠ '+m+'</span>';};
+  if(!name)return fail('Enter the participant name.');
+  if(!raw)return fail('Paste the exported JSON.');
+  let obj;
+  try{obj=JSON.parse(raw);}catch(e){return fail('Invalid JSON — '+e.message);}
+  let sourceName=name;
+  // If a full export was pasted, pull this person's submission out of it (case-insensitive)
+  // and adopt the original name casing stored in the export.
+  if(obj&&obj.submissions&&typeof obj.submissions==='object'&&!obj.gs&&!obj.ko){
+    const key=Object.keys(obj.submissions).find(k=>k.toLowerCase()===name.toLowerCase());
+    if(!key)return fail('No submission for "'+name+'" was found inside that export. Check the spelling, or paste just his submission object.');
+    sourceName=key;
+    obj=obj.submissions[key];
+  }
+  if(!obj||typeof obj!=='object'||(!obj.gs&&!obj.ko&&!obj.champion)) return fail('That does not look like a submission (no gs / ko / champion fields).');
+  const resolved=resolveParticipantName(sourceName);
+  const existing=S.submissions[resolved];
+  if(existing&&existing.locked&&Object.keys(existing.gs||{}).length>0){
+    if(!confirm('"'+resolved+'" already has a submitted prediction with data. Replace it with the restored one?'))return;
+  }
+  const sub={
+    locked:true,
+    timestamp:obj.timestamp||new Date().toISOString(),
+    lastRevised:obj.lastRevised||null,
+    gs:obj.gs||{},
+    ko:obj.ko||{},
+    tp:Array.isArray(obj.tp)?obj.tp.slice():[],
+    champion:obj.champion?canonicalTeam(obj.champion):'',
+    totalGoals:(obj.totalGoals!==undefined&&obj.totalGoals!==null)?obj.totalGoals:null,
+    city:obj.city||''
+  };
+  S.submissions[resolved]=sub;
+  if(!S.participants.some(p=>p.toLowerCase()===resolved.toLowerCase()))S.participants.push(resolved);
+  pushSubmission(resolved);save();
+  updateHomeStats();calcLeaderboard();renderAdminView();
+  const gsN=Object.keys(sub.gs).length,koN=Object.keys(sub.ko).length;
+  const warn=(gsN<72||koN<31||sub.tp.length!==8||!sub.champion)?' <span style="color:var(--gold-dark);">(note: looks partial — verify the counts)</span>':'';
+  if(status)status.innerHTML='<span style="color:var(--green);">✓ Restored '+resolved+'</span> — champion: '+(sub.champion||'—')+' · '+gsN+'/72 group · '+koN+'/31 knockout · '+sub.tp.length+'/8 third-place · '+(sub.totalGoals!==null?sub.totalGoals:'—')+' total goals.'+warn;
+  document.getElementById('restoreSubJSON').value='';
 }
 // The 8 R32 matches that have a 3rd-place slot (the ones with a tp field)
 function getThirdPlaceMatches(){
