@@ -384,7 +384,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip">Predictions lock on June 10th, 2026 at 11:59 PM ET — Submit before the first match!</div>
+<div class="deadline-strip">Predictions lock on June 4th, 2026 at 11:59 PM ET — Submit before the first match!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -487,23 +487,23 @@ a { color:var(--black); }
     </div>
     <h3>Knockout Stage (32 matches)</h3>
     <div class="scoring">
-      <span><span class="pts-badge pts-2">+3</span> R32 Correct Winner</span>
-      <span><span class="pts-badge pts-3">+5</span> R16 Correct</span>
-      <span><span class="pts-badge pts-5">+8</span> QF Correct</span>
-      <span>+12 SF Correct</span>
-      <span>+20 Final Correct</span>
+      <span><span class="pts-badge pts-2">+5</span> R32 Correct Winner</span>
+      <span><span class="pts-badge pts-3">+7</span> R16 Correct</span>
+      <span><span class="pts-badge pts-5">+9</span> QF Correct</span>
+      <span>+11 SF Correct</span>
+      <span>+14 Final Correct</span>
       <span>+3 Exact KO Score</span>
     </div>
     <h3>Champion Progression Bonus</h3>
     <div class="scoring">
       <span>🏆 R32: +10</span>
-      <span>🏆 R16: +20</span>
-      <span>🏆 QF: +25</span>
-      <span>🏆 SF: +35</span>
-      <span>🏆 Final: +40</span>
-      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +55</span>
+      <span>🏆 R16: +12</span>
+      <span>🏆 QF: +15</span>
+      <span>🏆 SF: +18</span>
+      <span>🏆 Final: +25</span>
+      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +35</span>
     </div>
-    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>185 total bonus points</strong>.</p>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>115 total bonus points</strong>.</p>
     <h3>Other Bonuses</h3>
     <div class="scoring">
       <span>🥉 +2 per Correct 3rd-Place Qualifier</span>
@@ -533,7 +533,7 @@ a { color:var(--black); }
       <strong>10.</strong> The system automatically compares every participant's predictions against real results:<br>
       &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
       &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (3→5→8→12→20). Exact KO score = +3 bonus.<br>
-      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +20, QF: +25, SF: +35, Final: +40, <strong>Winner: +55</strong>.<br>
+      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +12, QF: +15, SF: +18, Final: +25, <strong>Winner: +35</strong>.<br>
       &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (excluding knockout round Penalty Shootouts) (+5).<br>
       <strong>11.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
@@ -1187,7 +1187,7 @@ const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
 const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
-const P={OUT:3,EX_BONUS:2,R32:3,R16:5,QF:8,SF:12,FIN:20,KO_EX:3,GOALS:15,TP:2,CHAMP_R32:10,CHAMP_R16:20,CHAMP_QF:25,CHAMP_SF:35,CHAMP_FIN:40,CHAMP_WIN:55};
+const P={OUT:3,EX_BONUS:2,R32:5,R16:7,QF:9,SF:11,FIN:14,KO_EX:3,GOALS:15,TP:2,CHAMP_R32:10,CHAMP_R16:12,CHAMP_QF:15,CHAMP_SF:18,CHAMP_FIN:25,CHAMP_WIN:35};
 
 // Submissions lock ONLY when the organizer manually locks them in the Admin Panel.
 function arePredictionsLocked(){ return S.predictionsLocked; }
@@ -1291,8 +1291,40 @@ let _saveTimer=null;
 function save(){
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(()=>{
-    fbDb.ref(DB_ROOT).set(S).catch(e=>console.error('Firebase save error:',e));
+    // Merge-write rather than overwrite. We update top-level fields and merge submission
+    // children individually, so a client with a slightly stale copy can NEVER delete
+    // another person's just-submitted entry (the old .set(S) could and did).
+    const root={};
+    Object.keys(S).forEach(k=>{ if(k!=='submissions') root[k]=S[k]; });
+    fbDb.ref(DB_ROOT).update(root).catch(e=>console.error('Firebase save error:',e));
+    if(S.submissions&&Object.keys(S.submissions).length){
+      fbDb.ref(DB_ROOT+'/submissions').update(S.submissions).catch(e=>console.error('Firebase submissions save error:',e));
+    }
   },400);
+}
+
+// A name is safe to use directly as a Firebase child key (no . # $ [ ] /).
+function fbSafeKey(k){ return !!k && !/[.#$\[\]\/]/.test(k); }
+
+// Persist ONE person's submission immediately to its own child path. Not debounced and not
+// affected by the realtime listener reassigning the global S, so a fresh submission can't be
+// lost to a concurrent full-state write.
+function pushSubmission(name){
+  if(!name||!S.submissions[name])return;
+  if(!fbSafeKey(name))return; // fall back to the debounced merge save for unusual names
+  try{ fbDb.ref(DB_ROOT+'/submissions/'+name).set(S.submissions[name]).catch(e=>console.error('submission write error:',e)); }
+  catch(e){ console.error('submission write error:',e); }
+}
+
+// The set of people to show across leaderboard/stats: the union of the managed participant
+// list AND everyone who has a submission on file (deduped case-insensitively, preferring the
+// exact key under which a submission is stored so lookups resolve). This makes recent
+// submitters visible even if the participants array is momentarily out of date.
+function leaderboardNames(){
+  const out=[],seen={};
+  Object.keys(S.submissions||{}).forEach(n=>{const k=n.toLowerCase();if(!seen[k]){seen[k]=1;out.push(n);}});
+  (S.participants||[]).forEach(n=>{const k=n.toLowerCase();if(!seen[k]){seen[k]=1;out.push(n);}});
+  return out;
 }
 
 let _realtimeReady=false;
@@ -1429,8 +1461,8 @@ function showTab(t){
 // HOME STATS
 // ============================
 function updateHomeStats(){
-  document.getElementById('statParticipants').textContent=S.participants.length;
-  const sub=S.participants.filter(p=>S.submissions[p]&&S.submissions[p].locked).length;
+  document.getElementById('statParticipants').textContent=leaderboardNames().length;
+  const sub=leaderboardNames().filter(p=>S.submissions[p]&&S.submissions[p].locked).length;
   document.getElementById('statSubmitted').textContent=sub;
   updateScoresTicker();
   updateGroupStandings();
@@ -1837,6 +1869,7 @@ function saveDraft(){
     totalGoals:goals?parseInt(goals):null,
     city:cityVal||(prior&&prior.city)||''
   };
+  pushSubmission(currentPredictor); // persist immediately (child path) to survive concurrent writes
   save();
   const ts=new Date().toLocaleTimeString();
   const msg=wasLocked
@@ -2186,6 +2219,7 @@ async function submitPrediction(){
     city:city
   };
   if(!S.participants.includes(currentPredictor))S.participants.push(currentPredictor);
+  pushSubmission(currentPredictor); // persist this submission immediately so it can't be clobbered
   save();
 
   // Notify organizer via Formspree (fire-and-forget)
@@ -2488,10 +2522,14 @@ function addParticipant(){
 }
 function removePart(n){
   if(!confirm('Remove '+n+'?'))return;
-  S.participants=S.participants.filter(p=>p!==n);delete S.submissions[n];save();renderParts();
+  S.participants=S.participants.filter(p=>p!==n);delete S.submissions[n];
+  // Merge-save never deletes children, so remove this person's submission child explicitly,
+  // otherwise the union view would resurrect them from their lingering submission.
+  if(fbSafeKey(n)){try{fbDb.ref(DB_ROOT+'/submissions/'+n).remove();}catch(e){console.error(e);}}
+  save();renderParts();
 }
 function renderParts(){
-  document.getElementById('partList').innerHTML=S.participants.map(p=>{
+  document.getElementById('partList').innerHTML=leaderboardNames().map(p=>{
     const locked=S.submissions[p]&&S.submissions[p].locked;
     const city=S.submissions[p]&&S.submissions[p].city||'';
     let html=`<span class="ptag" style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;">${p} `;
@@ -2592,11 +2630,11 @@ function renderAdminView(){
   // Populate view predictions selector
   const sel=document.getElementById('viewPredPerson');
   const cur=sel.value;
-  sel.innerHTML='<option value="">-- Select --</option>'+S.participants.filter(p=>S.submissions[p]&&S.submissions[p].locked).map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
+  sel.innerHTML='<option value="">-- Select --</option>'+leaderboardNames().filter(p=>S.submissions[p]&&S.submissions[p].locked).map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
   // Populate comparison selector
   const csel=document.getElementById('comparePerson');
   const ccur=csel.value;
-  csel.innerHTML='<option value="">-- Select --</option>'+S.participants.filter(p=>S.submissions[p]&&S.submissions[p].locked).map(p=>`<option value="${p}" ${p===ccur?'selected':''}>${p}</option>`).join('');
+  csel.innerHTML='<option value="">-- Select --</option>'+leaderboardNames().filter(p=>S.submissions[p]&&S.submissions[p].locked).map(p=>`<option value="${p}" ${p===ccur?'selected':''}>${p}</option>`).join('');
 }
 // The 8 R32 matches that have a 3rd-place slot (the ones with a tp field)
 function getThirdPlaceMatches(){
@@ -3071,7 +3109,7 @@ function renderComparison(){
 // ============================
 function calcLeaderboard(){
   const rows=[];
-  S.participants.forEach(name=>{
+  leaderboardNames().forEach(name=>{
     const sub=S.submissions[name];
     if(!sub||!sub.locked){rows.push({name,champ:'-',gs:0,ko:0,bonus:0,total:0});return;}
     let gsP=0,koP=0,bonP=0;
@@ -3107,11 +3145,11 @@ function calcLeaderboard(){
     });
     // Champion progression bonus
     // Semantics: reaching a round is credited by WINNING the prior round's match.
-    //   Reaches R32 (+10): champion is a participant in the R32 (qualified from group)
-    //   Reaches R16 (+20): won an R32 match (M73-88)
-    //   Reaches QF  (+25): won an R16 match (M89-96)
-    //   Reaches SF  (+35): won a QF match (M97-100)
-    //   Reaches Final (+40): won a SF match (M101-102) — credited even if they LOSE the final
+    //   Reaches R32 (CHAMP_R32): champion is a participant in the R32 (qualified from group)
+    //   Reaches R16 (CHAMP_R16): won an R32 match (M73-88)
+    //   Reaches QF  (CHAMP_QF): won an R16 match (M89-96)
+    //   Reaches SF  (CHAMP_SF): won a QF match (M97-100)
+    //   Reaches Final (CHAMP_FIN): won a SF match (M101-102) — credited even if they LOSE the final
     //   Champion Winner (+60): won the Final (M104)
     if(sub.champion){
       const champLower=sub.champion.toLowerCase();
@@ -3231,7 +3269,7 @@ function calcLeaderboard(){
 // ============================
 function getChampionCounts(){
   const counts={};
-  S.participants.forEach(name=>{
+  leaderboardNames().forEach(name=>{
     const sub=S.submissions[name];
     if(sub&&sub.locked&&sub.champion){const t=canonicalTeam(sub.champion);counts[t]=(counts[t]||0)+1;}
   });
@@ -3337,12 +3375,15 @@ function renderStats(){
   populateViewSelectors();      // fill the compare dropdowns
   renderFunStats();
   renderPoolPulse();
+  // Run once more after layout settles, so the world map sizes itself correctly the first
+  // time the tab is opened (the container has zero width until it is painted).
+  setTimeout(()=>{ try{ renderChampDistribution(); }catch(e){} },80);
 }
 
 function renderFunStats(){
   const grid=document.getElementById('funStatsGrid');
   if(!grid)return;
-  const locked=S.participants.filter(n=>{const s=S.submissions[n];return s&&s.locked;});
+  const locked=leaderboardNames().filter(n=>{const s=S.submissions[n];return s&&s.locked;});
   if(locked.length===0){grid.innerHTML='<p style="color:var(--regent);">No submitted predictions yet — superlatives will appear once people lock in their picks.</p>';return;}
 
   // Per-person metrics
@@ -3383,9 +3424,9 @@ function renderFunStats(){
   const champCounts={};people.forEach(p=>{if(p.champion)champCounts[p.champion]=(champCounts[p.champion]||0)+1;});
   const champEntries=Object.entries(champCounts).sort((a,b)=>b[1]-a[1]);
   const peopleChamp=champEntries[0]||null;
-  // Contrarian: someone whose champion is the least-shared (min count, prefer count 1)
-  let contrarian=null,minShare=Infinity;
-  people.forEach(p=>{if(p.champion){const c=champCounts[p.champion];if(c<minShare){minShare=c;contrarian=p;}}});
+  // Lone Wolves: everyone who is the SOLE backer of their champion pick (not just one person).
+  const loneWolves=people.filter(p=>p.champion&&champCounts[p.champion]===1)
+                         .sort((a,b)=>a.name.localeCompare(b.name));
 
   const card=(emoji,title,winner,detail,disabled)=>{
     const w=disabled?'<span style="color:var(--regent);">Awaiting results</span>':(winner||'<span style="color:var(--regent);">—</span>');
@@ -3407,15 +3448,23 @@ function renderFunStats(){
   h+=card('🔮','Goal Oracle',(goalOracle?goalOracle.name:null),goalOracle?('guessed '+goalOracle.totalGoals+' · actual '+goalsActual+' (off by '+goalOracle.goalsDiff+')'):'Total goals not entered yet',goalsActual===null);
   // Champion-based (work pre-tournament)
   h+=card('👑','The People\u2019s Champion',peopleChamp?(fl(peopleChamp[0])+peopleChamp[0]):null,peopleChamp?(peopleChamp[1]+' of '+locked.length+' backers · '+Math.round(peopleChamp[1]/locked.length*100)+'%'):'No champions picked');
-  h+=card('🐺','The Contrarian',contrarian?contrarian.name:null,contrarian?('lone-ish pick: '+fl(contrarian.champion)+contrarian.champion+(minShare===1?' (nobody else!)':' (only '+minShare+' total)')):'');
+  // Lone Wolves — there can be several, so report the count and list them.
+  let lwVal,lwDetail;
+  if(loneWolves.length===0){lwVal='None';lwDetail='every champion pick is shared by at least two people';}
+  else{
+    lwVal=loneWolves.length+(loneWolves.length===1?' lone wolf':' lone wolves');
+    const tags=loneWolves.map(p=>p.name+' → '+p.champion);
+    lwDetail=tags.slice(0,10).join(' · ')+(tags.length>10?' · +'+(tags.length-10)+' more':'');
+  }
+  h+=card('🐺','Lone Wolves',lwVal,lwDetail);
   grid.innerHTML=h;
 }
 
 function renderPoolPulse(){
   const wrap=document.getElementById('poolPulse');
   if(!wrap)return;
-  const locked=S.participants.filter(n=>{const s=S.submissions[n];return s&&s.locked;});
-  const drafts=S.participants.filter(n=>{const s=S.submissions[n];return s&&!s.locked;}).length;
+  const locked=leaderboardNames().filter(n=>{const s=S.submissions[n];return s&&s.locked;});
+  const drafts=leaderboardNames().filter(n=>{const s=S.submissions[n];return s&&!s.locked;}).length;
   const champs=new Set();locked.forEach(n=>{const s=S.submissions[n];if(s.champion)champs.add(canonicalTeam(s.champion));});
   // average + tightest race need results
   let avg='—',leadGap='—';
@@ -3446,6 +3495,10 @@ function updateWorldMap(teams){
     if(fallback){fallback.style.display='';fallback.textContent=teams.length?('Selected champion nations: '+teams.join(', ')):'No champion picks yet.';}
     return;
   }
+  // Building the map while its container is hidden (display:none) sizes it to 0×0 and renders a
+  // glitched/blank map. Defer creation until the Statistics tab is actually on screen.
+  const visible=container.offsetWidth>0&&container.offsetParent!==null;
+  if(!_worldMapObj&&!visible)return;
   try{
     if(!_worldMapObj){
       _worldMapObj=new jsVectorMap({
@@ -3453,12 +3506,15 @@ function updateWorldMap(teams){
         regionStyle:{initial:{fill:'#2a2f3a',stroke:'#11141a','stroke-width':0.4},hover:{fill:'#3a4150'},selected:{fill:'#c9a84c'}},
         backgroundColor:'transparent'
       });
+      _worldMapSelected='__init__';
     }
     if(key!==_worldMapSelected){
       if(_worldMapObj.clearSelectedRegions)_worldMapObj.clearSelectedRegions();
       if(codes.length&&_worldMapObj.setSelectedRegions)_worldMapObj.setSelectedRegions(codes);
       _worldMapSelected=key;
     }
+    // Correct the dimensions now that the container is visible (fixes the hidden-init glitch).
+    if(visible&&_worldMapObj.updateSize)_worldMapObj.updateSize();
   }catch(e){
     console.error('World map error:',e);
     if(fallback){fallback.style.display='';fallback.textContent=teams.length?('Selected champion nations: '+teams.join(', ')):'';}
@@ -3648,7 +3704,7 @@ function populateViewSelectors(){
   const s1=document.getElementById('viewPerson1');
   const s2=document.getElementById('viewPerson2');
   if(!s1||!s2)return;
-  const submitted=S.participants.filter(p=>S.submissions[p]&&S.submissions[p].locked);
+  const submitted=leaderboardNames().filter(p=>S.submissions[p]&&S.submissions[p].locked);
   const cur1=s1.value,cur2=s2.value;
   s1.innerHTML='<option value="">-- Select --</option>'+submitted.map(p=>`<option value="${p}"${p===cur1?' selected':''}>${p}</option>`).join('');
   s2.innerHTML='<option value="">-- None --</option>'+submitted.map(p=>`<option value="${p}"${p===cur2?' selected':''}>${p}</option>`).join('');
@@ -3707,7 +3763,7 @@ function renderComparison(){
     if(S.admin.totalGoals===null||S.admin.totalGoals===undefined)return null;
     const sub=S.submissions[name];if(!sub||sub.totalGoals===null||sub.totalGoals===undefined)return 0;
     let minDiff=Infinity;
-    S.participants.forEach(n=>{const s=S.submissions[n];if(s&&s.locked&&s.totalGoals!==null&&s.totalGoals!==undefined){const d=Math.abs(s.totalGoals-S.admin.totalGoals);if(d<minDiff)minDiff=d;}});
+    leaderboardNames().forEach(n=>{const s=S.submissions[n];if(s&&s.locked&&s.totalGoals!==null&&s.totalGoals!==undefined){const d=Math.abs(s.totalGoals-S.admin.totalGoals);if(d<minDiff)minDiff=d;}});
     return Math.abs(sub.totalGoals-S.admin.totalGoals)===minDiff?P.GOALS:0;
   };
   const badge=(pts)=>{
