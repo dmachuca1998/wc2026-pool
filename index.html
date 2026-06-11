@@ -384,7 +384,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip">Predictions lock on June 4th, 2026 at 11:59 PM ET — Submit before the first match!</div>
+<div class="deadline-strip">Knockout Predictions unlock on June 26th, 2026 at 11:59 AM ET — Get ready to Update your predictions!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -831,6 +831,13 @@ a { color:var(--black); }
   </div>
 
   <div id="adminMain" style="display:none;">
+
+    <div class="card">
+      <h2>🔄 Reload from Database</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">Pulls the very latest data from Firebase and rebuilds the leaderboard. Use this if someone submitted but isn't showing — it re-reads every submission on file and restores anyone missing from the list. Safe to run anytime.</p>
+      <button class="btn btn-gold" onclick="adminRefresh()">🔄 Reload &amp; Rebuild Leaderboard</button>
+      <p id="adminRefreshStatus" style="font-size:0.86em;margin-top:8px;"></p>
+    </div>
 
     <div class="card">
       <h2>Manage Participants</h2>
@@ -2635,6 +2642,32 @@ function renderAdminView(){
   const csel=document.getElementById('comparePerson');
   const ccur=csel.value;
   csel.innerHTML='<option value="">-- Select --</option>'+leaderboardNames().filter(p=>S.submissions[p]&&S.submissions[p].locked).map(p=>`<option value="${p}" ${p===ccur?'selected':''}>${p}</option>`).join('');
+}
+
+// Force a fresh full pull from Firebase, reconcile anyone who has a submission on file but
+// isn't in the participant list, and rebuild everything. This recovers people whose row went
+// missing (e.g. a stale browser, or names left out of the participants array).
+async function adminRefresh(){
+  const status=document.getElementById('adminRefreshStatus');
+  if(status)status.innerHTML='Reloading from database…';
+  try{
+    const snap=await fbDb.ref(DB_ROOT).once('value');
+    if(snap.exists()){ S=snap.val(); ensureDefaults(); }
+    // Reconcile: every name that has a submission should be in the participant list.
+    let recovered=[];
+    Object.keys(S.submissions||{}).forEach(name=>{
+      if(!S.participants.some(p=>p.toLowerCase()===name.toLowerCase())){ S.participants.push(name); recovered.push(name); }
+    });
+    if(recovered.length>0)save();
+    updateHomeStats();calcLeaderboard();renderAdminView();checkKOUpdateVisibility();
+    const total=leaderboardNames().length;
+    const submitted=leaderboardNames().filter(p=>S.submissions[p]&&S.submissions[p].locked).length;
+    let msg='✓ Reloaded — '+total+' participants, '+submitted+' with a submitted prediction.';
+    if(recovered.length>0)msg+=' Recovered onto the leaderboard: '+recovered.join(', ')+'.';
+    if(status)status.innerHTML='<span style="color:var(--green);">'+msg+'</span>';
+  }catch(e){
+    if(status)status.innerHTML='<span style="color:var(--red);">⚠ Reload failed: '+(e&&e.message?e.message:e)+'</span>';
+  }
 }
 // The 8 R32 matches that have a 3rd-place slot (the ones with a tp field)
 function getThirdPlaceMatches(){
