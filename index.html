@@ -384,7 +384,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip">Knockout Predictions unlock on June 26th, 2026 at 11:59 AM ET — Get ready to Update your predictions!</div>
+<div class="deadline-strip">Predictions lock on June 4th, 2026 at 11:59 PM ET — Submit before the first match!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -565,170 +565,25 @@ a { color:var(--black); }
         <strong>City:</strong> Select the city of the site where you work. This determines your team in the City Competition.
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:10px;">
-        <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your Name</label>
-          <input type="text" id="predictName" placeholder="Enter your full name..." style="min-width:220px;">
-        </div>
-        <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;" id="pwdLabel">Password (4+ chars)</label>
-          <input type="password" id="predictPwd" placeholder="Create or enter password..." style="min-width:190px;">
-        </div>
-        <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Your City (work site)</label>
-          <select id="predictCity" style="min-width:150px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;">
-            <option value="">-- Select City --</option>
-            <option value="Toronto">Toronto</option>
-            <option value="Montreal">Montreal</option>
-            <option value="Red Oak">Red Oak</option>
-            <option value="Querétaro">Querétaro</option>
-          </select>
-        </div>
-        <button class="btn btn-black" onclick="startPrediction()">Start / Resume</button>
-      </div>
-      <p id="predictEntryStatus" style="font-size:0.85em;color:var(--gray-600);margin-top:2px;min-height:18px;"></p>
-    </div>
-  </div>
-
-  <!-- VIEW & COMPARE PREDICTIONS moved to the Participant Statistics tab -->
-
-  <div id="predictMain" style="display:none;">
-    <div class="card">
-      <h2 id="predictWelcome">Predictions for ...</h2>
-      <p style="color:var(--gray-600);font-size:0.88em;">Fill in all sections below, then click <strong>Submit Final Predictions</strong> at the bottom. Use <strong>Save Progress</strong> at any time to save your work and come back later.</p>
-    </div>
-
-    <!-- STICKY SAVE BAR — always visible while filling predictions -->
-    <div class="sticky-save-bar">
-      <div class="ssb-left">
-        <button class="btn btn-outline" style="font-size:0.92em;padding:9px 22px;" onclick="saveDraft()">💾 Save Progress</button>
-        <span class="ssb-status" id="draftStatusTop">Progress not yet saved</span>
-      </div>
-      <button class="btn btn-gold" style="font-size:0.92em;padding:9px 22px;" onclick="submitPrediction()">✅ Submit Final Predictions</button>
-    </div>
-
-    <!-- GROUP STAGE -->
-    <div class="card">
-      <h2>Group Stage Predictions</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Predict the exact score for each of the 72 group stage matches.</p>
-      <div class="info-box" style="margin-bottom:14px;font-size:0.84em;line-height:1.7;">
-        <strong>How group stage scoring works:</strong><br>
-        • <strong>+3 points</strong> for predicting the correct outcome (Win, Draw, or Loss) — even if the score is wrong<br>
-        • <strong>+2 bonus points</strong> for predicting the exact final score (total <strong>5 points</strong> for an exact match)<br>
-        • <strong>0 points</strong> if you predict the wrong outcome<br><br>
-        <em>Important: Group stage matches CAN end in a draw — there are no penalty shootouts in the group stage. If you predict a draw and the match ends in a draw, you earn the outcome points regardless of the exact score.</em>
-      </div>
-      <div id="gsMatches"></div>
-    </div>
-
-    <!-- KNOCKOUT BRACKET -->
-
-    <div class="card">
-      <h2>Knockout Stage Predictions</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Pick 8 third-place qualifying groups, then select which group position advances from each knockout match. Also predict the score for each match.</p>
-
-      <div class="bracket-img-wrap" style="margin:16px 0 20px;">
-        <img src="bracket_knockout.png" alt="World Cup 2026 — Knockout Bracket" style="max-width:100%;border-radius:10px;">
-        <p>World Cup 2026 Knockout Bracket — use this as reference when selecting your 8 third-place qualifiers</p>
-      </div>
-
-      <h3>Step 1: Pick 8 Third-Place Qualifiers</h3>
-      <p style="font-size:0.82em;color:var(--regent);margin-bottom:6px;">Select exactly 8 of 12 groups whose 3rd-place teams you think will advance.</p>
-      <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <span style="font-size:0.82em;color:var(--gray-600);">💡 Save time: auto-pick the 8 best third-place teams based on YOUR group stage score predictions.</span>
-        <button class="btn btn-sm btn-black" onclick="autoPickThirdPlace()" type="button">⚡ Auto-Pick from My Predictions</button>
-      </div>
-      <div class="tp-grid" id="tpPicker"></div>
-      <p style="color:var(--gold-dark);font-size:0.82em;margin-top:4px;" id="tpCount">Selected: 0 / 8</p>
-
-      <h3>Step 2: Predict Each Knockout Match</h3>
-      <div class="info-box" style="margin-bottom:14px;font-size:0.84em;line-height:1.7;">
-        <strong>How to predict each knockout match:</strong><br><br>
-        Each match shows two teams identified by their group position (e.g., "A2" = 2nd place from Group A, "3rd*" = a third-place qualifier).<br><br>
-        <strong>1. Pick the winner:</strong> Click on the team you think will advance. Your selection highlights in gold. This is the team you predict will win the match — whether they win in regular time, extra time, or penalties.<br><br>
-        <strong>2. Enter the score:</strong> Type the predicted final score (e.g., 2 - 1). This is the score at the end of regular/extra time. If you think the match goes to penalties, enter the score that led to penalties (e.g., 1 - 1) and still click the team you think will win the shootout.<br><br>
-        <strong>Example:</strong> You think A1 (Mexico) beats 3rd* in a penalty shootout after a 1-1 draw → Click "A1" as winner, enter score <strong>1 - 1</strong>.<br>
-        <strong>Example:</strong> You think C1 (Brazil) beats F2 in regular time 3-0 → Click "C1" as winner, enter score <strong>3 - 0</strong>.<br><br>
-        <em>The winner pick (+3 to +20 pts by round) and exact score (+3 pts) are scored independently. You earn points for each one you get right.</em>
-      </div>
-      <div id="koMatches"></div>
-    </div>
-
-    <!-- BONUS -->
-    <div class="card">
-      <h2>Bonus Predictions</h2>
-      <div style="display:grid;gap:12px;max-width:400px;">
-        <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">🏆 Championship Winner</label>
-          <input type="text" id="bonusChamp" placeholder="e.g. Brazil" style="width:100%;">
-        </div>
-        <div>
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">⚽ Total Tournament Goals</label>
-          <input type="number" id="bonusGoals" placeholder="e.g. 172" style="width:100%;">
-          <p style="font-size:0.76em;color:var(--regent);margin-top:4px;font-style:italic;">Penalty shootout goals are excluded — only regular time and extra time goals count.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUBMIT -->
-    <div class="card" style="text-align:center;">
-      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;">
-        <button class="btn btn-outline" style="font-size:1em;padding:12px 28px;" onclick="saveDraft()">💾 Save Progress</button>
-        <button class="btn btn-gold" style="font-size:1.1em;padding:14px 40px;" onclick="submitPrediction()">✅ Submit Final Predictions</button>
-      </div>
-      <p style="font-size:0.78em;color:var(--regent);margin-top:10px;">Save Progress lets you come back later. Once you Submit, predictions are <strong>final and locked</strong>.</p>
-      <p id="draftStatus" style="font-size:0.84em;margin-top:6px;min-height:18px;"></p>
-    </div>
-  </div>
-</div>
-
-<!-- ============ PARTICIPANT STATISTICS TAB ============ -->
-<div id="tab-stats" class="tab-content">
-  <div class="card">
-    <h2>📊 Participant Statistics</h2>
-    <p style="color:var(--gray-600);font-size:0.88em;">A living dashboard of the pool — standout predictors, the biggest risers and fallers, champion trends, and head-to-head comparisons. Updates automatically as results come in.</p>
-  </div>
-
-  <!-- FUN STATS GRID -->
-  <div class="card">
-    <h2>🏅 Pool Superlatives</h2>
-    <p style="color:var(--gray-600);font-size:0.84em;margin-bottom:12px;">The people behind the numbers. Performance awards fill in as match results are entered.</p>
-    <div id="funStatsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
-  </div>
-
-  <!-- POOL PULSE -->
-  <div class="card">
-    <h2>💓 Pool Pulse</h2>
-    <div id="poolPulse" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;"></div>
-  </div>
-
-  <!-- CHAMPION PICK DISTRIBUTION (moved here) -->
-  <div class="card" id="champDistCard">
-    <h2>🏆 Predicted Champions</h2>
-    <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:12px;">How the pool's championship picks are distributed across teams.</p>
-    <div id="champPieWrap" style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:center;">
-      <canvas id="champPie" width="360" height="360" style="max-width:100%;"></canvas>
-      <div id="champLegend" style="font-size:0.86em;min-width:200px;"></div>
-    </div>
-    <p id="champDistEmpty" style="text-align:center;color:var(--regent);padding:20px;">No champion picks submitted yet.</p>
-
-    <h3 style="margin-top:24px;font-size:0.95em;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.05em;">🌎 Selected Champion Nations</h3>
-    <p style="color:var(--gray-600);font-size:0.84em;margin-bottom:10px;">Countries highlighted in gold have been picked as champion by at least one participant.</p>
-    <div id="worldMap" style="width:100%;height:420px;max-width:900px;margin:0 auto;"></div>
-    <p id="worldMapFallback" style="display:none;text-align:center;color:var(--regent);padding:14px;font-size:0.86em;"></p>
-  </div>
-
-  <!-- VIEW & COMPARE PREDICTIONS (moved here) -->
-  <div class="card" id="viewMyPredCard">
-    <h2>👁 View & Compare Predictions</h2>
-    <p style="color:var(--gray-600);font-size:0.87em;margin-bottom:12px;">Browse any participant's submitted predictions — no password needed. Select a second participant to compare side by side, with the points each prediction earned.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:10px;">
       <div>
         <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Participant</label>
-        <select id="viewPerson1" onchange="renderComparison()" style="min-width:200px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- Select --</option></select>
+        <select id="viewPerson1" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- Select --</option></select>
       </div>
       <div>
-        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare with (optional)</label>
-        <select id="viewPerson2" onchange="renderComparison()" style="min-width:200px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare 2 (optional)</label>
+        <select id="viewPerson2" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare 3 (optional)</label>
+        <select id="viewPerson3" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare 4 (optional)</label>
+        <select id="viewPerson4" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare 5 (optional)</label>
+        <select id="viewPerson5" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
       </div>
     </div>
     <div id="viewMyContent" style="display:none;margin-top:8px;"></div>
@@ -953,23 +808,27 @@ a { color:var(--black); }
     <div class="card" id="apiSettingsCard">
       <h2>Live Scores API Setup</h2>
       <div class="info-box" style="margin-bottom:12px;">
-        <strong>One-time setup:</strong> Sign up for a <strong>free</strong> API key at
-        <a href="https://www.api-football.com/" target="_blank" style="color:var(--blue);text-decoration:underline;">api-football.com</a> (via RapidAPI).
-        The free plan gives you <strong>100 requests/day</strong> — more than enough to fetch scores a few times daily.<br><br>
+        <strong>Provider:</strong> FIFA World Cup 2026 Live Data (Mkashii) via RapidAPI.<br><br>
         <strong>Steps:</strong><br>
-        1. Go to <a href="https://rapidapi.com/api-sports/api/api-football" target="_blank" style="color:var(--blue);text-decoration:underline;">rapidapi.com/api-sports/api/api-football</a><br>
-        2. Sign up and subscribe to the <strong>Basic (Free)</strong> plan<br>
-        3. Copy your <strong>X-RapidAPI-Key</strong> from the dashboard<br>
-        4. Paste it below and click Save
+        1. Go to <a href="https://rapidapi.com/Mkashii/api/fifa-world-cup-2026-live-data" target="_blank" style="color:var(--blue);text-decoration:underline;">rapidapi.com/Mkashii/api/fifa-world-cup-2026-live-data</a><br>
+        2. Subscribe (free tier) and copy your <strong>x-rapidapi-key</strong><br>
+        3. Paste it below, set the endpoint that returns match results, and Save.<br><br>
+        <strong>Note:</strong> the <code>/standings</code> endpoint only returns the league table — to auto-fill match scores you need the endpoint that lists individual matches (often <code>/matches</code>, <code>/fixtures</code>, or <code>/results</code>). Use <strong>Preview</strong> to see what an endpoint returns. Your key is stored only in this browser, never uploaded.
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
-        <div style="flex:1;min-width:280px;">
-          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">RapidAPI Key</label>
-          <input type="text" id="apiKeyInput" placeholder="Paste your X-RapidAPI-Key here..." style="width:100%;font-family:monospace;font-size:0.88em;">
+        <div style="flex:1;min-width:260px;">
+          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">x-rapidapi-key</label>
+          <input type="text" id="apiKeyInput" placeholder="Paste your x-rapidapi-key here..." style="width:100%;font-family:monospace;font-size:0.88em;">
         </div>
-        <button class="btn btn-black btn-sm" onclick="saveApiKey()">Save Key</button>
+        <div style="min-width:160px;">
+          <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Matches endpoint</label>
+          <input type="text" id="apiEndpointInput" placeholder="/matches" style="width:100%;font-family:monospace;font-size:0.88em;">
+        </div>
+        <button class="btn btn-black btn-sm" onclick="saveApiKey()">Save</button>
+        <button class="btn btn-outline btn-sm" onclick="previewApiResponse()">🔍 Preview</button>
       </div>
       <p id="apiKeyStatus" style="font-size:0.82em;margin-top:6px;color:var(--regent);"></p>
+      <pre id="apiPreview" style="display:none;margin-top:10px;padding:10px;background:#0b1220;color:#cbd5e1;border-radius:6px;font-size:0.72em;max-height:280px;overflow:auto;white-space:pre-wrap;word-break:break-word;"></pre>
     </div>
 
     <div class="card">
@@ -989,7 +848,6 @@ a { color:var(--black); }
         <button class="btn btn-black" onclick="fetchLiveScores()" id="fetchBtn">
           <span id="fetchBtnText">⚡ Fetch Live Scores</span>
         </button>
-        <button class="btn btn-outline btn-sm" onclick="fetchLiveScores('finished')" id="fetchFinBtn">Finished Matches Only</button>
         <span id="fetchStatus" style="font-size:0.82em;color:var(--regent);"></span>
       </div>
       <div id="fetchLog" style="display:none;margin-bottom:12px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:0.82em;max-height:200px;overflow-y:auto;"></div>
@@ -1419,6 +1277,26 @@ function firstMatchKickoffET(){
   GM.forEach(m=>{const d=matchKickoffET(m);if(d&&(!best||d.getTime()<best.getTime()))best=d;});
   return best||new Date('2026-06-11T15:00:00-04:00');
 }
+
+// ---------- Chronological DISPLAY numbering ----------
+// Stored data (submissions, admin results, Formspree archives) is keyed by the internal match
+// number `n` and is NEVER remapped. DISPN maps internal n -> the chronological display number
+// shown in the UI (1-72 for the group stage by kickoff; knockout numbered within its round;
+// final = 104, matching FIFA where M103 is the third-place playoff we don't include).
+let DISPN={};
+function byKickoff(a,b){const ka=matchKickoffET(a),kb=matchKickoffET(b);const ta=ka?ka.getTime():0,tb=kb?kb.getTime():0;return (ta-tb)||(a.n-b.n);}
+function buildDisplayNumbers(){
+  DISPN={};
+  GM.slice().sort(byKickoff).forEach((m,i)=>{DISPN[m.n]=i+1;});
+  [[R32,73],[R16,89],[QF,97],[SF,101]].forEach(([arr,start])=>{
+    arr.slice().sort(byKickoff).forEach((m,i)=>{DISPN[m.n]=start+i;});
+  });
+  DISPN[FINAL.n]=104;
+}
+function dispM(n){return DISPN[n]||n;}
+function dispSlot(code){ if(typeof code==='string'){const mm=code.match(/^W(\d+)$/); if(mm) return 'W'+dispM(+mm[1]);} return code; }
+buildDisplayNumbers();
+
 function startCountdown(){
   if(_countdownInterval)return; // only start once
   const first=firstMatchKickoffET();
@@ -1562,7 +1440,7 @@ function updateScoresTicker(){
   let chips=allM.map((m,i)=>{
     const playedCls=m.played?'':'sc-upcoming';
     const statusCls=m.status.startsWith('FT')?'':'sc-upcoming-txt';
-    return `<div class="score-chip ${playedCls}" id="sc-chip-${i}"><div class="sc-group">${m.label} · M${m.n} · ${m.d}</div><div class="sc-teams"><span class="sc-team">${fl(m.h)}${m.h}</span><span class="sc-score">${m.hS}</span><span class="sc-vs">-</span><span class="sc-score">${m.aS}</span><span class="sc-team">${fl(m.a)}${m.a}</span></div><div class="sc-status ${statusCls}">${m.status}</div></div>`;
+    return `<div class="score-chip ${playedCls}" id="sc-chip-${i}"><div class="sc-group">${m.label} · M${dispM(m.n)} · ${m.d}</div><div class="sc-teams"><span class="sc-team">${fl(m.h)}${m.h}</span><span class="sc-score">${m.hS}</span><span class="sc-vs">-</span><span class="sc-score">${m.aS}</span><span class="sc-team">${fl(m.a)}${m.a}</span></div><div class="sc-status ${statusCls}">${m.status}</div></div>`;
   });
   ticker.innerHTML=chips.join('');
   // Auto-scroll to current match area
@@ -1691,7 +1569,7 @@ function resolveSlot(code,matchNum){
 // Get a resolved label for a KO team slot, with flag if available
 function resolveLabel(code,matchNum){
   const name=resolveSlot(code,matchNum);
-  if(name===code)return code; // unresolved, show code as-is
+  if(name===code)return dispSlot(code); // unresolved, show code as-is
   return fl(name)+name;
 }
 
@@ -1732,7 +1610,7 @@ function resolveSlotKOUp(code,matchNum,picksObj){
 }
 function resolveLabelKOUp(code,matchNum,picksObj){
   const name=resolveSlotKOUp(code,matchNum,picksObj);
-  if(name===code)return code;
+  if(name===code)return dispSlot(code);
   return fl(name)+name;
 }
 
@@ -1905,8 +1783,8 @@ function renderGSForm(){
   gl.forEach(g=>{
     const teams=GROUPS[g];
     h+=`<div class="group-hdr"><h3>Group ${g}</h3><div class="teams">${teams.map(t=>fl(t)+t).join(' · ')}</div></div>`;
-    GM.filter(m=>m.g===g).forEach(m=>{
-      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d} · ${m.t} ET</div><div class="scores"><input type="number" min="0" max="20" id="ph-${m.n}" placeholder="-"><span class="vs">vs</span><input type="number" min="0" max="20" id="pa-${m.n}" placeholder="-"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
+    GM.filter(m=>m.g===g).sort(byKickoff).forEach(m=>{
+      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${dispM(m.n)} · ${m.d} · ${m.t} ET</div><div class="scores"><input type="number" min="0" max="20" id="ph-${m.n}" placeholder="-"><span class="vs">vs</span><input type="number" min="0" max="20" id="pa-${m.n}" placeholder="-"></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
     });
   });
   c.innerHTML=h;
@@ -2108,7 +1986,7 @@ function resolveSlotPredict(code,matchNum){
 }
 function resolveLabelPredict(code,matchNum){
   const name=resolveSlotPredict(code,matchNum);
-  if(name===code)return code;
+  if(name===code)return dispSlot(code);
   return fl(name)+name;
 }
 function predScoreInput(mn){
@@ -2141,7 +2019,7 @@ function renderKOForm(){
         const rA=resolveLabelPredict(mm.tA,mm.n),rB=resolveLabelPredict(mm.tB,mm.n);
         const sh=predScores[mm.n]&&predScores[mm.n].h!==undefined&&predScores[mm.n].h!==''?predScores[mm.n].h:'';
         const sa=predScores[mm.n]&&predScores[mm.n].a!==undefined&&predScores[mm.n].a!==''?predScores[mm.n].a:'';
-        h+=`<div class="bkt-match"><div class="bkt-label">M${mm.n} · ${mm.d}</div>`;
+        h+=`<div class="bkt-match"><div class="bkt-label">M${dispM(mm.n)} · ${mm.d}</div>`;
         h+=`<div class="bkt-opt${predKOPicks[mm.n]==='A'?' sel':''}" id="pbo-${mm.n}-A" onclick="pickKO(${mm.n},'A')">${rA}</div>`;
         h+=`<div class="bkt-opt${predKOPicks[mm.n]==='B'?' sel':''}" id="pbo-${mm.n}-B" onclick="pickKO(${mm.n},'B')">${rB}</div>`;
         h+=`<div class="bkt-scores"><input type="number" min="0" max="20" id="pks-${mm.n}-h" placeholder="-" value="${sh}" oninput="predScoreInput(${mm.n})"><span class="vs">vs</span><input type="number" min="0" max="20" id="pks-${mm.n}-a" placeholder="-" value="${sa}" oninput="predScoreInput(${mm.n})"></div>`;
@@ -2340,7 +2218,7 @@ function renderKOUpdateForm(){
         const rA=resolveLabelKOUp(mm.tA,mm.n,koUpPicks),rB=resolveLabelKOUp(mm.tB,mm.n,koUpPicks);
         const sh=koUpScores[mm.n]&&koUpScores[mm.n].h!==undefined?koUpScores[mm.n].h:'';
         const sa=koUpScores[mm.n]&&koUpScores[mm.n].a!==undefined?koUpScores[mm.n].a:'';
-        h+=`<div class="bkt-match"><div class="bkt-label">M${mm.n} · ${mm.d}</div>`;
+        h+=`<div class="bkt-match"><div class="bkt-label">M${dispM(mm.n)} · ${mm.d}</div>`;
         h+=`<div class="bkt-opt${koUpPicks[mm.n]==='A'?' sel':''}" id="koup-bo-${mm.n}-A" onclick="pickKOUp(${mm.n},'A')">${rA}</div>`;
         h+=`<div class="bkt-opt${koUpPicks[mm.n]==='B'?' sel':''}" id="koup-bo-${mm.n}-B" onclick="pickKOUp(${mm.n},'B')">${rB}</div>`;
         h+=`<div class="bkt-scores"><input type="number" min="0" max="20" id="koup-s-${mm.n}-h" placeholder="-" value="${sh}" oninput="koUpScoreInput(${mm.n})"><span class="vs">vs</span><input type="number" min="0" max="20" id="koup-s-${mm.n}-a" placeholder="-" value="${sa}" oninput="koUpScoreInput(${mm.n})"></div>`;
@@ -2691,28 +2569,50 @@ function restoreSubmissionFromJSON(){
   if(!name)return fail('Enter the participant name.');
   if(!raw)return fail('Paste the exported JSON.');
   let obj;
-  try{obj=JSON.parse(raw);}catch(e){return fail('Invalid JSON — '+e.message);}
+  try{obj=JSON.parse(raw);}
+  catch(e){
+    // Tolerate a pasted fragment like  "Name": { ... },  (unwrapped, trailing comma)
+    try{obj=JSON.parse('{'+raw.replace(/,\s*$/,'')+'}');}
+    catch(e2){return fail('Invalid JSON — '+e.message);}
+  }
   let sourceName=name;
-  // If a full export was pasted, pull this person's submission out of it (case-insensitive)
-  // and adopt the original name casing stored in the export.
-  if(obj&&obj.submissions&&typeof obj.submissions==='object'&&!obj.gs&&!obj.ko){
+  const looksLikeSub=(o)=>o&&typeof o==='object'&&(o.gs||o.ko||o.champion);
+  // Shape 1 — a full export ({ submissions:{...}, participants:[...] }): pull this person out.
+  if(obj&&obj.submissions&&typeof obj.submissions==='object'&&!looksLikeSub(obj)){
     const key=Object.keys(obj.submissions).find(k=>k.toLowerCase()===name.toLowerCase());
     if(!key)return fail('No submission for "'+name+'" was found inside that export. Check the spelling, or paste just his submission object.');
-    sourceName=key;
-    obj=obj.submissions[key];
+    sourceName=key;obj=obj.submissions[key];
   }
+  // Shape 2 — a name-keyed map ({ "Santiago Dunne": {...}, ... }), e.g. a copy of the
+  // submissions node: find this person's entry (or the only entry, if just one was pasted).
+  else if(obj&&typeof obj==='object'&&!looksLikeSub(obj)){
+    let key=Object.keys(obj).find(k=>k.toLowerCase()===name.toLowerCase()&&looksLikeSub(obj[k]));
+    if(!key){const subKeys=Object.keys(obj).filter(k=>looksLikeSub(obj[k]));if(subKeys.length===1)key=subKeys[0];}
+    if(key){sourceName=key;obj=obj[key];}
+  }
+  // Shape 3 — a bare submission object ({ gs, ko, champion, ... }) is used as-is.
   if(!obj||typeof obj!=='object'||(!obj.gs&&!obj.ko&&!obj.champion)) return fail('That does not look like a submission (no gs / ko / champion fields).');
+  // Firebase serializes integer-keyed maps as arrays (with a null at index 0). Normalize
+  // gs/ko back into plain objects keyed by match number, dropping null holes.
+  const normMap=(x)=>{ if(!x)return {}; if(Array.isArray(x)){const o={};x.forEach((v,i)=>{if(v!==null&&v!==undefined)o[i]=v;});return o;} return x; };
+  obj.gs=normMap(obj.gs); obj.ko=normMap(obj.ko);
   const resolved=resolveParticipantName(sourceName);
   const existing=S.submissions[resolved];
   if(existing&&existing.locked&&Object.keys(existing.gs||{}).length>0){
     if(!confirm('"'+resolved+'" already has a submitted prediction with data. Replace it with the restored one?'))return;
   }
+  // Firebase coerces a match-numbered map ({1:..,72:..}) into an ARRAY (index 0 = null).
+  // Normalize either form back into an object keyed by match number.
+  const normMatchMap=(x)=>{
+    if(Array.isArray(x)){const o={};x.forEach((v,i)=>{if(i>0&&v!==null&&v!==undefined)o[i]=v;});return o;}
+    return (x&&typeof x==='object')?x:{};
+  };
   const sub={
     locked:true,
     timestamp:obj.timestamp||new Date().toISOString(),
     lastRevised:obj.lastRevised||null,
-    gs:obj.gs||{},
-    ko:obj.ko||{},
+    gs:normMatchMap(obj.gs),
+    ko:normMatchMap(obj.ko),
     tp:Array.isArray(obj.tp)?obj.tp.slice():[],
     champion:obj.champion?canonicalTeam(obj.champion):'',
     totalGoals:(obj.totalGoals!==undefined&&obj.totalGoals!==null)?obj.totalGoals:null,
@@ -2743,7 +2643,7 @@ function renderAdminThirdPlace(){
     const cur=S.admin.thirdPlace&&S.admin.thirdPlace[m.n]?S.admin.thirdPlace[m.n]:'';
     const fromGroups=m.tp?(' (from groups: '+m.tp.split('').join(', ')+')'):'';
     h+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--gray-200);border-radius:6px;">`;
-    h+=`<span style="font-size:0.82em;color:var(--regent);min-width:160px;">M${m.n} · 3rd-place vs ${oppLabel}${fromGroups}</span>`;
+    h+=`<span style="font-size:0.82em;color:var(--regent);min-width:160px;">M${dispM(m.n)} · 3rd-place vs ${oppLabel}${fromGroups}</span>`;
     h+=`<input type="text" id="atp-${m.n}" placeholder="3rd-place team name" value="${cur}" onchange="saveThirdPlace()" style="flex:1;min-width:160px;font-size:0.88em;">`;
     h+=`<span id="atpFlag-${m.n}" style="font-size:0.82em;">${cur?fl(cur)+cur:''}</span>`;
     h+=`</div>`;
@@ -2945,8 +2845,8 @@ function renderAdminGS(){
   const c=document.getElementById('adminGS');let h='';
   Object.keys(GROUPS).forEach(g=>{
     h+=`<div class="group-hdr"><h3>Group ${g}</h3></div>`;
-    GM.filter(m=>m.g===g).forEach(m=>{
-      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${m.n} · ${m.d}</div><div class="scores"><input type="number" min="0" max="20" id="ah-${m.n}" placeholder="-" onchange="saveAdmin()"><span class="vs">vs</span><input type="number" min="0" max="20" id="aa-${m.n}" placeholder="-" onchange="saveAdmin()"><button onclick="clearGSMatch(${m.n})" title="Clear this match result" style="margin-left:6px;background:transparent;border:1px solid var(--gray-300);color:var(--gray-500);border-radius:4px;width:24px;height:24px;font-size:0.8em;cursor:pointer;padding:0;line-height:1;">✕</button></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
+    GM.filter(m=>m.g===g).sort(byKickoff).forEach(m=>{
+      h+=`<div class="match-row"><div class="t-home">${fl(m.h)}${m.h}</div><div class="mid"><div class="meta">M${dispM(m.n)} · ${m.d}</div><div class="scores"><input type="number" min="0" max="20" id="ah-${m.n}" placeholder="-" onchange="saveAdmin()"><span class="vs">vs</span><input type="number" min="0" max="20" id="aa-${m.n}" placeholder="-" onchange="saveAdmin()"><button onclick="clearGSMatch(${m.n})" title="Clear this match result" style="margin-left:6px;background:transparent;border:1px solid var(--gray-300);color:var(--gray-500);border-radius:4px;width:24px;height:24px;font-size:0.8em;cursor:pointer;padding:0;line-height:1;">✕</button></div></div><div class="t-away">${fl(m.a)}${m.a}</div></div>`;
     });
   });
   c.innerHTML=h;
@@ -2959,7 +2859,7 @@ function renderAdminKO(){
     arr.forEach(m=>{
       const rA=resolveLabel(m.tA),rB=resolveLabel(m.tB);
       h+=`<div style="margin:6px 0;padding:8px 14px;border:1px solid var(--gray-200);border-radius:6px;">`;
-      h+=`<span style="font-size:0.78em;color:var(--regent);">M${m.n} · ${m.d} · ${rA} vs ${rB}</span><br>`;
+      h+=`<span style="font-size:0.78em;color:var(--regent);">M${dispM(m.n)} · ${m.d} · ${rA} vs ${rB}</span><br>`;
       h+=`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">`;
       h+=`<label style="font-size:0.82em;">Winner:</label><input type="text" id="akw-${m.n}" placeholder="Team name" style="width:150px;font-size:0.85em;" onchange="saveAdmin()">`;
       h+=`<label style="font-size:0.82em;">Score:</label><input type="number" id="akh-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()"><span style="color:var(--regent);">-</span><input type="number" id="aka-${m.n}" min="0" max="20" style="width:56px;height:40px;font-size:1em;font-weight:600;text-align:center;border-radius:5px;" placeholder="-" onchange="saveAdmin()">`;
@@ -3056,8 +2956,9 @@ function loadAdminData(){
   });
   const ac=document.getElementById('actChamp');if(ac)ac.value=S.admin.champion||'';
   const ag=document.getElementById('actGoals');if(ag&&S.admin.totalGoals!==null)ag.value=S.admin.totalGoals;
-  const ak=document.getElementById('apiKeyInput');if(ak)ak.value=S.apiKey||'';
-  if(S.apiKey){const st=document.getElementById('apiKeyStatus');if(st)st.innerHTML='<span style="color:var(--green);">✓ API key saved</span>';}
+  const ak=document.getElementById('apiKeyInput');if(ak)ak.value=getApiKey();
+  const aep=document.getElementById('apiEndpointInput');if(aep)aep.value=getApiEndpoint();
+  if(getApiKey()){const st=document.getElementById('apiKeyStatus');if(st)st.innerHTML='<span style="color:var(--green);">✓ API key saved in this browser</span>';}
 }
 
 function viewSubmittedPred(){
@@ -3071,13 +2972,13 @@ function viewSubmittedPred(){
   h+=`<h3 style="margin-top:10px;">Group Stage</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;font-size:0.82em;">`;
   GM.forEach(m=>{
     const pr=sub.gs[m.n];
-    h+=`<div style="padding:3px 6px;background:var(--gray-50);border-radius:4px;">M${m.n}: ${fl(m.h)}${m.h} ${pr?pr.h:'-'} - ${pr?pr.a:'-'} ${fl(m.a)}${m.a}</div>`;
+    h+=`<div style="padding:3px 6px;background:var(--gray-50);border-radius:4px;">M${dispM(m.n)}: ${fl(m.h)}${m.h} ${pr?pr.h:'-'} - ${pr?pr.a:'-'} ${fl(m.a)}${m.a}</div>`;
   });
   h+=`</div>`;
   h+=`<h3 style="margin-top:10px;">Knockout</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;font-size:0.82em;">`;
   ALLKO.forEach(m=>{
     const pr=sub.ko[m.n];
-    h+=`<div style="padding:3px 6px;background:var(--gray-50);border-radius:4px;">M${m.n}: Pick=${pr?pr.pick:'?'} Score=${pr?pr.h+'-'+pr.a:'?'}</div>`;
+    h+=`<div style="padding:3px 6px;background:var(--gray-50);border-radius:4px;">M${dispM(m.n)}: Pick=${pr?pr.pick:'?'} Score=${pr?pr.h+'-'+pr.a:'?'}</div>`;
   });
   h+=`</div>`;
   c.innerHTML=h;
@@ -3112,7 +3013,7 @@ function renderComparison(){
     }
     const predStr=pred?pred.h+' - '+pred.a:'<span style="color:var(--regent)">-</span>';
     const realStr=real?real.h+' - '+real.a:'<span style="color:var(--regent)">Not played</span>';
-    h+=`<tr><td>M${m.n}</td><td style="font-size:0.82em;">${fl(m.h)}${m.h} vs ${fl(m.a)}${m.a}</td><td>${predStr}</td><td>${realStr}</td><td>${real?'<span class="pts-badge '+cls+'">'+label+'</span>':''}</td><td>${real?pts:''}</td></tr>`;
+    h+=`<tr><td>M${dispM(m.n)}</td><td style="font-size:0.82em;">${fl(m.h)}${m.h} vs ${fl(m.a)}${m.a}</td><td>${predStr}</td><td>${realStr}</td><td>${real?'<span class="pts-badge '+cls+'">'+label+'</span>':''}</td><td>${real?pts:''}</td></tr>`;
   });
   h+=`<tr style="background:var(--gray-50);font-weight:700;"><td colspan="5" style="text-align:right;">Group Stage Total:</td><td>${totalGS}</td></tr>`;
   h+=`</tbody></table></div>`;
@@ -3144,7 +3045,7 @@ function renderComparison(){
     const predSS=pred?pred.h+' - '+pred.a:'-';
     const realW=real&&real.winner?real.winner:'<span style="color:var(--regent)">Not played</span>';
     const realSS=real&&real.winner?real.h+' - '+real.a:'';
-    h+=`<tr><td>M${m.n}</td><td style="font-size:0.82em;">${resolveLabel(m.tA)} vs ${resolveLabel(m.tB)}</td><td>${pickStr}</td><td>${predSS}</td><td>${realW}</td><td>${realSS}</td><td>${real&&real.winner?pts:''}</td></tr>`;
+    h+=`<tr><td>M${dispM(m.n)}</td><td style="font-size:0.82em;">${resolveLabel(m.tA)} vs ${resolveLabel(m.tB)}</td><td>${pickStr}</td><td>${predSS}</td><td>${realW}</td><td>${realSS}</td><td>${real&&real.winner?pts:''}</td></tr>`;
   });
   h+=`<tr style="background:var(--gray-50);font-weight:700;"><td colspan="6" style="text-align:right;">Knockout Total:</td><td>${totalKO}</td></tr>`;
   h+=`</tbody></table></div>`;
@@ -3295,15 +3196,17 @@ function calcLeaderboard(){
     if(delta<0)return '<span style="color:#dc2626;font-weight:700;white-space:nowrap;">▼ '+Math.abs(delta)+'</span>';
     return '<span style="color:var(--gray-400);">–</span>';
   }
+  // Competition ranking: equal totals share the same position (1,1,3,...)
+  const ranks=[];rows.forEach((r,i)=>{ranks[i]=(i>0&&r.total===rows[i-1].total)?ranks[i-1]:i+1;});
   tbody.innerHTML=rows.map((r,i)=>{
-    const rank=i+1;
+    const rank=ranks[i];
     const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
     const cls=rank<=3?'rank-'+rank:'';
     return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td style="text-align:center;">${moveCell(r.name,rank)}</td><td>${r.name}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td><td>${r.gs}</td><td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
   }).join('');
   // Expose the current ranking so the admin can capture it as the next snapshot baseline
   _currentRanks={};
-  rows.forEach((r,i)=>{_currentRanks[r.name]=i+1;});
+  rows.forEach((r,i)=>{_currentRanks[r.name]=ranks[i];});
 
   // ========== CITY COMPETITION TABLE ==========
   const cityStats={};
@@ -3339,8 +3242,9 @@ function calcLeaderboard(){
     cityTbody.innerHTML='<tr><td colspan="'+colSpan+'" style="text-align:center;color:var(--regent);padding:20px;">City standings will appear once results are entered.</td></tr>';
   } else {
     const cityEmoji={'Toronto':'🇨🇦','Montreal':'🇨🇦','Red Oak':'🇺🇸','Querétaro':'🇲🇽'};
+    const cityRanks=[];cityRows.forEach((c,i)=>{cityRanks[i]=(i>0&&c.avgTotal===cityRows[i-1].avgTotal)?cityRanks[i-1]:i+1;});
     cityTbody.innerHTML=cityRows.map((c,i)=>{
-      const rank=i+1;
+      const rank=cityRanks[i];
       const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
       const cls=rank<=3?'rank-'+rank:'';
       let leaderCell='';
@@ -3460,6 +3364,69 @@ function scoreSubmissionFull(sub){
   return {gs,ko,exactGS,exactKO,correctOut,koWinners,champBonus,tp,base:gs+ko+champBonus+tp};
 }
 
+// ---------- Match-by-match replay of the tournament ----------
+// Rebuilds the scoring timeline by applying each completed match (chronologically) to a
+// temporary admin state and re-scoring every locked submission after each one. Used for
+// King of the Hill and the daily points graph. Stored data is read-only here.
+function replayTimeline(){
+  const locked=leaderboardNames().filter(n=>{const s=S.submissions[n];return s&&s.locked;});
+  const events=[];
+  GM.forEach(m=>{ if(S.admin.groupResults[m.n]) events.push({m,type:'gs',t:(matchKickoffET(m)||new Date(0)).getTime()}); });
+  ALLKO.forEach(m=>{ const r=S.admin.koResults[m.n]; if(r&&r.winner) events.push({m,type:'ko',t:(matchKickoffET(m)||new Date(0)).getTime()}); });
+  events.sort((a,b)=>(a.t-b.t)||(a.m.n-b.m.n));
+  if(events.length===0||locked.length===0) return {steps:[],dates:[],people:locked};
+  const realAdmin=S.admin;
+  const tmp={groupResults:{},koResults:{},thirdPlace:realAdmin.thirdPlace||{},champion:null,totalGoals:null};
+  const steps=[];
+  try{
+    S.admin=tmp;
+    events.forEach(ev=>{
+      if(ev.type==='gs') tmp.groupResults[ev.m.n]=realAdmin.groupResults[ev.m.n];
+      else { tmp.koResults[ev.m.n]=realAdmin.koResults[ev.m.n]; if(ev.m.n===104) tmp.champion=realAdmin.champion; }
+      const scores={};
+      locked.forEach(n=>{ scores[n]=scoreSubmissionFull(S.submissions[n]).base; });
+      steps.push({n:ev.m.n,d:ev.m.d,t:ev.t,scores});
+    });
+  } finally { S.admin=realAdmin; }
+  // Cumulative standing at the END of each match day = last step of that date
+  const dates=[];const seen={};
+  steps.forEach(st=>{ if(seen[st.d]===undefined){seen[st.d]=dates.length;dates.push({label:st.d,scores:st.scores});} else dates[seen[st.d]].scores=st.scores; });
+  return {steps,dates,people:locked};
+}
+
+const GRAPH_COLORS=['#0f2557','#c9a84c','#059669','#dc2626','#7c3aed'];
+function drawPointsGraph(people){
+  const cv=document.getElementById('ptsGraph'); const note=document.getElementById('ptsGraphNote');
+  if(!cv)return;
+  const tl=replayTimeline();
+  if(!tl.dates.length){ cv.style.display='none'; if(note)note.textContent='The daily performance graph will appear once match results are entered.'; return; }
+  cv.style.display='';
+  const W=cv.parentElement?Math.max(320,Math.min(900,cv.parentElement.clientWidth-10)):700, H=300;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  const padL=46,padR=14,padT=14,padB=36;
+  const xs=tl.dates.map((d,i)=>padL+(W-padL-padR)*(tl.dates.length===1?0.5:i/(tl.dates.length-1)));
+  let maxY=10;people.forEach(p=>tl.dates.forEach(d=>{const v=d.scores[p]||0;if(v>maxY)maxY=v;}));
+  maxY=Math.ceil(maxY/10)*10;
+  const yOf=(v)=>padT+(H-padT-padB)*(1-v/maxY);
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#e5e7eb';ctx.fillStyle='#6b7280';ctx.font='10px Inter,sans-serif';ctx.lineWidth=1;
+  for(let g=0;g<=4;g++){const v=maxY*g/4,yy=yOf(v);ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();ctx.textAlign='right';ctx.fillText(String(Math.round(v)),padL-6,yy+3);}
+  ctx.textAlign='center';
+  const skip=Math.max(1,Math.ceil(tl.dates.length/8));
+  tl.dates.forEach((d,i)=>{ if(i%skip===0||i===tl.dates.length-1) ctx.fillText(d.label,xs[i],H-padB+16); });
+  people.forEach((p,pi)=>{
+    const col=GRAPH_COLORS[pi%GRAPH_COLORS.length];
+    ctx.strokeStyle=col;ctx.lineWidth=2.2;ctx.beginPath();
+    tl.dates.forEach((d,i)=>{const yy=yOf(d.scores[p]||0);if(i===0)ctx.moveTo(xs[i],yy);else ctx.lineTo(xs[i],yy);});
+    ctx.stroke();
+    ctx.fillStyle=col;
+    tl.dates.forEach((d,i)=>{ctx.beginPath();ctx.arc(xs[i],yOf(d.scores[p]||0),3,0,7);ctx.fill();});
+  });
+  if(note)note.textContent='Cumulative points at the end of each match day (closest-goals bonus excluded — it is only decided at the end of the tournament).';
+}
+
+
 function renderStats(){
   calcLeaderboard();            // refresh _currentRanks + champion pie/map data
   renderChampDistribution();    // (re)draw pie + world map now that the tab is visible
@@ -3477,23 +3444,45 @@ function renderFunStats(){
   const locked=leaderboardNames().filter(n=>{const s=S.submissions[n];return s&&s.locked;});
   if(locked.length===0){grid.innerHTML='<p style="color:var(--regent);">No submitted predictions yet — superlatives will appear once people lock in their picks.</p>';return;}
 
-  // Per-person metrics
   const goalsActual=(S.admin.totalGoals!==null&&S.admin.totalGoals!==undefined)?S.admin.totalGoals:null;
+  // Completed group matches in chronological order (for streaks / upsets)
+  const doneGM=GM.filter(m=>S.admin.groupResults[m.n]).sort(byKickoff);
+  // Majority predicted outcome per completed match (for Upset Artist)
+  const majority={};
+  doneGM.forEach(m=>{
+    const counts={'1':0,'0':0,'-1':0};
+    locked.forEach(n=>{const pr=(S.submissions[n].gs||{})[m.n];if(pr)counts[String(Math.sign(pr.h-pr.a))]++;});
+    let best=null,bestC=-1;['1','0','-1'].forEach(k=>{if(counts[k]>bestC){bestC=counts[k];best=k;}});
+    majority[m.n]={sign:best,count:bestC,total:counts['1']+counts['0']+counts['-1']};
+  });
+
   const people=locked.map(name=>{
     const sub=S.submissions[name];
     const sc=scoreSubmissionFull(sub);
-    const total=sc.base; // goals bonus added below
     const goalsDiff=(goalsActual!==null&&sub.totalGoals!==null&&sub.totalGoals!==undefined)?Math.abs(sub.totalGoals-goalsActual):null;
-    return {name,sub,champion:sub.champion?canonicalTeam(sub.champion):null,...sc,total,goalsDiff,totalGoals:sub.totalGoals};
+    // draws correctly called, upsets, longest correct-outcome streak (group stage, chronological)
+    let draws=0,upsets=0,streak=0,bestStreak=0;
+    doneGM.forEach(m=>{
+      const real=S.admin.groupResults[m.n],pr=(sub.gs||{})[m.n];
+      const ok=pr&&Math.sign(real.h-real.a)===Math.sign(pr.h-pr.a);
+      if(ok){
+        streak++;if(streak>bestStreak)bestStreak=streak;
+        if(real.h===real.a)draws++;
+        const mj=majority[m.n];
+        if(mj&&mj.total>=3&&String(Math.sign(pr.h-pr.a))!==mj.sign)upsets++;
+      } else streak=0;
+    });
+    return {name,sub,champion:sub.champion?canonicalTeam(sub.champion):null,...sc,total:sc.base,goalsDiff,totalGoals:sub.totalGoals,draws,upsets,bestStreak};
   });
-  // goals bonus = closest in field
   let minGoalsDiff=Infinity;people.forEach(p=>{if(p.goalsDiff!==null&&p.goalsDiff<minGoalsDiff)minGoalsDiff=p.goalsDiff;});
   people.forEach(p=>{p.goalsBonus=(p.goalsDiff!==null&&p.goalsDiff===minGoalsDiff)?P.GOALS:0;p.total+=p.goalsBonus;});
 
   const resultsExist=Object.keys(S.admin.groupResults||{}).length>0||Object.keys(S.admin.koResults||{}).length>0;
   const cur=_currentRanks||{}, snap=S.rankSnapshot||{};
+  // Beside each name, show the country (champion) that person supports
+  const byName={};people.forEach(p=>{byName[p.name]=p;});
+  const tag=(name)=>{const p=byName[name];return name+(p&&p.champion?(' '+fl(p.champion)):'');};
 
-  // Movement
   let climber=null,faller=null;
   people.forEach(p=>{
     if(snap[p.name]!==undefined&&cur[p.name]!==undefined){
@@ -3502,49 +3491,60 @@ function renderFunStats(){
       if(mv<0&&(!faller||mv<faller.mv))faller={name:p.name,mv};
     }
   });
-  const top=(arr,key)=>arr.slice().sort((a,b)=>b[key]-a[key])[0];
-  const bottom=(arr,key,filter)=>{const f=arr.filter(filter||(()=>true));return f.length?f.slice().sort((a,b)=>a[key]-b[key])[0]:null;};
-
-  const sharpest=top(people,'total');
-  const gsGuru=top(people,'gs');
-  const koKing=top(people,'ko');
+  const top=(key)=>people.slice().sort((a,b)=>b[key]-a[key])[0];
+  const sharpest=top('total'),gsGuru=top('gs'),koKing=top('ko');
   const exactWiz=people.slice().sort((a,b)=>(b.exactGS+b.exactKO)-(a.exactGS+a.exactKO))[0];
-  const goalOracle=bottom(people,'goalsDiff',p=>p.goalsDiff!==null);
+  const drawWhiz=top('draws'),upsetArtist=top('upsets'),streaker=top('bestStreak');
+  const goalCands=people.filter(p=>p.goalsDiff!==null);
+  const goalOracle=goalCands.length?goalCands.slice().sort((a,b)=>a.goalsDiff-b.goalsDiff)[0]:null;
 
-  // People's Champion + Contrarian
+  // King of the Hill — who (and which city) has spent the most completed-match steps in 1st
+  const tl=replayTimeline();
+  const leadCounts={},cityLeadCounts={};
+  tl.steps.forEach(st=>{
+    let max=-1;Object.keys(st.scores).forEach(n=>{if(st.scores[n]>max)max=st.scores[n];});
+    if(max>0)Object.keys(st.scores).forEach(n=>{if(st.scores[n]===max)leadCounts[n]=(leadCounts[n]||0)+1;});
+    // city averages at this step
+    const cs={};Object.keys(st.scores).forEach(n=>{const c=S.submissions[n]&&S.submissions[n].city;if(!c)return;if(!cs[c])cs[c]={sum:0,k:0};cs[c].sum+=st.scores[n];cs[c].k++;});
+    let bc=null,bv=-1;Object.keys(cs).forEach(c=>{const avg=cs[c].sum/cs[c].k;if(avg>bv){bv=avg;bc=c;}});
+    if(bc&&bv>0)cityLeadCounts[bc]=(cityLeadCounts[bc]||0)+1;
+  });
+  let koth=null;Object.keys(leadCounts).forEach(n=>{if(!koth||leadCounts[n]>leadCounts[koth])koth=n;});
+  let kothCity=null;Object.keys(cityLeadCounts).forEach(c=>{if(!kothCity||cityLeadCounts[c]>cityLeadCounts[kothCity])kothCity=c;});
+  const totalSteps=tl.steps.length;
+
   const champCounts={};people.forEach(p=>{if(p.champion)champCounts[p.champion]=(champCounts[p.champion]||0)+1;});
   const champEntries=Object.entries(champCounts).sort((a,b)=>b[1]-a[1]);
   const peopleChamp=champEntries[0]||null;
-  // Lone Wolves: everyone who is the SOLE backer of their champion pick (not just one person).
-  const loneWolves=people.filter(p=>p.champion&&champCounts[p.champion]===1)
-                         .sort((a,b)=>a.name.localeCompare(b.name));
+  const loneWolves=people.filter(p=>p.champion&&champCounts[p.champion]===1).sort((a,b)=>a.name.localeCompare(b.name));
 
   const card=(emoji,title,winner,detail,disabled)=>{
     const w=disabled?'<span style="color:var(--regent);">Awaiting results</span>':(winner||'<span style="color:var(--regent);">—</span>');
     return `<div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px;padding:14px;">
       <div style="font-size:0.72em;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">${emoji} ${title}</div>
-      <div style="font-size:1.15em;font-weight:700;margin:6px 0 2px;">${w}</div>
+      <div style="font-size:1.12em;font-weight:700;margin:6px 0 2px;">${w}</div>
       <div style="font-size:0.82em;color:var(--regent);">${disabled?'':(detail||'')}</div>
     </div>`;
   };
   let h='';
-  // Movement
-  h+=card('📈','Biggest Climber',climber?climber.name:null,climber?('▲ '+climber.mv+' spot'+(climber.mv>1?'s':'')+' up the table'):'No movement yet',!resultsExist&&!climber);
-  h+=card('📉','Hardest Drop',faller?faller.name:null,faller?('▼ '+Math.abs(faller.mv)+' spot'+(Math.abs(faller.mv)>1?'s':'')+' down'):'No drops yet',!resultsExist&&!faller);
-  // Performance
-  h+=card('🎯','Sharpest Predictor',resultsExist?sharpest.name:null,resultsExist?(sharpest.total+' total points'):'',!resultsExist);
-  h+=card('⚽','Group-Stage Guru',resultsExist?gsGuru.name:null,resultsExist?(gsGuru.gs+' group pts · '+gsGuru.correctOut+' correct results'):'',!resultsExist);
-  h+=card('🏰','Knockout King',resultsExist?koKing.name:null,resultsExist?(koKing.ko+' knockout pts · '+koKing.koWinners+' winners called'):'',!resultsExist);
-  h+=card('🎩','Exact-Score Wizard',resultsExist?exactWiz.name:null,resultsExist?((exactWiz.exactGS+exactWiz.exactKO)+' exact scorelines nailed'):'',!resultsExist);
-  h+=card('🔮','Goal Oracle',(goalOracle?goalOracle.name:null),goalOracle?('guessed '+goalOracle.totalGoals+' · actual '+goalsActual+' (off by '+goalOracle.goalsDiff+')'):'Total goals not entered yet',goalsActual===null);
-  // Champion-based (work pre-tournament)
+  h+=card('📈','Biggest Climber',climber?tag(climber.name):null,climber?('▲ '+climber.mv+' spot'+(climber.mv>1?'s':'')+' up the table'):'No movement yet',!climber);
+  h+=card('📉','Hardest Drop',faller?tag(faller.name):null,faller?('▼ '+Math.abs(faller.mv)+' spot'+(Math.abs(faller.mv)>1?'s':'')+' down'):'No drops yet',!faller);
+  h+=card('🎯','Sharpest Predictor',sharpest&&sharpest.total>0?tag(sharpest.name):null,sharpest&&sharpest.total>0?(sharpest.total+' total points'):'',!(resultsExist&&sharpest&&sharpest.total>0));
+  h+=card('⚽','Group-Stage Guru',gsGuru&&gsGuru.gs>0?tag(gsGuru.name):null,gsGuru&&gsGuru.gs>0?(gsGuru.gs+' group pts · '+gsGuru.correctOut+' correct results'):'',!(gsGuru&&gsGuru.gs>0));
+  h+=card('🏰','Knockout King',koKing&&koKing.ko>0?tag(koKing.name):null,koKing&&koKing.ko>0?(koKing.ko+' knockout pts · '+koKing.koWinners+' winners called'):'',!(koKing&&koKing.ko>0));
+  h+=card('🎩','Exact-Score Wizard',exactWiz&&(exactWiz.exactGS+exactWiz.exactKO)>0?tag(exactWiz.name):null,exactWiz&&(exactWiz.exactGS+exactWiz.exactKO)>0?((exactWiz.exactGS+exactWiz.exactKO)+' exact scorelines nailed'):'',!(exactWiz&&(exactWiz.exactGS+exactWiz.exactKO)>0));
+  h+=card('👑','King of the Hill',koth?tag(koth):null,koth?('in 1st place after '+leadCounts[koth]+' of '+totalSteps+' completed matches'):'',!koth);
+  h+=card('🏙️','City on the Hill',kothCity||null,kothCity?('top city after '+cityLeadCounts[kothCity]+' of '+totalSteps+' completed matches'):'',!kothCity);
+  h+=card('🔮','Goal Oracle',goalOracle?tag(goalOracle.name):null,goalOracle?('guessed '+goalOracle.totalGoals+' · actual '+goalsActual+' (off by '+goalOracle.goalsDiff+')'):'Total goals not entered yet',goalsActual===null);
+  h+=card('🤝','Draw Whisperer',drawWhiz&&drawWhiz.draws>0?tag(drawWhiz.name):null,drawWhiz&&drawWhiz.draws>0?(drawWhiz.draws+' draw'+(drawWhiz.draws>1?'s':'')+' correctly called'):'',!(drawWhiz&&drawWhiz.draws>0));
+  h+=card('🎲','Upset Artist',upsetArtist&&upsetArtist.upsets>0?tag(upsetArtist.name):null,upsetArtist&&upsetArtist.upsets>0?(upsetArtist.upsets+' correct call'+(upsetArtist.upsets>1?'s':'')+' against the pool majority'):'',!(upsetArtist&&upsetArtist.upsets>0));
+  h+=card('🔥','Hot Streak',streaker&&streaker.bestStreak>=2?tag(streaker.name):null,streaker&&streaker.bestStreak>=2?(streaker.bestStreak+' correct results in a row'):'',!(streaker&&streaker.bestStreak>=2));
   h+=card('👑','The People\u2019s Champion',peopleChamp?(fl(peopleChamp[0])+peopleChamp[0]):null,peopleChamp?(peopleChamp[1]+' of '+locked.length+' backers · '+Math.round(peopleChamp[1]/locked.length*100)+'%'):'No champions picked');
-  // Lone Wolves — there can be several, so report the count and list them.
   let lwVal,lwDetail;
   if(loneWolves.length===0){lwVal='None';lwDetail='every champion pick is shared by at least two people';}
   else{
     lwVal=loneWolves.length+(loneWolves.length===1?' lone wolf':' lone wolves');
-    const tags=loneWolves.map(p=>p.name+' → '+p.champion);
+    const tags=loneWolves.map(p=>p.name+' → '+fl(p.champion)+p.champion);
     lwDetail=tags.slice(0,10).join(' · ')+(tags.length>10?' · +'+(tags.length-10)+' more':'');
   }
   h+=card('🐺','Lone Wolves',lwVal,lwDetail);
@@ -3613,14 +3613,74 @@ function updateWorldMap(teams){
 }
 
 // ============================
-// LIVE SCORES API (api-football via RapidAPI)
+// LIVE SCORES API (Mkashii "FIFA World Cup 2026 Live Data" via RapidAPI)
 // ============================
+const MK_HOST='fifa-world-cup-2026-live-data.p.rapidapi.com';
+function getApiKey(){ try{return localStorage.getItem('wc26_apiKey')||'';}catch(e){return '';} }
+function getApiEndpoint(){ try{return localStorage.getItem('wc26_apiEndpoint')||'/matches';}catch(e){return '/matches';} }
 function saveApiKey(){
   const k=document.getElementById('apiKeyInput').value.trim();
-  S.apiKey=k;save();
+  let ep=(document.getElementById('apiEndpointInput').value.trim())||'/matches';
+  if(ep[0]!=='/')ep='/'+ep;
+  try{localStorage.setItem('wc26_apiKey',k);localStorage.setItem('wc26_apiEndpoint',ep);}catch(e){}
   const st=document.getElementById('apiKeyStatus');
-  if(k)st.innerHTML='<span style="color:var(--green);">✓ API key saved</span>';
+  if(k)st.innerHTML='<span style="color:var(--green);">✓ Saved (key stored in this browser). Endpoint: '+ep+'</span>';
   else st.innerHTML='<span style="color:var(--red);">Key cleared</span>';
+}
+
+// ---- Defensive response parsing (we don't know the exact Mkashii schema, so probe common shapes) ----
+function getPath(obj,path){ return path.split('.').reduce((o,k)=>(o&&o[k]!==undefined&&o[k]!==null)?o[k]:undefined, obj); }
+function pickVal(obj,paths){ for(const p of paths){ const v=getPath(obj,p); if(v!==undefined&&v!==null&&v!=='') return v; } return undefined; }
+function pickNum(obj,paths){ const v=pickVal(obj,paths); if(v===undefined)return undefined; const n=parseInt(v,10); return isNaN(n)?undefined:n; }
+// Find the array of match objects anywhere reasonable in the response
+function extractMatchesArray(data){
+  if(Array.isArray(data))return data;
+  if(!data||typeof data!=='object')return null;
+  for(const key of ['matches','fixtures','results','response','data','games','schedule','events','list']){
+    if(Array.isArray(data[key]))return data[key];
+    if(data[key]&&Array.isArray(data[key].matches))return data[key].matches;
+    if(data[key]&&Array.isArray(data[key].fixtures))return data[key].fixtures;
+  }
+  for(const k of Object.keys(data)){ if(Array.isArray(data[k])&&data[k].length&&typeof data[k][0]==='object')return data[k]; }
+  return null;
+}
+// Pull home/away team names + scores from one match object, trying many field shapes
+function extractMatch(fix){
+  const homeName=pickVal(fix,['homeTeam.name','home_team.name','home.name','teams.home.name','homeTeam','home_team','home','homeTeamName','home_team_name','strHomeTeam','team1','team_home']);
+  const awayName=pickVal(fix,['awayTeam.name','away_team.name','away.name','teams.away.name','awayTeam','away_team','away','awayTeamName','away_team_name','strAwayTeam','team2','team_away']);
+  let hs=pickNum(fix,['homeScore','home_score','score.home','score.fullTime.home','score.ft.home','goals.home','intHomeScore','home_goals','homeGoals','scoreHome','ft_home','result.home','team1_score']);
+  let as=pickNum(fix,['awayScore','away_score','score.away','score.fullTime.away','score.ft.away','goals.away','intAwayScore','away_goals','awayGoals','scoreAway','ft_away','result.away','team2_score']);
+  // Fallback: a combined "2-1" style score string
+  if((hs===undefined||as===undefined)){
+    const combo=pickVal(fix,['score','result','ft_score','fullTime','final_score','scoreline']);
+    if(typeof combo==='string'){ const mm=combo.match(/(\d+)\s*[-:–]\s*(\d+)/); if(mm){hs=parseInt(mm[1],10);as=parseInt(mm[2],10);} }
+  }
+  const status=pickVal(fix,['status','status.short','fixture.status.short','matchStatus','state','strStatus','status.long','statusType']);
+  return {homeName:homeName&&String(homeName),awayName:awayName&&String(awayName),hs,as,status:status?String(status):''};
+}
+
+// Preview what an endpoint actually returns, so we can confirm/adjust the field mapping
+async function previewApiResponse(){
+  const key=getApiKey(), ep=getApiEndpoint();
+  const out=document.getElementById('apiPreview');
+  const st=document.getElementById('apiKeyStatus');
+  if(!key){st.innerHTML='<span style="color:var(--red);">Enter and Save your key first.</span>';return;}
+  out.style.display='';out.textContent='Requesting '+ep+' …';
+  try{
+    const resp=await fetch('https://'+MK_HOST+ep,{headers:{'x-rapidapi-key':key,'x-rapidapi-host':MK_HOST,'Content-Type':'application/json'}});
+    const text=await resp.text();
+    let data;try{data=JSON.parse(text);}catch(e){out.textContent='HTTP '+resp.status+' — non-JSON response:\n'+text.slice(0,1500);return;}
+    const arr=extractMatchesArray(data);
+    let summary='HTTP '+resp.status+'\nTop-level keys: '+(Array.isArray(data)?'(array)':Object.keys(data).join(', '))+'\n';
+    if(arr){
+      summary+='Found a list of '+arr.length+' items. First item parsed as:\n';
+      const s=extractMatch(arr[0]);
+      summary+=JSON.stringify(s,null,2)+'\n\nRaw first item:\n'+JSON.stringify(arr[0],null,2);
+    } else {
+      summary+='(No match-list array auto-detected.)\n\nRaw response (truncated):\n'+JSON.stringify(data,null,2).slice(0,1800);
+    }
+    out.textContent=summary;
+  }catch(e){ out.textContent='Request failed: '+e.message+'\n\nIf this is a CORS error, the API must allow browser requests; otherwise it has to be called from a small proxy/server.'; }
 }
 
 // Team name aliases — API may return different names than our internal list
@@ -3660,113 +3720,70 @@ function findMatchByTeams(homeApi,awayApi){
   return null;
 }
 
-async function fetchLiveScores(statusFilter){
-  if(!S.apiKey){alert('Please set your API key in the API Setup section above first.');return;}
+async function fetchLiveScores(){
+  const key=getApiKey(), ep=getApiEndpoint();
+  if(!key){alert('Please set your x-rapidapi-key in the API Setup section above first.');return;}
   const btn=document.getElementById('fetchBtn');
   const status=document.getElementById('fetchStatus');
   const log=document.getElementById('fetchLog');
   btn.disabled=true;
   document.getElementById('fetchBtnText').textContent='Fetching...';
-  status.textContent='Connecting to API-Football...';
-  log.style.display='';
-  log.innerHTML='';
+  status.textContent='Connecting to the World Cup API...';
+  log.style.display='';log.innerHTML='';
   let logLines=[];
   function addLog(msg,type){
     const color=type==='ok'?'var(--green)':type==='warn'?'#b45309':type==='err'?'var(--red)':'var(--gray-600)';
     logLines.push('<div style="color:'+color+';">'+msg+'</div>');
-    log.innerHTML=logLines.join('');
-    log.scrollTop=log.scrollHeight;
+    log.innerHTML=logLines.join('');log.scrollTop=log.scrollHeight;
   }
-
   try{
-    // API-Football: World Cup league ID = 1, season = 2026
-    // Also try league 1 for FIFA World Cup
-    const baseUrl='https://api-football-v1.p.rapidapi.com/v3/fixtures';
-    const params=statusFilter?`?league=1&season=2026&status=${statusFilter}`:'?league=1&season=2026';
-    addLog('Requesting fixtures from API-Football (League 1, Season 2026)...','');
-
-    const resp=await fetch(baseUrl+params,{
-      method:'GET',
-      headers:{
-        'X-RapidAPI-Key':S.apiKey,
-        'X-RapidAPI-Host':'api-football-v1.p.rapidapi.com'
-      }
-    });
+    addLog('Requesting '+ep+' from '+MK_HOST+' …','');
+    const resp=await fetch('https://'+MK_HOST+ep,{headers:{'x-rapidapi-key':key,'x-rapidapi-host':MK_HOST,'Content-Type':'application/json'}});
     if(!resp.ok){
-      if(resp.status===403)addLog('Error 403: Invalid API key or subscription expired.','err');
-      else if(resp.status===429)addLog('Error 429: Rate limit exceeded. Try again later (100 req/day on free plan).','err');
+      if(resp.status===401||resp.status===403)addLog('Error '+resp.status+': key invalid or not subscribed to this API.','err');
+      else if(resp.status===404)addLog('Error 404: endpoint "'+ep+'" not found. Try /matches, /fixtures or /results, then Preview.','err');
+      else if(resp.status===429)addLog('Error 429: rate limit reached — wait and retry.','err');
       else addLog('HTTP Error '+resp.status+': '+resp.statusText,'err');
       throw new Error('API request failed');
     }
     const data=await resp.json();
-    if(data.errors&&Object.keys(data.errors).length>0){
-      addLog('API returned errors: '+JSON.stringify(data.errors),'err');
-      throw new Error('API errors');
+    const fixtures=extractMatchesArray(data);
+    if(!fixtures){
+      addLog('Could not find a list of matches in the response.','err');
+      addLog('This endpoint may be /standings (table only). Use 🔍 Preview to inspect it and pick the matches endpoint.','warn');
+      throw new Error('no match list');
     }
-    const fixtures=data.response||[];
-    addLog('Received '+fixtures.length+' fixtures from API.','ok');
-
-    if(fixtures.length===0){
-      addLog('No fixtures found. The World Cup 2026 schedule may not be available yet in the API, or try a different league ID.','warn');
-      addLog('Tip: Once the tournament starts (June 2026), fixtures will appear automatically.','');
-      // Try alternative league IDs
-      addLog('Trying alternative league IDs (15 for Club World Cup, etc.)...','');
-      status.textContent='No fixtures found for League 1 / Season 2026. See log for details.';
-      btn.disabled=false;
-      document.getElementById('fetchBtnText').textContent='⚡ Fetch Live Scores';
-      return;
-    }
-
-    let updated=0,skipped=0;
+    addLog('Received '+fixtures.length+' items from API.','ok');
+    let updated=0,skipped=0,nofinal=0;
     fixtures.forEach(fix=>{
-      const homeTeam=fix.teams?.home?.name;
-      const awayTeam=fix.teams?.away?.name;
-      const homeGoals=fix.goals?.home;
-      const awayGoals=fix.goals?.away;
-      const fixStatus=fix.fixture?.status?.short; // FT, 1H, 2H, NS, etc.
-
-      if(homeGoals===null||awayGoals===null||homeGoals===undefined||awayGoals===undefined){
-        skipped++;
-        return;
-      }
-
-      // Try to match to our match list
-      const match=findMatchByTeams(homeTeam,awayTeam);
+      const x=extractMatch(fix);
+      if(!x.homeName||!x.awayName){skipped++;return;}
+      if(x.hs===undefined||x.as===undefined){nofinal++;return;} // not played yet / no score
+      const match=findMatchByTeams(x.homeName,x.awayName);
       if(match&&match.type==='gs'){
         const m=match.match;
-        const hScore=match.swapped?awayGoals:homeGoals;
-        const aScore=match.swapped?homeGoals:awayGoals;
-        // Update admin fields
+        const hScore=match.swapped?x.as:x.hs;
+        const aScore=match.swapped?x.hs:x.as;
         S.admin.groupResults[m.n]={h:hScore,a:aScore};
-        const hEl=document.getElementById('ah-'+m.n);
-        const aEl=document.getElementById('aa-'+m.n);
-        if(hEl)hEl.value=hScore;
-        if(aEl)aEl.value=aScore;
-        addLog('✓ M'+m.n+': '+m.h+' '+hScore+' - '+aScore+' '+m.a+' ('+fixStatus+')','ok');
+        const hEl=document.getElementById('ah-'+m.n),aEl=document.getElementById('aa-'+m.n);
+        if(hEl)hEl.value=hScore;if(aEl)aEl.value=aScore;
+        addLog('✓ M'+dispM(m.n)+': '+m.h+' '+hScore+'–'+aScore+' '+m.a+(x.status?' ('+x.status+')':''),'ok');
         updated++;
       } else {
-        // Could be knockout match — log for manual entry
-        addLog('⚠ Unmatched: '+homeTeam+' '+homeGoals+' - '+awayGoals+' '+awayTeam+' — enter knockout results manually.','warn');
+        addLog('⚠ Unmatched: '+x.homeName+' '+x.hs+'–'+x.as+' '+x.awayName+' — knockout or name mismatch; enter manually.','warn');
         skipped++;
       }
     });
-
     save();
     addLog('','');
-    addLog('Done! Updated '+updated+' matches, '+skipped+' skipped/unmatched.','ok');
-    addLog('Knockout matches need manual entry for the advancing team name.','warn');
-    status.textContent='Updated '+updated+' matches. Review and save below.';
-
+    addLog('Done! Updated '+updated+' group matches. '+skipped+' unmatched, '+nofinal+' without a score yet.','ok');
+    addLog('Knockout results still need manual entry (the advancing team name).','warn');
+    status.textContent='Updated '+updated+' matches — review and Save below.';
   }catch(err){
     addLog('Fetch failed: '+err.message,'err');
-    addLog('','');
-    addLog('Troubleshooting:','');
-    addLog('• Verify your API key at rapidapi.com/api-sports/api/api-football','');
-    addLog('• Free plan allows 100 requests/day','');
-    addLog('• World Cup 2026 fixtures may not be loaded until closer to the tournament','');
+    addLog('Tips: confirm your key is subscribed to this API, and that the endpoint returns individual matches (use 🔍 Preview).','');
     status.textContent='Error — see log above.';
   }
-
   btn.disabled=false;
   document.getElementById('fetchBtnText').textContent='⚡ Fetch Live Scores';
 }
@@ -3792,27 +3809,29 @@ function importData(){
 // ============================
 // Populate the view/compare selectors (called when predict tab shown)
 function populateViewSelectors(){
-  const s1=document.getElementById('viewPerson1');
-  const s2=document.getElementById('viewPerson2');
-  if(!s1||!s2)return;
   const submitted=leaderboardNames().filter(p=>S.submissions[p]&&S.submissions[p].locked);
-  const cur1=s1.value,cur2=s2.value;
-  s1.innerHTML='<option value="">-- Select --</option>'+submitted.map(p=>`<option value="${p}"${p===cur1?' selected':''}>${p}</option>`).join('');
-  s2.innerHTML='<option value="">-- None --</option>'+submitted.map(p=>`<option value="${p}"${p===cur2?' selected':''}>${p}</option>`).join('');
+  for(let i=1;i<=5;i++){
+    const sel=document.getElementById('viewPerson'+i);
+    if(!sel)continue;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">'+(i===1?'-- Select --':'-- None --')+'</option>'+submitted.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  }
 }
 
 function renderComparison(){
-  const p1=document.getElementById('viewPerson1').value;
-  const p2=document.getElementById('viewPerson2').value;
   const cont=document.getElementById('viewMyContent');
-  if(!p1){cont.style.display='none';return;}
+  // Gather up to 5 selected, deduplicated participants (slot 1 is required)
+  const people=[];
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('viewPerson'+i);
+    const v=el?el.value:'';
+    if(v&&S.submissions[v]&&!people.includes(v))people.push(v);
+  }
+  if(people.length===0){cont.style.display='none';return;}
   cont.style.display='';
-  const sub1=S.submissions[p1];
-  const sub2=p2?S.submissions[p2]:null;
-  if(!sub1){cont.innerHTML='<p style="color:var(--regent);">No predictions found.</p>';return;}
 
   // ---- Per-prediction scoring helpers (mirror calcLeaderboard exactly) ----
-  const gsPts=(pr,real)=>{ // null = not scorable yet
+  const gsPts=(pr,real)=>{
     if(!pr||!real)return null;
     const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pr.h-pr.a);
     if(rOut!==pOut)return 0;
@@ -3833,15 +3852,13 @@ function renderComparison(){
     const cl=sub.champion.toLowerCase();
     const wonAny=(mns)=>mns.some(mn=>{const r=S.admin.koResults[mn];return r&&r.winner&&r.winner.toLowerCase()===cl;});
     const inR32=ALLKO.filter(m=>m.n>=73&&m.n<=88).some(m=>{const tA=resolveSlot(m.tA,m.n),tB=resolveSlot(m.tB,m.n);return(tA&&tA.toLowerCase()===cl)||(tB&&tB.toLowerCase()===cl);});
-    const anyKO=Object.keys(S.admin.koResults||{}).length>0;
-    const anyGS=Object.keys(S.admin.groupResults||{}).length>0;
-    const push=(label,pts,hit,known)=>{steps.push({label,pts,hit,known});if(hit)total+=pts;};
-    push('Reaches R32',P.CHAMP_R32,inR32,anyGS||anyKO);
-    push('Reaches R16',P.CHAMP_R16,wonAny([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88]),anyKO);
-    push('Reaches QF',P.CHAMP_QF,wonAny([89,90,91,92,93,94,95,96]),anyKO);
-    push('Reaches SF',P.CHAMP_SF,wonAny([97,98,99,100]),anyKO);
-    push('Reaches Final',P.CHAMP_FIN,wonAny([101,102]),anyKO);
-    push('Wins it all',P.CHAMP_WIN,!!(S.admin.champion&&cl===S.admin.champion.toLowerCase()),!!S.admin.champion);
+    const push=(label,pts,hit)=>{steps.push({label,pts,hit});if(hit)total+=pts;};
+    push('Reaches R32',P.CHAMP_R32,inR32);
+    push('Reaches R16',P.CHAMP_R16,wonAny([73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88]));
+    push('Reaches QF',P.CHAMP_QF,wonAny([89,90,91,92,93,94,95,96]));
+    push('Reaches SF',P.CHAMP_SF,wonAny([97,98,99,100]));
+    push('Reaches Final',P.CHAMP_FIN,wonAny([101,102]));
+    push('Wins it all',P.CHAMP_WIN,!!(S.admin.champion&&cl===S.admin.champion.toLowerCase()));
     return{total,steps};
   };
   const tpPtsFor=(sub)=>{
@@ -3862,7 +3879,6 @@ function renderComparison(){
     if(pts>0)return `<span style="color:#059669;font-weight:700;">+${pts}</span>`;
     return '<span style="color:#dc2626;">0</span>';
   };
-  // aggregate per person
   const scoreAll=(sub)=>{
     const gsMap={},koMap={};let gs=0,ko=0;
     GM.forEach(m=>{const pts=gsPts((sub.gs||{})[m.n],S.admin.groupResults[m.n]);gsMap[m.n]=pts;if(pts)gs+=pts;});
@@ -3870,108 +3886,124 @@ function renderComparison(){
     const champ=champBreakdown(sub),tp=tpPtsFor(sub);
     return{gsMap,koMap,gs,ko,champ,tp};
   };
-  const sc1=scoreAll(sub1),goals1=goalsBonusFor(p1);
-  const sc2=sub2?scoreAll(sub2):null,goals2=sub2?goalsBonusFor(p2):null;
-  const total1=sc1.gs+sc1.ko+sc1.champ.total+sc1.tp.total+(goals1||0);
-  const total2=sc2?(sc2.gs+sc2.ko+sc2.champ.total+sc2.tp.total+(goals2||0)):0;
+  const P5=people.map((name,i)=>{
+    const sub=S.submissions[name];
+    const sc=scoreAll(sub);
+    const goals=goalsBonusFor(name);
+    return {name,sub,sc,goals,total:sc.gs+sc.ko+sc.champ.total+sc.tp.total+(goals||0),color:GRAPH_COLORS[i%GRAPH_COLORS.length]};
+  });
+  const multi=P5.length>1;
+
+  // Centered "v" matchup label: home right-aligned, v dead-centre, away left-aligned
+  const matchCell=(m)=>`<div style="display:grid;grid-template-columns:1fr 18px 1fr;align-items:center;gap:2px;"><span style="text-align:right;white-space:nowrap;">${fl(m.h)}${m.h}</span><span style="text-align:center;color:var(--regent);">v</span><span style="text-align:left;white-space:nowrap;">${fl(m.a)}${m.a}</span></div><div style="text-align:center;font-size:0.76em;color:var(--regent);">M${dispM(m.n)} · ${m.d}</div>`;
+  const koLabel=(n)=>{if(n>=89&&n<=96)return 'R16 M'+dispM(n);if(n>=97&&n<=100)return 'QF M'+dispM(n);if(n>=101&&n<=102)return 'SF M'+dispM(n);if(n===104)return 'FINAL';return 'R32 M'+dispM(n);};
+  const koCell=(m)=>`<div style="text-align:center;font-weight:600;font-size:0.86em;">${koLabel(m.n)}</div><div style="display:grid;grid-template-columns:1fr 18px 1fr;align-items:center;gap:2px;font-size:0.9em;"><span style="text-align:right;white-space:nowrap;">${resolveLabel(m.tA,m.n)}</span><span style="text-align:center;color:var(--regent);">v</span><span style="text-align:left;white-space:nowrap;">${resolveLabel(m.tB,m.n)}</span></div>`;
+  const pickName=(sub,m)=>{const pr=(sub.ko||{})[m.n];if(!pr||!pr.pick)return '?';const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);return t===slot?('('+pr.pick+')'):t;};
 
   let h='';
-  // Header summary row(s)
-  const summary=(name,sub,sc,goals,total)=>{
-    if(!sub)return '';
-    return `<div style="flex:1;min-width:240px;padding:12px 16px;background:var(--gray-50);border-radius:8px;">
-      <strong>${name}</strong> &nbsp;<span style="background:var(--black);color:var(--gold);border-radius:6px;padding:2px 10px;font-weight:700;font-size:0.9em;">${total} pts</span><br>
-      <span style="font-size:0.85em;">🏙️ <strong>${sub.city||'N/A'}</strong> &nbsp;🏆 <strong>${sub.champion?fl(canonicalTeam(sub.champion))+canonicalTeam(sub.champion):'N/A'}</strong> &nbsp;⚽ <strong>${sub.totalGoals!==null&&sub.totalGoals!==undefined?sub.totalGoals:'N/A'}</strong></span><br>
-      <span style="font-size:0.8em;color:var(--gray-600);">GS ${sc.gs} · KO ${sc.ko} · Champion ${sc.champ.total} · 3rd ${sc.tp.total}${goals?(' · Goals +'+goals):''}</span><br>
-      <span style="font-size:0.82em;color:var(--regent);">3rd-place groups: ${(sub.tp||[]).join(', ')||'N/A'}</span>
+  // Summary cards (one per person, colour-coded to the graph)
+  h+='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">';
+  P5.forEach(p=>{
+    h+=`<div style="flex:1;min-width:220px;padding:12px 16px;background:var(--gray-50);border-radius:8px;border-top:3px solid ${p.color};">
+      <strong>${p.name}</strong> &nbsp;<span style="background:var(--black);color:var(--gold);border-radius:6px;padding:2px 10px;font-weight:700;font-size:0.9em;">${p.total} pts</span><br>
+      <span style="font-size:0.85em;">🏙️ <strong>${p.sub.city||'N/A'}</strong> &nbsp;🏆 <strong>${p.sub.champion?fl(canonicalTeam(p.sub.champion))+canonicalTeam(p.sub.champion):'N/A'}</strong> &nbsp;⚽ <strong>${p.sub.totalGoals!==null&&p.sub.totalGoals!==undefined?p.sub.totalGoals:'N/A'}</strong></span><br>
+      <span style="font-size:0.8em;color:var(--gray-600);">GS ${p.sc.gs} · KO ${p.sc.ko} · Champion ${p.sc.champ.total} · 3rd ${p.sc.tp.total}${p.goals?(' · Goals +'+p.goals):''}</span><br>
+      <span style="font-size:0.82em;color:var(--regent);">3rd-place groups: ${(p.sub.tp||[]).join(', ')||'N/A'}</span>
     </div>`;
-  };
-  h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">${summary(p1,sub1,sc1,goals1,total1)}${summary(p2,sub2,sc2,goals2,total2)}</div>`;
+  });
+  h+='</div>';
 
-  // Group stage
+  // ---- Daily points performance graph ----
+  h+=`<div class="card" style="padding:14px;margin-bottom:12px;">
+    <h3 style="margin:0 0 4px;font-size:0.92em;text-transform:uppercase;letter-spacing:0.05em;color:var(--gray-600);">📊 Daily Points Performance</h3>
+    <div style="font-size:0.82em;margin-bottom:6px;">${P5.map(p=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;"><span style="width:11px;height:11px;border-radius:50%;background:${p.color};display:inline-block;"></span>${p.name}</span>`).join('')}</div>
+    <canvas id="ptsGraph" style="max-width:100%;"></canvas>
+    <p id="ptsGraphNote" style="font-size:0.78em;color:var(--regent);margin:6px 0 0;"></p>
+  </div>`;
+
+  const gmSorted=GM.slice().sort(byKickoff);
+  // ---- Group stage ----
   h+=`<details open><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Group Stage Predictions <span style="color:var(--regent);font-weight:400;">— points shown once results are entered</span></summary>`;
-  if(!sub2){
-    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
-    GM.forEach(m=>{
-      const pr=(sub1.gs||{})[m.n];
+  if(!multi){
+    const p=P5[0];
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
+    gmSorted.forEach(m=>{
+      const pr=(p.sub.gs||{})[m.n];
       const real=S.admin.groupResults[m.n];
-      const pts=sc1.gsMap[m.n];
+      const pts=p.sc.gsMap[m.n];
       let bg='var(--gray-50)';
       if(real&&pr){
-        const rOut=Math.sign(real.h-real.a),pOut=Math.sign(pr.h-pr.a);
         const exact=pr.h===real.h&&pr.a===real.a;
-        if(exact)bg='rgba(5,150,105,0.1)';else if(rOut===pOut)bg='rgba(201,168,76,0.1)';else bg='rgba(220,38,38,0.06)';
+        if(exact)bg='rgba(5,150,105,0.1)';else if(Math.sign(real.h-real.a)===Math.sign(pr.h-pr.a))bg='rgba(201,168,76,0.1)';else bg='rgba(220,38,38,0.06)';
       }
-      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;display:flex;justify-content:space-between;gap:6px;"><span>M${m.n}: ${fl(m.h)}${m.h} <strong>${pr?pr.h:'-'}</strong>–<strong>${pr?pr.a:'-'}</strong> ${fl(m.a)}${m.a}</span><span>${badge(pts)}</span></div>`;
+      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;"><div style="display:grid;grid-template-columns:1fr auto 18px auto 1fr;align-items:center;gap:3px;"><span style="text-align:right;white-space:nowrap;">${fl(m.h)}${m.h}</span><strong>${pr?pr.h:'-'}</strong><span style="text-align:center;color:var(--regent);">v</span><strong>${pr?pr.a:'-'}</strong><span style="text-align:left;white-space:nowrap;">${fl(m.a)}${m.a}</span></div><div style="display:flex;justify-content:space-between;font-size:0.84em;color:var(--regent);"><span>M${dispM(m.n)} · ${m.d}</span><span>${badge(pts)}</span></div></div>`;
     });
-    h+=`</div><div style="text-align:right;font-weight:700;margin-top:6px;font-size:0.86em;">Group Stage subtotal: <span style="color:#059669;">${sc1.gs} pts</span></div>`;
+    h+=`</div><div style="text-align:right;font-weight:700;margin-top:6px;font-size:0.86em;">Group Stage subtotal: <span style="color:#059669;">${p.sc.gs} pts</span></div>`;
   } else {
-    // Side-by-side comparison with points
-    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;">Match</th><th>${p1}</th><th>Pts</th><th>${p2}</th><th>Pts</th></tr></thead><tbody>`;
-    GM.forEach(m=>{
-      const a=(sub1.gs||{})[m.n],b=(sub2.gs||{})[m.n];
-      const aS=a?`${a.h}-${a.a}`:'-',bS=b?`${b.h}-${b.a}`:'-';
-      const same=a&&b&&a.h===b.h&&a.a===b.a;
-      h+=`<tr${same?' style="background:rgba(201,168,76,0.08);"':''}><td style="font-size:0.92em;">M${m.n} ${fl(m.h)}${m.h} v ${fl(m.a)}${m.a}</td><td style="text-align:center;font-weight:600;">${aS}</td><td style="text-align:center;">${badge(sc1.gsMap[m.n])}</td><td style="text-align:center;font-weight:600;">${bS}</td><td style="text-align:center;">${badge(sc2.gsMap[m.n])}</td></tr>`;
+    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;min-width:200px;">Match</th>${P5.map(p=>`<th style="text-align:center;border-bottom:2px solid ${p.color};">${p.name}</th>`).join('')}</tr></thead><tbody>`;
+    gmSorted.forEach(m=>{
+      const preds=P5.map(p=>(p.sub.gs||{})[m.n]);
+      const allSame=preds.every(x=>x&&preds[0]&&x.h===preds[0].h&&x.a===preds[0].a);
+      h+=`<tr${allSame?' style="background:rgba(201,168,76,0.08);"':''}><td>${matchCell(m)}</td>`;
+      P5.forEach((p,i)=>{
+        const pr=preds[i];
+        h+=`<td style="text-align:center;white-space:nowrap;"><strong>${pr?pr.h+'-'+pr.a:'-'}</strong> ${badge(p.sc.gsMap[m.n])}</td>`;
+      });
+      h+='</tr>';
     });
-    h+=`<tr style="background:var(--gray-50);font-weight:700;"><td style="text-align:right;">Subtotal</td><td></td><td style="text-align:center;color:#059669;">${sc1.gs}</td><td></td><td style="text-align:center;color:#059669;">${sc2.gs}</td></tr>`;
+    h+=`<tr style="background:var(--gray-50);font-weight:700;"><td style="text-align:right;">Subtotal</td>${P5.map(p=>`<td style="text-align:center;color:#059669;">${p.sc.gs}</td>`).join('')}</tr>`;
     h+=`</tbody></table></div>`;
   }
   h+=`</details>`;
 
-  // Knockout
+  // ---- Knockout ----
   h+=`<details style="margin-top:8px;"><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Knockout Stage Predictions</summary>`;
-  const koLabel=(n)=>{if(n>=89&&n<=96)return 'R16 M'+n;if(n>=97&&n<=100)return 'QF M'+n;if(n>=101&&n<=102)return 'SF M'+n;if(n===104)return 'FINAL';return 'R32 M'+n;};
-  const pickName=(sub,m)=>{const pr=(sub.ko||{})[m.n];if(!pr||!pr.pick)return '?';const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);return t===slot?('('+pr.pick+')'):t;};
-  if(!sub2){
+  if(!multi){
+    const p=P5[0];
     h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px;margin-top:8px;font-size:0.82em;">`;
     ALLKO.forEach(m=>{
-      const pr=(sub1.ko||{})[m.n];
+      const pr=(p.sub.ko||{})[m.n];
       const real=S.admin.koResults[m.n];
-      const pts=sc1.koMap[m.n];
+      const pts=p.sc.koMap[m.n];
       let bg='var(--gray-50)';
       if(real&&real.winner&&pr&&pr.pick){
         const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);
         bg=(t&&t.toLowerCase()===real.winner.toLowerCase())?'rgba(5,150,105,0.1)':'rgba(220,38,38,0.06)';
       }
-      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;display:flex;justify-content:space-between;gap:6px;"><span>${koLabel(m.n)}: <strong>${pickName(sub1,m)}</strong> <span style="color:var(--regent);">(${pr?pr.h+'-'+pr.a:'?'})</span></span><span>${badge(pts)}</span></div>`;
+      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;display:flex;justify-content:space-between;gap:6px;"><span>${koLabel(m.n)}: <strong>${pickName(p.sub,m)}</strong> <span style="color:var(--regent);">(${pr?pr.h+'-'+pr.a:'?'})</span></span><span>${badge(pts)}</span></div>`;
     });
-    h+=`</div><div style="text-align:right;font-weight:700;margin-top:6px;font-size:0.86em;">Knockout subtotal: <span style="color:#059669;">${sc1.ko} pts</span></div>`;
+    h+=`</div><div style="text-align:right;font-weight:700;margin-top:6px;font-size:0.86em;">Knockout subtotal: <span style="color:#059669;">${p.sc.ko} pts</span></div>`;
   } else {
-    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;">Match</th><th>${p1}</th><th>Pts</th><th>${p2}</th><th>Pts</th></tr></thead><tbody>`;
+    h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.8em;"><thead><tr><th style="text-align:left;min-width:200px;">Match</th>${P5.map(p=>`<th style="text-align:center;border-bottom:2px solid ${p.color};">${p.name}</th>`).join('')}</tr></thead><tbody>`;
     ALLKO.forEach(m=>{
-      const an=pickName(sub1,m),bn=pickName(sub2,m);
-      const a=(sub1.ko||{})[m.n],b=(sub2.ko||{})[m.n];
-      const same=an===bn&&an!=='?';
-      h+=`<tr${same?' style="background:rgba(201,168,76,0.08);"':''}><td>${koLabel(m.n)}</td><td style="text-align:center;">${an} <span style="color:var(--regent);font-size:0.85em;">(${a?a.h+'-'+a.a:'?'})</span></td><td style="text-align:center;">${badge(sc1.koMap[m.n])}</td><td style="text-align:center;">${bn} <span style="color:var(--regent);font-size:0.85em;">(${b?b.h+'-'+b.a:'?'})</span></td><td style="text-align:center;">${badge(sc2.koMap[m.n])}</td></tr>`;
+      const names=P5.map(p=>pickName(p.sub,m));
+      const allSame=names.every(x=>x===names[0]&&x!=='?');
+      h+=`<tr${allSame?' style="background:rgba(201,168,76,0.08);"':''}><td>${koCell(m)}</td>`;
+      P5.forEach((p,i)=>{
+        const pr=(p.sub.ko||{})[m.n];
+        h+=`<td style="text-align:center;">${names[i]} <span style="color:var(--regent);font-size:0.85em;">(${pr?pr.h+'-'+pr.a:'?'})</span> ${badge(p.sc.koMap[m.n])}</td>`;
+      });
+      h+='</tr>';
     });
-    h+=`<tr style="background:var(--gray-50);font-weight:700;"><td style="text-align:right;">Subtotal</td><td></td><td style="text-align:center;color:#059669;">${sc1.ko}</td><td></td><td style="text-align:center;color:#059669;">${sc2.ko}</td></tr>`;
+    h+=`<tr style="background:var(--gray-50);font-weight:700;"><td style="text-align:right;">Subtotal</td>${P5.map(p=>`<td style="text-align:center;color:#059669;">${p.sc.ko}</td>`).join('')}</tr>`;
     h+=`</tbody></table></div>`;
   }
   h+=`</details>`;
 
-  // Bonus & Champion points
-  h+=`<details style="margin-top:8px;" open><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Bonus & Champion Points</summary>`;
-  const champStepRow=(sc)=>sc.champ.steps.map(s=>{
-    const val=s.hit?`<span style="color:#059669;font-weight:700;">+${s.pts}</span>`:(s.known?'<span style="color:#dc2626;">0</span>':'<span style="color:var(--regent);">TBD</span>');
-    return `<div style="display:flex;justify-content:space-between;gap:8px;"><span>${s.label}</span><span>${val}</span></div>`;
-  }).join('');
-  const bonusBlock=(name,sub,sc,goals,total)=>{
-    if(!sub)return '';
-    const goalsRow=goals===null?'<span style="color:var(--regent);">TBD</span>':(goals?`<span style="color:#059669;font-weight:700;">+${goals}</span>`:'<span style="color:#dc2626;">0</span>');
-    return `<div style="flex:1;min-width:240px;padding:12px 14px;background:var(--gray-50);border-radius:8px;font-size:0.85em;">
-      <strong>${name}</strong>
-      <div style="margin-top:8px;"><em>Champion (${sub.champion?fl(canonicalTeam(sub.champion))+canonicalTeam(sub.champion):'N/A'}) — total ${sc.champ.total}</em></div>
-      <div style="margin:4px 0 8px;display:grid;gap:2px;">${sub.champion?champStepRow(sc):'<span style="color:var(--regent);">No champion picked</span>'}</div>
-      <div style="display:flex;justify-content:space-between;gap:8px;"><span>3rd-place qualifiers (${sc.tp.hits.length}/8 correct)</span><span>${sc.tp.total?('<span style="color:#059669;font-weight:700;">+'+sc.tp.total+'</span>'):(sc.tp.actual.length?'<span style="color:#dc2626;">0</span>':'<span style="color:var(--regent);">TBD</span>')}</span></div>
-      <div style="display:flex;justify-content:space-between;gap:8px;"><span>Closest total goals</span><span>${goalsRow}</span></div>
-      <div style="display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--gray-200);margin-top:8px;padding-top:8px;font-weight:700;"><span>GRAND TOTAL</span><span style="color:var(--gold-dark);">${total} pts</span></div>
-    </div>`;
-  };
-  h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">${bonusBlock(p1,sub1,sc1,goals1,total1)}${bonusBlock(p2,sub2,sc2,goals2,total2)}</div>`;
-  h+=`</details>`;
+  // ---- Bonuses ----
+  h+=`<details style="margin-top:8px;"><summary style="cursor:pointer;font-weight:600;padding:8px 0;font-size:0.95em;">Champion, 3rd-Place &amp; Goals Bonuses</summary>`;
+  h+=`<div style="overflow-x:auto;margin-top:8px;"><table style="width:100%;border-collapse:collapse;font-size:0.82em;"><thead><tr><th style="text-align:left;">Bonus</th>${P5.map(p=>`<th style="text-align:center;border-bottom:2px solid ${p.color};">${p.name}</th>`).join('')}</tr></thead><tbody>`;
+  const champRows=['Reaches R32','Reaches R16','Reaches QF','Reaches SF','Reaches Final','Wins it all'];
+  champRows.forEach((label,ri)=>{
+    h+=`<tr><td>🏆 ${label}</td>${P5.map(p=>{const st=p.sc.champ.steps[ri];return `<td style="text-align:center;">${st?(st.hit?'<span style="color:#059669;font-weight:700;">+'+st.pts+'</span>':'<span style="color:var(--regent);">–</span>'):'<span style="color:var(--regent);">–</span>'}</td>`;}).join('')}</tr>`;
+  });
+  h+=`<tr><td>3rd-place qualifiers</td>${P5.map(p=>`<td style="text-align:center;">${p.sc.tp.total>0?'<span style="color:#059669;font-weight:700;">+'+p.sc.tp.total+'</span>':'<span style="color:var(--regent);">–</span>'}</td>`).join('')}</tr>`;
+  h+=`<tr><td>Closest total goals</td>${P5.map(p=>`<td style="text-align:center;">${p.goals?'<span style="color:#059669;font-weight:700;">+'+p.goals+'</span>':'<span style="color:var(--regent);">–</span>'}</td>`).join('')}</tr>`;
+  h+=`<tr style="background:var(--black);color:var(--gold);font-weight:700;"><td style="padding:6px 8px;">GRAND TOTAL</td>${P5.map(p=>`<td style="text-align:center;">${p.total}</td>`).join('')}</tr>`;
+  h+=`</tbody></table></div></details>`;
 
   cont.innerHTML=h;
+  drawPointsGraph(people);
 }
 
 // ============================
