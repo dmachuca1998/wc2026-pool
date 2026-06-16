@@ -384,7 +384,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip"> Knockout Predictions update phase is on June 26th, 2026 at 12 PM ET — Stay tuned!</div>
+<div class="deadline-strip">Knockout Predictions update phase is on June 26th, 2026 at 12 PM ET — Stay tuned!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -678,6 +678,13 @@ a { color:var(--black); }
     </div>
     <div id="viewMyContent" style="display:none;margin-top:8px;"></div>
   </div>
+
+  <div class="card" id="matchCompareCard">
+    <h2>🔍 Match Prediction Breakdown</h2>
+    <p style="color:var(--gray-600);font-size:0.87em;margin-bottom:10px;">Pick any match to see what every participant predicted. Once the result is in, predictions are ranked from best to worst — exact scores first, then correct outcomes, then by how close the scoreline was.</p>
+    <select id="matchCompareSelect" onchange="renderMatchComparison()" style="min-width:280px;max-width:100%;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- Select a match --</option></select>
+    <div id="matchCompareContent" style="margin-top:12px;"></div>
+  </div>
 </div>
 
 
@@ -703,7 +710,13 @@ a { color:var(--black); }
         <button class="btn btn-gold" onclick="addGalleryPost()">Post</button>
       </div>
       <p id="galStatus" style="font-size:0.84em;margin:6px 0 0;min-height:16px;"></p>
-      <p style="font-size:0.78em;color:var(--regent);margin:4px 0 0;">Tip: paste a direct image link (ending in .jpg/.png), a YouTube link, or an .mp4 video URL. To share a phone photo, upload it to an image host or Google Photos (public link) and paste that link here.</p>
+      <p style="font-size:0.78em;color:var(--regent);margin:4px 0 0;">For a video, paste a YouTube or .mp4 link above. For photos, just drag them into the box below — no link needed.</p>
+      <div id="galDropZone" ondrop="galleryDrop(event)" ondragover="galleryDragOver(event)" ondragleave="galleryDragLeave(event)" onclick="document.getElementById('galFileInput').click()" style="margin-top:12px;border:2px dashed var(--gray-300);border-radius:10px;padding:24px;text-align:center;cursor:pointer;background:var(--white);transition:border-color .15s,background .15s;">
+        <div style="font-size:1.7em;">📷</div>
+        <div style="font-weight:600;margin-top:4px;">Drag &amp; drop photos here</div>
+        <div style="font-size:0.82em;color:var(--regent);margin-top:2px;">or <span style="color:var(--gold-dark);text-decoration:underline;">click to choose from your device</span> · photos are auto-resized to load fast for everyone</div>
+        <input type="file" id="galFileInput" accept="image/*" multiple style="display:none;" onchange="galleryPick(event)">
+      </div>
     </div>
     <p id="galleryEmpty" style="text-align:center;color:var(--regent);padding:24px;">No posts yet — be the first to share a victory celebration!</p>
     <div id="galleryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:16px;"></div>
@@ -1265,6 +1278,7 @@ const FIREBASE_CONFIG = {
 firebase.initializeApp(FIREBASE_CONFIG);
 const fbDb = firebase.database();
 const DB_ROOT = 'wc2026v2';
+const GALLERY_ROOT = 'wc2026v2_gallery'; // photos live on their own path + own sync
 
 const FORMSPREE_URL = 'https://formspree.io/f/xvzvlnrp';
 
@@ -1308,7 +1322,7 @@ function ensureDefaults(){
   if(S.autoMovement===undefined)S.autoMovement=true;
   if(S.hideSubmitTab===undefined)S.hideSubmitTab=false;
   if(S.teamPicturesEnabled===undefined)S.teamPicturesEnabled=false;
-  if(!Array.isArray(S.gallery))S.gallery=[];
+  if(!S.gallery||typeof S.gallery!=='object'||Array.isArray(S.gallery))S.gallery=_galleryToMap(S.gallery);
   if(!S.liveMatches||typeof S.liveMatches!=='object')S.liveMatches={};
 }
 
@@ -1354,6 +1368,7 @@ function leaderboardNames(){
 
 let _realtimeReady=false;
 let _currentRanks={}; // latest computed leaderboard ranks {name:rank}, used for the movement snapshot
+let _galleryReady=false;
 function load(){
   fbDb.ref(DB_ROOT).once('value').then(snap=>{
     if(snap.exists()){S=snap.val();ensureDefaults();}
@@ -1366,6 +1381,10 @@ function load(){
     applyTabVisibility();
     renderGallery();
     startCountdown();
+    if(!_galleryReady){
+      _galleryReady=true;
+      fbDb.ref(GALLERY_ROOT).on('value',gsnap=>{ S.gallery=_galleryToMap(gsnap.val()||{}); renderGallery(); });
+    }
     if(!_realtimeReady){
       _realtimeReady=true;
       fbDb.ref(DB_ROOT).on('value',snap2=>{
@@ -1373,7 +1392,7 @@ function load(){
           const fresh=snap2.val();
           // Don't overwrite if we are mid-edit in the prediction form
           if(!currentPredictor){
-            S=fresh;ensureDefaults();
+            const _g=S.gallery; S=fresh; ensureDefaults(); S.gallery=_g||S.gallery;
           } else {
             // Merge only safe external fields
             S.admin=fresh.admin||S.admin;
@@ -1649,24 +1668,13 @@ function championReachedR32(champion){
   for(const g of Object.keys(GROUPS)){ if(GROUPS[g].some(t=>t.toLowerCase()===cl)){cg=g;break;} }
   if(cg){
     const gms=GM.filter(m=>m.g===cg);
-    const complete=gms.every(m=>S.admin.groupResults[m.n]);
+    // The bonus is withheld until the GROUP IS COMPLETE — every team has played all 3 of its
+    // games (all 6 group matches final, none still live). Only then is qualification certain.
+    const complete=gms.every(m=>S.admin.groupResults[m.n] && !(S.liveMatches&&S.liveMatches[m.n]&&S.liveMatches[m.n].live));
     if(complete){
       const standings=getGroupStandings()[cg]||[];
       const pos=standings.findIndex(t=>t.team.toLowerCase()===cl);
       if(pos===0||pos===1)return true; // finished top 2 (GD/GF tiebreaks already applied)
-    } else {
-      // Pre-completion: has the champion CLINCHED top 2? Count rivals who could still finish
-      // at or above the champion's worst-case (current) points. At most one => guaranteed top 2.
-      const stat={};GROUPS[cg].forEach(t=>stat[t]={pts:0,played:0});
-      gms.forEach(m=>{const r=S.admin.groupResults[m.n];if(!r)return;
-        stat[m.h].played++;stat[m.a].played++;
-        if(r.h>r.a)stat[m.h].pts+=3; else if(r.h<r.a)stat[m.a].pts+=3; else {stat[m.h].pts++;stat[m.a].pts++;}
-      });
-      const champ=GROUPS[cg].find(t=>t.toLowerCase()===cl);
-      const floor=stat[champ].pts;
-      let threats=0;
-      GROUPS[cg].forEach(t=>{ if(t===champ)return; const ceil=stat[t].pts+3*(3-stat[t].played); if(ceil>=floor)threats++; });
-      if(threats<=1)return true;
     }
   }
   // Assigned as a third-place qualifier in the bracket
@@ -2934,31 +2942,84 @@ function updateTeamPicturesToggleUI(){
 
 // ---------- Team Pictures gallery ----------
 function ytId(url){ const m=String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/); return m?m[1]:null; }
-function addGalleryPost(){
-  const name=(document.getElementById('galName')||{}).value||'';
-  const url=((document.getElementById('galUrl')||{}).value||'').trim();
-  const caption=((document.getElementById('galCaption')||{}).value||'').trim();
-  const st=document.getElementById('galStatus');
-  if(!url){ if(st)st.innerHTML='<span style="color:var(--red);">Please paste an image or video link.</span>'; return; }
-  if(!/^https?:\/\//i.test(url)){ if(st)st.innerHTML='<span style="color:var(--red);">Link must start with http:// or https://</span>'; return; }
-  if(!Array.isArray(S.gallery))S.gallery=[];
-  const yt=ytId(url);
-  const type=yt?'youtube':(/\.(mp4|webm|ogg)(\?|$)/i.test(url)?'video':'image');
-  S.gallery.push({name:name.trim()||'Anonymous',url,caption,type,yt:yt||'',ts:Date.now()});
-  try{ fbDb.ref(DB_ROOT+'/gallery').set(S.gallery); }catch(e){ save(); }
-  const u=document.getElementById('galUrl'); if(u)u.value=''; const c=document.getElementById('galCaption'); if(c)c.value='';
-  if(st)st.innerHTML='<span style="color:var(--green);">✓ Posted! Thanks for sharing.</span>';
+function _galleryToMap(g){
+  const map={};
+  if(Array.isArray(g)){ g.forEach(p=>{ if(!p)return; const id=p.id||('p'+(p.ts||Date.now())+Math.floor(Math.random()*100000)); map[id]={...p,id}; }); }
+  else if(g&&typeof g==='object'){ Object.keys(g).forEach(k=>{ if(!g[k])return; map[k]={...g[k],id:g[k].id||k}; }); }
+  return map;
+}
+function _newGalId(){ return 'p'+Date.now()+Math.floor(Math.random()*100000); }
+function _galleryAddPost(post){
+  if(!S.gallery||typeof S.gallery!=='object'||Array.isArray(S.gallery))S.gallery=_galleryToMap(S.gallery);
+  S.gallery[post.id]=post;
+  try{ fbDb.ref(GALLERY_ROOT+'/'+post.id).set(post); }catch(e){ console.error(e); }
   renderGallery();
 }
-function deleteGalleryPost(ts){
-  if(!Array.isArray(S.gallery))return;
-  S.gallery=S.gallery.filter(p=>p.ts!==ts);
-  try{ fbDb.ref(DB_ROOT+'/gallery').set(S.gallery); }catch(e){ save(); }
+// Compress + resize a photo in the browser so it fits comfortably in the database.
+function _compressImage(file){
+  return new Promise((resolve,reject)=>{
+    if(!/^image\//.test(file.type))return reject(new Error('Not an image'));
+    const img=new Image(); const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const MAX=1280; let w=img.width,h=img.height;
+      if(w>=h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;} else if(h>w&&h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      const draw=(ww,hh,q)=>{const cv=document.createElement('canvas');cv.width=ww;cv.height=hh;cv.getContext('2d').drawImage(img,0,0,ww,hh);return cv.toDataURL('image/jpeg',q);};
+      let q=0.72,data=draw(w,h,q);
+      while(data.length>620000&&q>0.4){ q-=0.1; data=draw(w,h,q); }
+      if(data.length>620000){ data=draw(Math.round(w*0.7),Math.round(h*0.7),0.6); }
+      resolve(data);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Could not read image'));};
+    img.src=url;
+  });
+}
+async function handleGalleryFiles(files){
+  const st=document.getElementById('galStatus');
+  const name=((document.getElementById('galName')||{}).value||'').trim()||'Anonymous';
+  const caption=((document.getElementById('galCaption')||{}).value||'').trim();
+  const list=Array.from(files||[]);
+  if(!list.length)return;
+  let done=0,skipped=0;
+  for(let i=0;i<list.length;i++){
+    const file=list[i];
+    if(/^video\//.test(file.type)){ if(st)st.innerHTML='<span style="color:var(--red);">Videos are too large to store here — paste a YouTube or video link in the box above instead.</span>'; skipped++; continue; }
+    if(!/^image\//.test(file.type)){ skipped++; continue; }
+    if(st)st.innerHTML='<span style="color:var(--gray-600);">Processing '+(file.name||'photo')+'…</span>';
+    try{
+      const dataUrl=await _compressImage(file);
+      _galleryAddPost({id:_newGalId(),name,caption,url:dataUrl,type:'image',yt:'',ts:Date.now()+i});
+      done++;
+    }catch(e){ skipped++; }
+  }
+  const c=document.getElementById('galCaption'); if(c)c.value='';
+  if(st)st.innerHTML='<span style="color:var(--green);">✓ Added '+done+' photo'+(done!==1?'s':'')+'.'+(skipped?(' '+skipped+' skipped (videos/other files use a link above).'):'')+'</span>';
+}
+function galleryDragOver(ev){ ev.preventDefault(); const dz=document.getElementById('galDropZone'); if(dz){dz.style.borderColor='var(--gold)';dz.style.background='var(--gray-50)';} }
+function galleryDragLeave(ev){ if(ev)ev.preventDefault&&ev.preventDefault(); const dz=document.getElementById('galDropZone'); if(dz){dz.style.borderColor='var(--gray-300)';dz.style.background='var(--white)';} }
+function galleryDrop(ev){ ev.preventDefault(); galleryDragLeave(ev); const files=ev.dataTransfer&&ev.dataTransfer.files; if(files&&files.length)handleGalleryFiles(files); }
+function galleryPick(ev){ const f=ev.target.files; if(f&&f.length)handleGalleryFiles(f); ev.target.value=''; }
+function addGalleryPost(){
+  const url=((document.getElementById('galUrl')||{}).value||'').trim();
+  const caption=((document.getElementById('galCaption')||{}).value||'').trim();
+  const name=((document.getElementById('galName')||{}).value||'').trim()||'Anonymous';
+  const st=document.getElementById('galStatus');
+  if(!url){ if(st)st.innerHTML='<span style="color:var(--red);">Paste an image or video link, or drag a photo into the box below.</span>'; return; }
+  if(!/^https?:\/\//i.test(url)){ if(st)st.innerHTML='<span style="color:var(--red);">Link must start with http:// or https://</span>'; return; }
+  const yt=ytId(url);
+  const type=yt?'youtube':(/\.(mp4|webm|ogg)(\?|$)/i.test(url)?'video':'image');
+  _galleryAddPost({id:_newGalId(),name,url,caption,type,yt:yt||'',ts:Date.now()});
+  const u=document.getElementById('galUrl'); if(u)u.value=''; const c=document.getElementById('galCaption'); if(c)c.value='';
+  if(st)st.innerHTML='<span style="color:var(--green);">✓ Posted! Thanks for sharing.</span>';
+}
+function deleteGalleryPost(id){
+  if(S.gallery&&typeof S.gallery==='object')delete S.gallery[id];
+  try{ fbDb.ref(GALLERY_ROOT+'/'+id).remove(); }catch(e){ console.error(e); }
   renderGallery();
 }
 function renderGallery(){
   const grid=document.getElementById('galleryGrid'); if(!grid)return;
-  const posts=(Array.isArray(S.gallery)?S.gallery:[]).slice().sort((a,b)=>b.ts-a.ts);
+  const posts=Object.values(_galleryToMap(S.gallery)).sort((a,b)=>b.ts-a.ts);
   const empty=document.getElementById('galleryEmpty');
   if(empty)empty.style.display=posts.length?'none':'';
   grid.innerHTML=posts.map(p=>{
@@ -2966,7 +3027,7 @@ function renderGallery(){
     if(p.type==='youtube'&&p.yt){ media=`<div style="position:relative;padding-top:56.25%;"><iframe src="https://www.youtube.com/embed/${p.yt}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:8px 8px 0 0;" allowfullscreen loading="lazy"></iframe></div>`; }
     else if(p.type==='video'){ media=`<video src="${p.url}" controls style="width:100%;max-height:300px;border-radius:8px 8px 0 0;background:#000;"></video>`; }
     else { media=`<a href="${p.url}" target="_blank" rel="noopener"><img src="${p.url}" alt="${(p.caption||'team photo').replace(/"/g,'')}" style="width:100%;max-height:340px;object-fit:cover;border-radius:8px 8px 0 0;display:block;" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'padding:24px;text-align:center;color:var(--regent);\'>🔗 '+this.alt+' (open link)</div>';"></a>`; }
-    const del=adminLoggedIn?`<button onclick="deleteGalleryPost(${p.ts})" title="Delete" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;">×</button>`:'';
+    const del=adminLoggedIn?`<button onclick="deleteGalleryPost('${p.id}')" title="Delete" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;">×</button>`:'';
     return `<div style="position:relative;background:var(--white);border:1px solid var(--gray-200);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">${del}${media}<div style="padding:10px 12px;"><div style="font-weight:600;font-size:0.9em;">${p.name}</div>${p.caption?`<div style="font-size:0.85em;color:var(--gray-600);margin-top:2px;">${p.caption}</div>`:''}<div style="font-size:0.72em;color:var(--regent);margin-top:4px;">${new Date(p.ts).toLocaleDateString()}</div></div></div>`;
   }).join('');
 }
@@ -3695,12 +3756,96 @@ function drawPointsGraph(people){
 }
 
 
+function _koRoundPtsFor(n){ if(n>=73&&n<=88)return P.R32; if(n>=89&&n<=96)return P.R16; if(n>=97&&n<=100)return P.QF; if(n>=101&&n<=102)return P.SF; if(n===104)return P.FIN; return 0; }
+function _koRoundName(n){ if(n>=73&&n<=88)return 'R32'; if(n>=89&&n<=96)return 'R16'; if(n>=97&&n<=100)return 'QF'; if(n>=101&&n<=102)return 'SF'; if(n===104)return 'FINAL'; return 'KO'; }
+
+function populateMatchCompareSelect(){
+  const sel=document.getElementById('matchCompareSelect'); if(!sel)return;
+  const cur=sel.value;
+  let h='<option value="">-- Select a match --</option><optgroup label="Group Stage">';
+  GM.slice().sort(byKickoff).forEach(m=>{ h+=`<option value="${m.n}">M${dispM(m.n)} · ${m.h} v ${m.a} · ${m.d}</option>`; });
+  h+='</optgroup><optgroup label="Knockout Stage">';
+  ALLKO.slice().sort(byKickoff).forEach(m=>{ h+=`<option value="${m.n}">${_koRoundName(m.n)} M${dispM(m.n)} · ${resolveLabel(m.tA,m.n)} v ${resolveLabel(m.tB,m.n)}</option>`; });
+  h+='</optgroup>';
+  sel.innerHTML=h; if(cur)sel.value=cur;
+}
+
+function renderMatchComparison(){
+  const sel=document.getElementById('matchCompareSelect'), cont=document.getElementById('matchCompareContent');
+  if(!sel||!cont)return;
+  const n=parseInt(sel.value,10);
+  if(!n){ cont.innerHTML=''; return; }
+  const isKO=n>=73;
+  const m=(isKO?ALLKO:GM).find(x=>x.n===n);
+  if(!m){ cont.innerHTML=''; return; }
+  const locked=leaderboardNames().filter(name=>{const s=S.submissions[name];return s&&s.locked;});
+  const rows=[]; let resultStr=null, played=false;
+  if(!isKO){
+    const real=S.admin.groupResults[n];
+    const live=S.liveMatches&&S.liveMatches[n]&&S.liveMatches[n].live;
+    played=!!real;
+    if(real)resultStr=`${m.h} ${real.h}–${real.a} ${m.a}`+(live?' · LIVE':'');
+    locked.forEach(name=>{ const pr=(S.submissions[name].gs||{})[n]; if(!pr||pr.h===undefined||pr.h===null)return;
+      let pts=null,close=null;
+      if(real){ const rO=Math.sign(real.h-real.a),pO=Math.sign(pr.h-pr.a); pts=(rO!==pO)?0:((pr.h===real.h&&pr.a===real.a)?(P.OUT+P.EX_BONUS):P.OUT); close=Math.abs(pr.h-real.h)+Math.abs(pr.a-real.a); }
+      rows.push({name,city:(S.submissions[name].city||''),pred:`${pr.h}–${pr.a}`,pts,close,sortG:(pr.h+pr.a)});
+    });
+  } else {
+    const real=S.admin.koResults[n];
+    played=!!(real&&real.winner);
+    if(played)resultStr=`Winner: ${real.winner} (${real.h}–${real.a})`;
+    locked.forEach(name=>{ const pr=(S.submissions[name].ko||{})[n]; if(!pr||(!pr.pick&&pr.h===undefined))return;
+      const slot=pr.pick==='A'?m.tA:m.tB; const predWinner=pr.pick?resolveSlot(slot,n):'—';
+      let pts=null,close=null;
+      if(played){ let p=0; const rPts=_koRoundPtsFor(n); if(pr.pick){const t=resolveSlot(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase())p+=rPts;} if(pr.h===real.h&&pr.a===real.a)p+=P.KO_EX; pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
+      rows.push({name,city:(S.submissions[name].city||''),winner:predWinner,pred:`${pr.h!==undefined?pr.h:'?'}–${pr.a!==undefined?pr.a:'?'}`,pts,close});
+    });
+  }
+  if(rows.length===0){ cont.innerHTML='<p style="color:var(--regent);padding:10px 0;">No submitted predictions for this match yet.</p>'; return; }
+  if(played){ rows.sort((a,b)=>(b.pts-a.pts)||(a.close-b.close)||a.name.localeCompare(b.name)); }
+  else { rows.sort((a,b)=>((b.sortG||0)-(a.sortG||0))||a.name.localeCompare(b.name)); }
+  const ranks=[];
+  if(played){ rows.forEach((r,i)=>{ ranks[i]=(i>0&&r.pts===rows[i-1].pts&&r.close===rows[i-1].close)?ranks[i-1]:(i>0?ranks[i-1]+1:1); }); }
+  let h=`<div style="margin-bottom:10px;font-size:0.9em;">`;
+  h+= isKO ? `<strong>${_koRoundName(n)} · M${dispM(n)}</strong> — ${resolveLabel(m.tA,n)} v ${resolveLabel(m.tB,n)} · ${m.d}`
+           : `<strong>M${dispM(n)}</strong> — ${m.h} v ${m.a} · ${m.d}`;
+  h+= resultStr ? ` &nbsp;·&nbsp; <span style="color:#059669;font-weight:700;">${resultStr}</span>`
+                : ` &nbsp;·&nbsp; <span style="color:var(--regent);">not played yet — showing everyone's picks</span>`;
+  h+=`</div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.86em;"><thead><tr>`+
+     `<th style="text-align:left;padding:6px 8px;">${played?'Rank':'#'}</th>`+
+     `<th style="text-align:left;padding:6px 8px;">Participant</th>`+
+     `<th style="text-align:left;padding:6px 8px;">City</th>`+
+     (isKO?'<th style="text-align:left;padding:6px 8px;">Picked Winner</th>':'')+
+     `<th style="text-align:center;padding:6px 8px;">Predicted</th>`+
+     (played?'<th style="text-align:center;padding:6px 8px;">Points</th>':'')+
+     `</tr></thead><tbody>`;
+  rows.forEach((r,i)=>{
+    const rk=played?ranks[i]:(i+1);
+    const pos=(played&&rk===1)?'🥇':(played&&rk===2)?'🥈':(played&&rk===3)?'🥉':rk;
+    let bg='';
+    if(played)bg=(r.pts>=(P.OUT+P.EX_BONUS))?'background:rgba(5,150,105,0.10);':(r.pts>0?'background:rgba(201,168,76,0.10);':'');
+    const ptsCell=played?(r.pts>0?`<span style="color:#059669;font-weight:700;">+${r.pts}</span>`:'<span style="color:#dc2626;">0</span>'):'';
+    h+=`<tr style="${bg}border-bottom:1px solid var(--gray-100);">`+
+       `<td style="padding:6px 8px;font-weight:700;">${pos}</td>`+
+       `<td style="padding:6px 8px;">${r.name}</td>`+
+       `<td style="padding:6px 8px;color:var(--gray-600);">${r.city}</td>`+
+       (isKO?`<td style="padding:6px 8px;">${r.winner||'—'}</td>`:'')+
+       `<td style="padding:6px 8px;text-align:center;font-weight:600;">${r.pred}</td>`+
+       (played?`<td style="padding:6px 8px;text-align:center;">${ptsCell}</td>`:'')+
+       `</tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  cont.innerHTML=h;
+}
+
 function renderStats(){
   calcLeaderboard();            // refresh _currentRanks + champion pie/map data
   renderChampDistribution();    // (re)draw pie + world map now that the tab is visible
   populateViewSelectors();      // fill the compare dropdowns
   renderFunStats();
   renderPoolPulse();
+  populateMatchCompareSelect();
+  renderMatchComparison();
   // Run once more after layout settles, so the world map sizes itself correctly the first
   // time the tab is opened (the container has zero width until it is painted).
   setTimeout(()=>{ try{ renderChampDistribution(); }catch(e){} },80);
@@ -3729,18 +3874,21 @@ function renderFunStats(){
     const sc=scoreSubmissionFull(sub);
     const goalsDiff=(goalsActual!==null&&sub.totalGoals!==null&&sub.totalGoals!==undefined)?Math.abs(sub.totalGoals-goalsActual):null;
     // draws correctly called, upsets, longest correct-outcome streak (group stage, chronological)
-    let draws=0,upsets=0,streak=0,bestStreak=0;
+    let draws=0,upsets=0,streak=0,bestStreak=0,coldStreak=0,worstStreak=0;
     doneGM.forEach(m=>{
       const real=S.admin.groupResults[m.n],pr=(sub.gs||{})[m.n];
       const ok=pr&&Math.sign(real.h-real.a)===Math.sign(pr.h-pr.a);
       if(ok){
-        streak++;if(streak>bestStreak)bestStreak=streak;
+        streak++;if(streak>bestStreak)bestStreak=streak;coldStreak=0;
         if(real.h===real.a)draws++;
         const mj=majority[m.n];
         if(mj&&mj.total>=3&&String(Math.sign(pr.h-pr.a))!==mj.sign)upsets++;
-      } else streak=0;
+      } else {
+        streak=0;
+        if(pr){ coldStreak++; if(coldStreak>worstStreak)worstStreak=coldStreak; } else { coldStreak=0; }
+      }
     });
-    return {name,sub,champion:sub.champion?canonicalTeam(sub.champion):null,...sc,total:sc.base,goalsDiff,totalGoals:sub.totalGoals,draws,upsets,bestStreak};
+    return {name,sub,champion:sub.champion?canonicalTeam(sub.champion):null,...sc,total:sc.base,goalsDiff,totalGoals:sub.totalGoals,draws,upsets,bestStreak,worstStreak};
   });
   let minGoalsDiff=Infinity;people.forEach(p=>{if(p.goalsDiff!==null&&p.goalsDiff<minGoalsDiff)minGoalsDiff=p.goalsDiff;});
   people.forEach(p=>{p.goalsBonus=(p.goalsDiff!==null&&p.goalsDiff===minGoalsDiff)?P.GOALS:0;p.total+=p.goalsBonus;});
@@ -3762,7 +3910,7 @@ function renderFunStats(){
   const top=(key)=>people.slice().sort((a,b)=>b[key]-a[key])[0];
   const sharpest=top('total'),gsGuru=top('gs'),koKing=top('ko');
   const exactWiz=people.slice().sort((a,b)=>(b.exactGS+b.exactKO)-(a.exactGS+a.exactKO))[0];
-  const drawWhiz=top('draws'),upsetArtist=top('upsets'),streaker=top('bestStreak');
+  const drawWhiz=top('draws'),upsetArtist=top('upsets'),streaker=top('bestStreak'),coldStreaker=top('worstStreak');
   const goalCands=people.filter(p=>p.goalsDiff!==null);
   const goalOracle=goalCands.length?goalCands.slice().sort((a,b)=>a.goalsDiff-b.goalsDiff)[0]:null;
 
@@ -3807,6 +3955,7 @@ function renderFunStats(){
   h+=card('🤝','Draw Whisperer',drawWhiz&&drawWhiz.draws>0?tag(drawWhiz.name):null,drawWhiz&&drawWhiz.draws>0?(drawWhiz.draws+' draw'+(drawWhiz.draws>1?'s':'')+' correctly called'):'',!(drawWhiz&&drawWhiz.draws>0));
   h+=card('🎲','Upset Artist',upsetArtist&&upsetArtist.upsets>0?tag(upsetArtist.name):null,upsetArtist&&upsetArtist.upsets>0?(upsetArtist.upsets+' correct call'+(upsetArtist.upsets>1?'s':'')+' against the pool majority'):'',!(upsetArtist&&upsetArtist.upsets>0));
   h+=card('🔥','Hot Streak',streaker&&streaker.bestStreak>=2?tag(streaker.name):null,streaker&&streaker.bestStreak>=2?(streaker.bestStreak+' correct results in a row'):'',!(streaker&&streaker.bestStreak>=2));
+  h+=card('❄️','Cold Streak',coldStreaker&&coldStreaker.worstStreak>=2?tag(coldStreaker.name):null,coldStreaker&&coldStreaker.worstStreak>=2?(coldStreaker.worstStreak+' wrong results in a row'):'',!(coldStreaker&&coldStreaker.worstStreak>=2));
   h+=card('👑','The People\u2019s Champion',peopleChamp?(fl(peopleChamp[0])+peopleChamp[0]):null,peopleChamp?(peopleChamp[1]+' of '+locked.length+' backers · '+Math.round(peopleChamp[1]/locked.length*100)+'%'):'No champions picked');
   let lwVal,lwDetail;
   if(loneWolves.length===0){lwVal='None';lwDetail='every champion pick is shared by at least two people';}
