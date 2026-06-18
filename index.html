@@ -3091,6 +3091,23 @@ function _reactionBar(p,ctx){
 }
 
 // ----- Comments -----
+const COMMENT_REACT=['❤️','👍','😂','🔥'];
+function _myCmtReaction(c){ const me=_galUserKey(); const rx=(c&&c.reactions)||{}; for(const e of GAL_REACT_ALL){ if(rx[e]&&rx[e][me])return e; } return null; }
+function _cmtReactionCounts(c){ const rx=(c&&c.reactions)||{}; const out={}; GAL_REACT_ALL.forEach(e=>{ const u=rx[e]; const n=u?Object.keys(u).length:0; if(n)out[e]=n; }); return out; }
+function toggleCommentReaction(ev,postId,cid,emoji){
+  if(ev&&ev.stopPropagation)ev.stopPropagation();
+  const p=S.gallery&&S.gallery[postId]; if(!p||!p.comments||!p.comments[cid])return;
+  const c=p.comments[cid]; if(!c.reactions)c.reactions={};
+  const me=_galUserKey(); const cur=_myCmtReaction(c); const updates={}; const base=GALLERY_ROOT+'/'+postId+'/comments/'+cid+'/reactions/';
+  if(cur===emoji){ if(c.reactions[emoji])delete c.reactions[emoji][me]; updates[base+emoji+'/'+me]=null; }
+  else { if(cur){ if(c.reactions[cur])delete c.reactions[cur][me]; updates[base+cur+'/'+me]=null; } if(!c.reactions[emoji])c.reactions[emoji]={}; c.reactions[emoji][me]=true; updates[base+emoji+'/'+me]=true; }
+  try{ fbDb.ref().update(updates); }catch(e){ console.error(e); } // tiny targeted write, never rewrites the comment text
+  renderGalleryModal();
+}
+function _commentReactBar(p,c){
+  const counts=_cmtReactionCounts(c); const mine=_myCmtReaction(c);
+  return '<div style="margin-top:4px;">'+COMMENT_REACT.map(e=>{ const n=counts[e]||0; const on=mine===e; return '<button onclick="toggleCommentReaction(event,\''+p.id+'\',\''+c.id+'\',\''+e+'\')" title="React" style="border:none;background:none;cursor:pointer;font-size:0.9em;margin-right:10px;padding:0;opacity:'+(on?'1':'0.55')+';">'+e+(n?'<span style="font-size:0.85em;color:var(--gray-600);margin-left:2px;">'+n+'</span>':'')+'</button>'; }).join('')+'</div>';
+}
 function _commentList(p){ const c=p.comments||{}; return Object.keys(c).map(k=>Object.assign({id:k},c[k])).filter(x=>x&&x.text).sort((a,b)=>(a.ts||0)-(b.ts||0)); }
 function addGalleryComment(postId){
   const p=S.gallery&&S.gallery[postId]; if(!p)return;
@@ -3171,7 +3188,7 @@ function renderGalleryModal(){
   const me=_galUserKey(); const comments=_commentList(p);
   const cHtml=comments.length?comments.map(c=>{
     const canDel=adminLoggedIn||c.userKey===me;
-    return '<div style="padding:7px 0;border-bottom:1px solid var(--gray-100);"><div style="font-size:0.85em;"><strong>'+c.name+'</strong> <span style="color:var(--regent);font-size:0.82em;">'+new Date(c.ts).toLocaleString()+'</span>'+(canDel?' <button onclick="deleteGalleryComment(\''+p.id+'\',\''+c.id+'\')" style="float:right;background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.82em;">delete</button>':'')+'</div><div style="font-size:0.9em;margin-top:2px;">'+String(c.text||'').replace(/</g,'&lt;')+'</div></div>';
+    return '<div style="padding:7px 0;border-bottom:1px solid var(--gray-100);"><div style="font-size:0.85em;"><strong>'+c.name+'</strong> <span style="color:var(--regent);font-size:0.82em;">'+new Date(c.ts).toLocaleString()+'</span>'+(canDel?' <button onclick="deleteGalleryComment(\''+p.id+'\',\''+c.id+'\')" style="float:right;background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.82em;">delete</button>':'')+'</div><div style="font-size:0.9em;margin-top:2px;">'+String(c.text||'').replace(/</g,'&lt;')+'</div>'+_commentReactBar(p,c)+'</div>';
   }).join(''):'<div style="color:var(--regent);font-size:0.86em;padding:8px 0;">No comments yet — start the conversation!</div>';
   const savedName=_galSavedName().replace(/"/g,'&quot;');
   body.innerHTML=
