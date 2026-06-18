@@ -390,7 +390,7 @@ a { color:var(--black); }
   <button class="active" onclick="showTab('home')">Home</button>
   <button id="navPredict" onclick="showTab('predict')">Submit Prediction</button>
   <button onclick="showTab('stats')">Participant Statistics</button>
-  <button id="navPictures" onclick="showTab('pictures')" style="display:none;">📸 Team Pictures</button>
+  <button id="navPictures" onclick="showTab('pictures')" style="display:none;">📷🌐 Pool Social Media</button>
   <button onclick="showTab('koupdate')">Update Knockout</button>
   <button onclick="showTab('admin')">Admin Panel</button>
   <button onclick="showTab('data')">Data</button>
@@ -691,7 +691,7 @@ a { color:var(--black); }
 <!-- ============ TEAM PICTURES TAB ============ -->
 <div id="tab-pictures" class="tab-content">
   <div class="card">
-    <h2>📸 Team Pictures &amp; Videos</h2>
+    <h2>📷🌐 Pool Social Media</h2>
     <p style="color:var(--gray-600);font-size:0.88em;">Share how we celebrate the victories! Post a photo or video and it shows up for everyone in the pool.</p>
     <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:14px;margin-top:12px;">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
@@ -717,9 +717,16 @@ a { color:var(--black); }
         <div style="font-size:0.82em;color:var(--regent);margin-top:2px;">or <span style="color:var(--gold-dark);text-decoration:underline;">click to choose from your device</span> · photos are auto-resized to load fast for everyone</div>
         <input type="file" id="galFileInput" accept="image/*" multiple style="display:none;" onchange="galleryPick(event)">
       </div>
+      <div id="galStagedPreview" style="display:none;margin-top:12px;"></div>
     </div>
     <p id="galleryEmpty" style="text-align:center;color:var(--regent);padding:24px;">No posts yet — be the first to share a victory celebration!</p>
     <div id="galleryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:16px;"></div>
+    <div id="galModal" onclick="if(event.target===this)closeGalleryModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:28px 12px;">
+      <div style="background:var(--white);max-width:560px;width:100%;border-radius:12px;position:relative;margin:auto;">
+        <button onclick="closeGalleryModal()" title="Close" style="position:absolute;top:-14px;right:-10px;z-index:5;background:var(--white);border:1px solid var(--gray-300);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:18px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">×</button>
+        <div id="galModalBody"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -901,8 +908,8 @@ a { color:var(--black); }
     </div>
 
     <div class="card">
-      <h2>📸 Team Pictures Tab</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Enable a "Team Pictures" tab where participants can post photos and videos of how they celebrate victories. Admins can delete any post.</p>
+      <h2>📷🌐 Pool Social Media Tab</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:8px;">Enable a "Pool Social Media" tab where participants can post photos/videos, react, and comment on how they celebrate victories. Admins can delete any post or comment.</p>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <span id="picturesToggleStatus" style="font-weight:600;font-size:1em;"></span>
         <button class="btn btn-sm" id="picturesToggleBtn" onclick="toggleTeamPictures()"></button>
@@ -1319,6 +1326,7 @@ function ensureDefaults(){
   if(S.cityLeadersEnabled===undefined)S.cityLeadersEnabled=false;
   if(!S.cityLeaders)S.cityLeaders={};
   if(!S.rankSnapshot)S.rankSnapshot={};
+  if(!S.lastPlaceTracker||typeof S.lastPlaceTracker!=='object')S.lastPlaceTracker={holders:[],since:0,totals:{}};
   if(S.autoMovement===undefined)S.autoMovement=true;
   if(S.hideSubmitTab===undefined)S.hideSubmitTab=false;
   if(S.teamPicturesEnabled===undefined)S.teamPicturesEnabled=false;
@@ -2936,32 +2944,42 @@ function toggleTeamPictures(){ S.teamPicturesEnabled=!S.teamPicturesEnabled; sav
 function updateTeamPicturesToggleUI(){
   const st=document.getElementById('picturesToggleStatus'), btn=document.getElementById('picturesToggleBtn');
   if(!st||!btn)return;
-  if(S.teamPicturesEnabled){ st.innerHTML='<span style="color:var(--green);">📸 Team Pictures tab is ON</span>'; btn.textContent='Hide Team Pictures'; btn.style.background='var(--red)';btn.style.color='var(--white)';btn.style.borderColor='var(--red)'; }
-  else { st.innerHTML='<span style="color:var(--gray-500);">📸 Team Pictures tab is OFF</span>'; btn.textContent='Enable Team Pictures'; btn.style.background='var(--gold)';btn.style.color='var(--black)';btn.style.borderColor='var(--gold)'; }
+  if(S.teamPicturesEnabled){ st.innerHTML='<span style="color:var(--green);">📷🌐 Pool Social Media tab is ON</span>'; btn.textContent='Hide Pool Social Media'; btn.style.background='var(--red)';btn.style.color='var(--white)';btn.style.borderColor='var(--red)'; }
+  else { st.innerHTML='<span style="color:var(--gray-500);">📷🌐 Pool Social Media tab is OFF</span>'; btn.textContent='Enable Pool Social Media'; btn.style.background='var(--gold)';btn.style.color='var(--black)';btn.style.borderColor='var(--gold)'; }
 }
 
-// ---------- Team Pictures gallery ----------
+// ---------- Pool Social Media gallery ----------
 function ytId(url){ const m=String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/); return m?m[1]:null; }
+
+const GAL_REACT_QUICK=['👍','❤️','😂','🔥','👎'];
+const GAL_REACT_MORE=['🚀','🎉','💯','🥶','🏆','⚽'];
+const GAL_REACT_ALL=GAL_REACT_QUICK.concat(GAL_REACT_MORE);
+
+function _galUserKey(){ try{ let k=localStorage.getItem('galUserKey'); if(!k){ k='u'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36); localStorage.setItem('galUserKey',k);} return k; }catch(e){ return 'u_anon'; } }
+function _galRememberName(n){ try{ if(n)localStorage.setItem('galLastName',n); }catch(e){} }
+function _galSavedName(){ try{ return localStorage.getItem('galLastName')||''; }catch(e){ return ''; } }
+
+function _postMedia(p){
+  if(p&&Array.isArray(p.media))return p.media.filter(Boolean);
+  if(p&&p.url)return [{type:p.type||'image',url:p.url,yt:p.yt||''}]; // legacy single-media post
+  return [];
+}
 function _galleryToMap(g){
   const map={};
-  if(Array.isArray(g)){ g.forEach(p=>{ if(!p)return; const id=p.id||('p'+(p.ts||Date.now())+Math.floor(Math.random()*100000)); map[id]={...p,id}; }); }
-  else if(g&&typeof g==='object'){ Object.keys(g).forEach(k=>{ if(!g[k])return; map[k]={...g[k],id:g[k].id||k}; }); }
+  const norm=(p,id)=>{ const o=Object.assign({},p); o.id=o.id||id; o.media=_postMedia(o); o.reactions=o.reactions||{}; o.comments=o.comments||{}; return o; };
+  if(Array.isArray(g)){ g.forEach(p=>{ if(!p)return; const id=p.id||('p'+(p.ts||Date.now())+Math.floor(Math.random()*100000)); map[id]=norm(p,id); }); }
+  else if(g&&typeof g==='object'){ Object.keys(g).forEach(k=>{ if(!g[k])return; map[k]=norm(g[k],k); }); }
   return map;
 }
 function _newGalId(){ return 'p'+Date.now()+Math.floor(Math.random()*100000); }
-function _galleryAddPost(post){
-  if(!S.gallery||typeof S.gallery!=='object'||Array.isArray(S.gallery))S.gallery=_galleryToMap(S.gallery);
-  S.gallery[post.id]=post;
-  try{ fbDb.ref(GALLERY_ROOT+'/'+post.id).set(post); }catch(e){ console.error(e); }
-  renderGallery();
-}
+function _galCID(){ return 'c'+Date.now()+Math.floor(Math.random()*100000); }
+
 // Compress + resize a photo in the browser so it fits comfortably in the database.
 function _compressImage(file){
   return new Promise((resolve,reject)=>{
     if(!/^image\//.test(file.type))return reject(new Error('Not an image'));
     const img=new Image(); const url=URL.createObjectURL(file);
-    img.onload=()=>{
-      URL.revokeObjectURL(url);
+    img.onload=()=>{ URL.revokeObjectURL(url);
       const MAX=1280; let w=img.width,h=img.height;
       if(w>=h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;} else if(h>w&&h>MAX){w=Math.round(w*MAX/h);h=MAX;}
       const draw=(ww,hh,q)=>{const cv=document.createElement('canvas');cv.width=ww;cv.height=hh;cv.getContext('2d').drawImage(img,0,0,ww,hh);return cv.toDataURL('image/jpeg',q);};
@@ -2974,62 +2992,222 @@ function _compressImage(file){
     img.src=url;
   });
 }
+
+// ----- Staging: photos are previewed and NOT posted until the user clicks Post -----
+let _galStaged=[]; // [{type:'image',url:dataUrl,yt:''}]
 async function handleGalleryFiles(files){
   const st=document.getElementById('galStatus');
-  const name=((document.getElementById('galName')||{}).value||'').trim()||'Anonymous';
-  const caption=((document.getElementById('galCaption')||{}).value||'').trim();
-  const list=Array.from(files||[]);
-  if(!list.length)return;
-  let done=0,skipped=0;
-  for(let i=0;i<list.length;i++){
-    const file=list[i];
-    if(/^video\//.test(file.type)){ if(st)st.innerHTML='<span style="color:var(--red);">Videos are too large to store here — paste a YouTube or video link in the box above instead.</span>'; skipped++; continue; }
+  const list=Array.from(files||[]); if(!list.length)return;
+  let skipped=0;
+  for(let i=0;i<list.length;i++){ const file=list[i];
+    if(/^video\//.test(file.type)){ if(st)st.innerHTML='<span style="color:var(--red);">Videos are too large to upload here — paste a YouTube or .mp4 link in the box above instead.</span>'; skipped++; continue; }
     if(!/^image\//.test(file.type)){ skipped++; continue; }
     if(st)st.innerHTML='<span style="color:var(--gray-600);">Processing '+(file.name||'photo')+'…</span>';
-    try{
-      const dataUrl=await _compressImage(file);
-      _galleryAddPost({id:_newGalId(),name,caption,url:dataUrl,type:'image',yt:'',ts:Date.now()+i});
-      done++;
-    }catch(e){ skipped++; }
+    try{ const dataUrl=await _compressImage(file); _galStaged.push({type:'image',url:dataUrl,yt:''}); }catch(e){ skipped++; }
   }
-  const c=document.getElementById('galCaption'); if(c)c.value='';
-  if(st)st.innerHTML='<span style="color:var(--green);">✓ Added '+done+' photo'+(done!==1?'s':'')+'.'+(skipped?(' '+skipped+' skipped (videos/other files use a link above).'):'')+'</span>';
+  renderStagedPreview();
+  if(st)st.innerHTML='<span style="color:var(--green);">✓ '+_galStaged.length+' photo'+(_galStaged.length!==1?'s':'')+' ready — add a caption, then click <strong>Post</strong>.'+(skipped?(' '+skipped+' skipped.'):'')+'</span>';
 }
+function renderStagedPreview(){
+  const box=document.getElementById('galStagedPreview'); if(!box)return;
+  if(!_galStaged.length){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='';
+  box.innerHTML='<div style="font-size:0.82em;color:var(--gray-600);margin-bottom:6px;font-weight:600;">Preview ('+_galStaged.length+') — not shared until you click Post:</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+    _galStaged.map((mi,i)=>'<div style="position:relative;width:84px;height:84px;border-radius:8px;overflow:hidden;border:1px solid var(--gray-200);"><img src="'+mi.url+'" style="width:100%;height:100%;object-fit:cover;display:block;"><button onclick="removeStaged('+i+')" title="Remove" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.65);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;line-height:1;">×</button></div>').join('')+
+    '</div>';
+}
+function removeStaged(i){ _galStaged.splice(i,1); renderStagedPreview(); }
+function _clearStaged(){ _galStaged=[]; renderStagedPreview(); }
+
 function galleryDragOver(ev){ ev.preventDefault(); const dz=document.getElementById('galDropZone'); if(dz){dz.style.borderColor='var(--gold)';dz.style.background='var(--gray-50)';} }
-function galleryDragLeave(ev){ if(ev)ev.preventDefault&&ev.preventDefault(); const dz=document.getElementById('galDropZone'); if(dz){dz.style.borderColor='var(--gray-300)';dz.style.background='var(--white)';} }
+function galleryDragLeave(ev){ if(ev&&ev.preventDefault)ev.preventDefault(); const dz=document.getElementById('galDropZone'); if(dz){dz.style.borderColor='var(--gray-300)';dz.style.background='var(--white)';} }
 function galleryDrop(ev){ ev.preventDefault(); galleryDragLeave(ev); const files=ev.dataTransfer&&ev.dataTransfer.files; if(files&&files.length)handleGalleryFiles(files); }
 function galleryPick(ev){ const f=ev.target.files; if(f&&f.length)handleGalleryFiles(f); ev.target.value=''; }
+
+// ----- Posting happens ONLY when Post is clicked -----
 function addGalleryPost(){
-  const url=((document.getElementById('galUrl')||{}).value||'').trim();
-  const caption=((document.getElementById('galCaption')||{}).value||'').trim();
   const name=((document.getElementById('galName')||{}).value||'').trim()||'Anonymous';
+  const caption=((document.getElementById('galCaption')||{}).value||'').trim();
+  const url=((document.getElementById('galUrl')||{}).value||'').trim();
   const st=document.getElementById('galStatus');
-  if(!url){ if(st)st.innerHTML='<span style="color:var(--red);">Paste an image or video link, or drag a photo into the box below.</span>'; return; }
-  if(!/^https?:\/\//i.test(url)){ if(st)st.innerHTML='<span style="color:var(--red);">Link must start with http:// or https://</span>'; return; }
-  const yt=ytId(url);
-  const type=yt?'youtube':(/\.(mp4|webm|ogg)(\?|$)/i.test(url)?'video':'image');
-  _galleryAddPost({id:_newGalId(),name,url,caption,type,yt:yt||'',ts:Date.now()});
+  let photoMedia=_galStaged.slice();
+  const separate=[];
+  if(url){
+    if(!/^https?:\/\//i.test(url)){ if(st)st.innerHTML='<span style="color:var(--red);">Link must start with http:// or https://</span>'; return; }
+    const yt=ytId(url);
+    if(yt)separate.push({type:'youtube',url,yt});
+    else if(/\.(mp4|webm|ogg)(\?|$)/i.test(url))separate.push({type:'video',url,yt:''});
+    else photoMedia.push({type:'image',url,yt:''}); // an image link joins the photo carousel
+  }
+  if(!photoMedia.length&&!separate.length){ if(st)st.innerHTML='<span style="color:var(--red);">Add a photo (drag below) or paste a link, then click Post.</span>'; return; }
+  _galRememberName(name);
+  if(!S.gallery||typeof S.gallery!=='object'||Array.isArray(S.gallery))S.gallery=_galleryToMap(S.gallery);
+  const builds=[];
+  if(photoMedia.length)builds.push(photoMedia); // staged photos (+ any image link) = one carousel post
+  separate.forEach(s=>builds.push([s]));        // each video/YouTube link = its own post
+  builds.forEach((media,idx)=>{
+    const post={id:_newGalId(),name,caption,media,reactions:{},comments:{},ts:Date.now()+idx};
+    S.gallery[post.id]=post;
+    try{ fbDb.ref(GALLERY_ROOT+'/'+post.id).set(post); }catch(e){ console.error(e); }
+  });
+  _clearStaged();
   const u=document.getElementById('galUrl'); if(u)u.value=''; const c=document.getElementById('galCaption'); if(c)c.value='';
   if(st)st.innerHTML='<span style="color:var(--green);">✓ Posted! Thanks for sharing.</span>';
+  renderGallery();
 }
 function deleteGalleryPost(id){
   if(S.gallery&&typeof S.gallery==='object')delete S.gallery[id];
   try{ fbDb.ref(GALLERY_ROOT+'/'+id).remove(); }catch(e){ console.error(e); }
+  if(_galModalId===id)closeGalleryModal();
   renderGallery();
 }
+
+// ----- Reactions: one per person across the whole set -----
+function _myReaction(p){ const me=_galUserKey(); const rx=p.reactions||{}; for(const e of GAL_REACT_ALL){ if(rx[e]&&rx[e][me])return e; } return null; }
+function _reactionCounts(p){ const rx=p.reactions||{}; const out={}; GAL_REACT_ALL.forEach(e=>{ const u=rx[e]; const c=u?Object.keys(u).length:0; if(c>0)out[e]=c; }); return out; }
+function toggleReaction(ev,postId,emoji){
+  if(ev&&ev.stopPropagation)ev.stopPropagation();
+  const p=S.gallery&&S.gallery[postId]; if(!p)return; if(!p.reactions)p.reactions={};
+  const me=_galUserKey(); const cur=_myReaction(p); const updates={}; const base=GALLERY_ROOT+'/'+postId+'/reactions/';
+  if(cur===emoji){ if(p.reactions[emoji])delete p.reactions[emoji][me]; updates[base+emoji+'/'+me]=null; }
+  else { if(cur){ if(p.reactions[cur])delete p.reactions[cur][me]; updates[base+cur+'/'+me]=null; } if(!p.reactions[emoji])p.reactions[emoji]={}; p.reactions[emoji][me]=true; updates[base+emoji+'/'+me]=true; }
+  try{ fbDb.ref().update(updates); }catch(e){ console.error(e); } // tiny targeted write — never rewrites the photo
+  renderGallery(); renderGalleryModal();
+}
+function toggleReactPalette(ev,ctx,postId){ if(ev&&ev.stopPropagation)ev.stopPropagation(); const el=document.getElementById('palette-'+ctx+'-'+postId); if(el)el.style.display=(el.style.display==='none'||!el.style.display)?'inline-flex':'none'; }
+function _reactionBar(p,ctx){
+  const counts=_reactionCounts(p); const mine=_myReaction(p);
+  const btn=(e)=>{ const c=counts[e]||0; const on=mine===e; return '<button onclick="toggleReaction(event,\''+p.id+'\',\''+e+'\')" style="border:1px solid '+(on?'var(--gold)':'var(--gray-200)')+';background:'+(on?'rgba(201,168,76,0.15)':'var(--white)')+';border-radius:14px;padding:2px 8px;margin:2px 4px 2px 0;cursor:pointer;font-size:0.95em;line-height:1.4;">'+e+(c?'<span style="font-size:0.8em;color:var(--gray-600);margin-left:3px;">'+c+'</span>':'')+'</button>'; };
+  // any "extended" emoji already used should stay visible even when palette is closed
+  const usedMore=GAL_REACT_MORE.filter(e=>counts[e]);
+  let h='<div style="display:flex;flex-wrap:wrap;align-items:center;">';
+  h+=GAL_REACT_QUICK.map(btn).join('');
+  h+=usedMore.map(btn).join('');
+  h+='<button onclick="toggleReactPalette(event,\''+ctx+'\',\''+p.id+'\')" title="More reactions" style="border:1px solid var(--gray-300);background:var(--white);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:1em;line-height:1;margin:2px 4px;">+</button>';
+  h+='<span id="palette-'+ctx+'-'+p.id+'" style="display:none;align-items:center;flex-wrap:wrap;">'+GAL_REACT_MORE.filter(e=>!counts[e]).map(btn).join('')+'</span>';
+  h+='</div>';
+  return h;
+}
+
+// ----- Comments -----
+function _commentList(p){ const c=p.comments||{}; return Object.keys(c).map(k=>Object.assign({id:k},c[k])).filter(x=>x&&x.text).sort((a,b)=>(a.ts||0)-(b.ts||0)); }
+function addGalleryComment(postId){
+  const p=S.gallery&&S.gallery[postId]; if(!p)return;
+  const nameEl=document.getElementById('galCommentName'), textEl=document.getElementById('galCommentText');
+  const name=((nameEl&&nameEl.value)||'').trim()||'Anonymous';
+  const text=((textEl&&textEl.value)||'').trim(); if(!text)return;
+  _galRememberName(name);
+  const cid=_galCID(); const obj={name,text,ts:Date.now(),userKey:_galUserKey()};
+  if(!p.comments)p.comments={}; p.comments[cid]=obj;
+  try{ fbDb.ref(GALLERY_ROOT+'/'+postId+'/comments/'+cid).set(obj); }catch(e){ console.error(e); }
+  if(textEl)textEl.value='';
+  renderGalleryModal(); renderGallery();
+}
+function deleteGalleryComment(postId,cid){
+  const p=S.gallery&&S.gallery[postId]; if(!p||!p.comments||!p.comments[cid])return;
+  const me=_galUserKey(); if(!(adminLoggedIn||p.comments[cid].userKey===me))return;
+  delete p.comments[cid];
+  try{ fbDb.ref(GALLERY_ROOT+'/'+postId+'/comments/'+cid).remove(); }catch(e){ console.error(e); }
+  renderGalleryModal(); renderGallery();
+}
+
+// ----- Media rendering -----
+function _mediaTag(mi,inModal){
+  if(!mi)return '';
+  if(mi.type==='youtube'&&mi.yt){ return '<div style="position:relative;padding-top:56.25%;background:#000;"><iframe src="https://www.youtube.com/embed/'+mi.yt+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>'; }
+  if(mi.type==='video'){ return '<video src="'+mi.url+'" controls style="width:100%;max-height:'+(inModal?'70vh':'300px')+';background:#000;display:block;"></video>'; }
+  const fit=inModal?'contain':'cover'; const mh=inModal?'70vh':'340px';
+  return '<img src="'+mi.url+'" style="width:100%;max-height:'+mh+';object-fit:'+fit+';display:block;background:var(--gray-50);" loading="lazy">';
+}
+
+// ----- The feed -----
 function renderGallery(){
   const grid=document.getElementById('galleryGrid'); if(!grid)return;
-  const posts=Object.values(_galleryToMap(S.gallery)).sort((a,b)=>b.ts-a.ts);
-  const empty=document.getElementById('galleryEmpty');
-  if(empty)empty.style.display=posts.length?'none':'';
+  S.gallery=_galleryToMap(S.gallery);
+  const gn=document.getElementById('galName'); if(gn&&!gn.value)gn.value=_galSavedName();
+  const posts=Object.values(S.gallery).sort((a,b)=>b.ts-a.ts);
+  const empty=document.getElementById('galleryEmpty'); if(empty)empty.style.display=posts.length?'none':'';
   grid.innerHTML=posts.map(p=>{
-    let media;
-    if(p.type==='youtube'&&p.yt){ media=`<div style="position:relative;padding-top:56.25%;"><iframe src="https://www.youtube.com/embed/${p.yt}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:8px 8px 0 0;" allowfullscreen loading="lazy"></iframe></div>`; }
-    else if(p.type==='video'){ media=`<video src="${p.url}" controls style="width:100%;max-height:300px;border-radius:8px 8px 0 0;background:#000;"></video>`; }
-    else { media=`<a href="${p.url}" target="_blank" rel="noopener"><img src="${p.url}" alt="${(p.caption||'team photo').replace(/"/g,'')}" style="width:100%;max-height:340px;object-fit:cover;border-radius:8px 8px 0 0;display:block;" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'padding:24px;text-align:center;color:var(--regent);\'>🔗 '+this.alt+' (open link)</div>';"></a>`; }
-    const del=adminLoggedIn?`<button onclick="deleteGalleryPost('${p.id}')" title="Delete" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;">×</button>`:'';
-    return `<div style="position:relative;background:var(--white);border:1px solid var(--gray-200);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">${del}${media}<div style="padding:10px 12px;"><div style="font-weight:600;font-size:0.9em;">${p.name}</div>${p.caption?`<div style="font-size:0.85em;color:var(--gray-600);margin-top:2px;">${p.caption}</div>`:''}<div style="font-size:0.72em;color:var(--regent);margin-top:4px;">${new Date(p.ts).toLocaleDateString()}</div></div></div>`;
+    const media=_postMedia(p); const first=media[0]; const multi=media.length>1;
+    const del=adminLoggedIn?'<button onclick="deleteGalleryPost(\''+p.id+'\')" title="Delete post" style="position:absolute;top:8px;right:8px;z-index:2;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;">×</button>':'';
+    const badge=multi?'<div style="position:absolute;top:8px;left:8px;z-index:2;background:rgba(0,0,0,0.6);color:#fff;border-radius:12px;padding:2px 9px;font-size:0.78em;font-weight:600;">▣ '+media.length+'</div>':'';
+    const cCount=_commentList(p).length;
+    const mediaBox='<div onclick="openGalleryModal(\''+p.id+'\')" style="cursor:pointer;position:relative;">'+badge+_mediaTag(first,false)+'</div>';
+    return '<div style="position:relative;background:var(--white);border:1px solid var(--gray-200);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">'+del+mediaBox+'<div style="padding:10px 12px;">'+
+      '<div style="font-weight:600;font-size:0.9em;">'+p.name+'</div>'+
+      (p.caption?'<div onclick="openGalleryModal(\''+p.id+'\')" style="font-size:0.85em;color:var(--gray-600);margin-top:2px;cursor:pointer;">'+p.caption+'</div>':'')+
+      '<div style="font-size:0.72em;color:var(--regent);margin:4px 0 6px;">'+new Date(p.ts).toLocaleDateString()+'</div>'+
+      _reactionBar(p,'c')+
+      '<div onclick="openGalleryModal(\''+p.id+'\')" style="cursor:pointer;color:var(--gold-dark);font-size:0.82em;margin-top:6px;">💬 '+cCount+' comment'+(cCount!==1?'s':'')+' · open</div>'+
+      '</div></div>';
   }).join('');
+  renderGalleryModal();
+}
+
+// ----- Modal / lightbox (in-site preview + discussion) -----
+let _galModalId=null, _galModalSlide=0;
+function openGalleryModal(id){ _galModalId=id; _galModalSlide=0; const m=document.getElementById('galModal'); if(m)m.style.display='flex'; renderGalleryModal(); }
+function closeGalleryModal(){ _galModalId=null; const m=document.getElementById('galModal'); if(m)m.style.display='none'; }
+function galModalNav(d){ const p=S.gallery&&S.gallery[_galModalId]; if(!p)return; const n=_postMedia(p).length||1; _galModalSlide=(_galModalSlide+d+n)%n; renderGalleryModal(); }
+function galModalGo(i){ _galModalSlide=i; renderGalleryModal(); }
+function renderGalleryModal(){
+  const body=document.getElementById('galModalBody'); if(!body)return;
+  if(!_galModalId||!S.gallery||!S.gallery[_galModalId])return;
+  const p=S.gallery[_galModalId]; const media=_postMedia(p);
+  if(_galModalSlide>=media.length)_galModalSlide=0;
+  const cur=media[_galModalSlide];
+  // preserve a comment being typed across live re-renders
+  const existed=!!document.getElementById('galCommentText');
+  const prevName=existed?(document.getElementById('galCommentName')||{}).value:null;
+  const prevText=existed?(document.getElementById('galCommentText')||{}).value:null;
+  let nav='';
+  if(media.length>1){
+    nav='<button onclick="galModalNav(-1)" style="position:absolute;left:6px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;z-index:2;">‹</button>'+
+        '<button onclick="galModalNav(1)" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;z-index:2;">›</button>'+
+        '<div style="position:absolute;top:8px;right:10px;background:rgba(0,0,0,0.6);color:#fff;border-radius:12px;padding:2px 9px;font-size:0.8em;z-index:2;">'+(_galModalSlide+1)+'/'+media.length+'</div>';
+  }
+  const dots=media.length>1?('<div style="text-align:center;padding:6px 0;">'+media.map((mm,i)=>'<span onclick="galModalGo('+i+')" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 3px;cursor:pointer;background:'+(i===_galModalSlide?'var(--gold)':'var(--gray-300)')+';"></span>').join('')+'</div>'):'';
+  const me=_galUserKey(); const comments=_commentList(p);
+  const cHtml=comments.length?comments.map(c=>{
+    const canDel=adminLoggedIn||c.userKey===me;
+    return '<div style="padding:7px 0;border-bottom:1px solid var(--gray-100);"><div style="font-size:0.85em;"><strong>'+c.name+'</strong> <span style="color:var(--regent);font-size:0.82em;">'+new Date(c.ts).toLocaleString()+'</span>'+(canDel?' <button onclick="deleteGalleryComment(\''+p.id+'\',\''+c.id+'\')" style="float:right;background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.82em;">delete</button>':'')+'</div><div style="font-size:0.9em;margin-top:2px;">'+String(c.text||'').replace(/</g,'&lt;')+'</div></div>';
+  }).join(''):'<div style="color:var(--regent);font-size:0.86em;padding:8px 0;">No comments yet — start the conversation!</div>';
+  const savedName=_galSavedName().replace(/"/g,'&quot;');
+  body.innerHTML=
+    '<div style="position:relative;background:#000;border-radius:10px 10px 0 0;overflow:hidden;">'+nav+_mediaTag(cur,true)+'</div>'+dots+
+    '<div style="padding:12px 14px;">'+
+      '<div style="font-weight:700;">'+p.name+'</div>'+
+      (p.caption?'<div style="color:var(--gray-700);margin-top:3px;">'+p.caption+'</div>':'')+
+      '<div style="font-size:0.75em;color:var(--regent);margin:4px 0 8px;">'+new Date(p.ts).toLocaleString()+'</div>'+
+      _reactionBar(p,'m')+
+      '<div style="margin-top:14px;font-weight:600;font-size:0.9em;">Comments</div>'+
+      '<div style="margin:6px 0;">'+cHtml+'</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center;">'+
+        '<input id="galCommentName" placeholder="Your name" value="'+savedName+'" style="flex:0 0 130px;min-width:110px;">'+
+        '<input id="galCommentText" placeholder="Add a comment…" onkeydown="if(event.key===\'Enter\')addGalleryComment(\''+p.id+'\')" style="flex:1;min-width:160px;">'+
+        '<button class="btn btn-gold btn-sm" onclick="addGalleryComment(\''+p.id+'\')">Send</button>'+
+      '</div>'+
+    '</div>';
+  if(existed){ const t=document.getElementById('galCommentText'); if(t&&prevText!=null)t.value=prevText; const nm=document.getElementById('galCommentName'); if(nm&&prevName!=null&&prevName!=='')nm.value=prevName; }
+}
+document.addEventListener('keydown',function(e){ if(e.key==='Escape')closeGalleryModal(); });
+
+// ----- Last Place Legend tracker -----
+function _fmtDur(ms){ const s=Math.floor(ms/1000); const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60); if(d>0)return d+'d '+h+'h'; if(h>0)return h+'h '+m+'m'; if(m>0)return m+'m'; return '<1m'; }
+function _writeLastPlace(tr){ try{ fbDb.ref(DB_ROOT+'/lastPlaceTracker').set(tr); }catch(e){} }
+function _accrueLastPlace(rows){
+  if(!adminLoggedIn)return; // only the admin's browser advances the clock (avoids multi-client races)
+  if(!S.lastPlaceTracker||typeof S.lastPlaceTracker!=='object')S.lastPlaceTracker={holders:[],since:0,totals:{}};
+  const tr=S.lastPlaceTracker; const now=Date.now();
+  let lastNames=[];
+  if(rows&&rows.length>=2){ const min=rows[rows.length-1].total; const bottom=rows.filter(r=>r.total===min).map(r=>r.name); if(bottom.length<rows.length)lastNames=bottom; }
+  const prev=Array.isArray(tr.holders)?tr.holders:[];
+  const same=prev.length===lastNames.length&&prev.every(n=>lastNames.indexOf(n)>=0);
+  if(same){ if(lastNames.length&&!tr.since){ tr.since=now; _writeLastPlace(tr); } return; }
+  if(prev.length&&tr.since){ const el=now-tr.since; if(!tr.totals)tr.totals={}; prev.forEach(n=>{ tr.totals[n]=(tr.totals[n]||0)+el; }); }
+  tr.holders=lastNames; tr.since=lastNames.length?now:0;
+  _writeLastPlace(tr);
 }
 
 // ---------- Live-score status classification (for the ticker) ----------
@@ -3536,6 +3714,7 @@ function calcLeaderboard(){
   // Expose the current ranking so the admin can capture it as the next snapshot baseline
   _currentRanks={};
   rows.forEach((r,i)=>{_currentRanks[r.name]=ranks[i];});
+  try{ _accrueLastPlace(rows); }catch(e){} // advance the Last Place Legend clock (admin browser only)
 
   // ========== CITY COMPETITION TABLE ==========
   const cityStats={};
@@ -3956,6 +4135,17 @@ function renderFunStats(){
   h+=card('🎲','Upset Artist',upsetArtist&&upsetArtist.upsets>0?tag(upsetArtist.name):null,upsetArtist&&upsetArtist.upsets>0?(upsetArtist.upsets+' correct call'+(upsetArtist.upsets>1?'s':'')+' against the pool majority'):'',!(upsetArtist&&upsetArtist.upsets>0));
   h+=card('🔥','Hot Streak',streaker&&streaker.bestStreak>=2?tag(streaker.name):null,streaker&&streaker.bestStreak>=2?(streaker.bestStreak+' correct results in a row'):'',!(streaker&&streaker.bestStreak>=2));
   h+=card('❄️','Cold Streak',coldStreaker&&coldStreaker.worstStreak>=2?tag(coldStreaker.name):null,coldStreaker&&coldStreaker.worstStreak>=2?(coldStreaker.worstStreak+' wrong results in a row'):'',!(coldStreaker&&coldStreaker.worstStreak>=2));
+  // Last Place Legend — who has spent the most accumulated time in last place (ties share)
+  (function(){
+    const tr=S.lastPlaceTracker||{holders:[],since:0,totals:{}};
+    const now=Date.now(); const eff={};
+    Object.keys(tr.totals||{}).forEach(n=>{ eff[n]=tr.totals[n]||0; });
+    (Array.isArray(tr.holders)?tr.holders:[]).forEach(n=>{ eff[n]=(eff[n]||0)+(tr.since?(now-tr.since):0); });
+    let maxT=0; Object.keys(eff).forEach(n=>{ if(eff[n]>maxT)maxT=eff[n]; });
+    const legends=Object.keys(eff).filter(n=>eff[n]>0&&eff[n]===maxT);
+    const have=maxT>0&&legends.length>0;
+    h+=card('🐢','Last Place Legend',have?tag(legends.join(', ')):null,have?('held last place for '+_fmtDur(maxT)):'',!have);
+  })();
   h+=card('👑','The People\u2019s Champion',peopleChamp?(fl(peopleChamp[0])+peopleChamp[0]):null,peopleChamp?(peopleChamp[1]+' of '+locked.length+' backers · '+Math.round(peopleChamp[1]/locked.length*100)+'%'):'No champions picked');
   let lwVal,lwDetail;
   if(loneWolves.length===0){lwVal='None';lwDetail='every champion pick is shared by at least two people';}
