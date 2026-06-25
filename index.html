@@ -467,9 +467,14 @@ a { color:var(--black); }
       <div class="stat-box"><div class="num">104</div><div class="lbl">Total Matches</div></div>
       <div class="stat-box"><div class="num">48</div><div class="lbl">Teams</div></div>
     </div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;font-size:0.85em;">
+      <span style="color:var(--gray-600);">View:</span>
+      <button id="lbViewGS" onclick="setLbView('gs')">Group Stage</button>
+      <button id="lbViewRounds" onclick="setLbView('rounds')">Rounds (R1·R2·R3)</button>
+    </div>
     <div style="overflow-x:auto;">
     <table class="lb-table" id="lbTable">
-      <thead><tr><th>#</th><th>Move</th><th>Participant</th><th>City</th><th>Predicted Champion</th><th>Group Stage</th><th>Knockout</th><th>Bonus</th><th>Total</th></tr></thead>
+      <thead><tr id="lbHead"><th>#</th><th>Move</th><th>Participant</th><th>City</th><th>Predicted Champion</th><th>Group Stage</th><th>Knockout</th><th>Bonus</th><th>Total</th></tr></thead>
       <tbody id="lbBody"><tr><td colspan="9" style="text-align:center;color:var(--regent);padding:20px;">No results yet. Admin must enter real match results.</td></tr></tbody>
     </table>
     </div>
@@ -541,12 +546,12 @@ a { color:var(--black); }
   </div>
 
   <!-- Tournament Bracket Chart -->
-  <div class="card">
-    <h2>Tournament Bracket</h2>
-    <div class="bracket-img-wrap">
-      <img src="bracket_knockout.png" alt="FIFA World Cup 2026 — Group Stage & Knockout Bracket">
-      <p>Official FIFA World Cup 2026 group stage and knockout bracket structure</p>
-    </div>
+  <div class="card" id="homeBracketCard">
+    <div id="homeBracket"></div>
+  </div>
+
+  <div class="card" id="homeGroupStatusCard">
+    <div id="homeGroupStatus"></div>
   </div>
 
 </div>
@@ -674,6 +679,18 @@ a { color:var(--black); }
       <div>
         <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare 5 (optional)</label>
         <select id="viewPerson5" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare 6 (optional)</label>
+        <select id="viewPerson6" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare 7 (optional)</label>
+        <select id="viewPerson7" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.84em;color:var(--gray-600);margin-bottom:4px;">Compare 8 (optional)</label>
+        <select id="viewPerson8" onchange="renderComparison()" style="min-width:170px;height:40px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:0.92em;"><option value="">-- None --</option></select>
       </div>
     </div>
     <div id="viewMyContent" style="display:none;margin-top:8px;"></div>
@@ -826,6 +843,26 @@ a { color:var(--black); }
   </div>
 
   <div id="adminMain" style="display:none;">
+
+    <div class="card" id="scoringBalanceCard">
+      <h2>⚖️ Scoring Balance Analysis</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">A live read on how your points are distributing across the pool — use it to decide whether to retune knockout points, the champion bonus, or the goals bonus. The <strong>Spread</strong> column is the key one: it shows how much each category is actually separating players right now (higher = more decisive). Note: changing point values re-scores everyone retroactively.</p>
+      <button class="btn btn-black btn-sm" onclick="renderScoringBalance()">↻ Refresh analysis</button>
+      <div id="scoringBalance" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="card" id="homeDisplayCard">
+      <h2>🖥️ Home Tab Display</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">Show or hide the live knockout bracket and group-stage standings on the Home tab (the bracket always appears above the standings).</p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+        <span id="bracketToggleStatus" style="font-weight:600;font-size:1em;"></span>
+        <button class="btn btn-sm" id="bracketToggleBtn" onclick="toggleBracketHome()"></button>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span id="groupStatusToggleStatus" style="font-weight:600;font-size:1em;"></span>
+        <button class="btn btn-sm" id="groupStatusToggleBtn" onclick="toggleGroupStatusHome()"></button>
+      </div>
+    </div>
 
     <div class="card">
       <h2>🔄 Reload from Database</h2>
@@ -1329,6 +1366,8 @@ function ensureDefaults(){
   if(!S.lastPlaceTracker||typeof S.lastPlaceTracker!=='object')S.lastPlaceTracker={holders:[],since:0,totals:{}};
   if(S.autoMovement===undefined)S.autoMovement=true;
   if(S.hideSubmitTab===undefined)S.hideSubmitTab=false;
+  if(S.showBracketHome===undefined)S.showBracketHome=true;
+  if(S.showGroupStatusHome===undefined)S.showGroupStatusHome=true;
   if(S.teamPicturesEnabled===undefined)S.teamPicturesEnabled=false;
   if(!S.gallery||typeof S.gallery!=='object'||Array.isArray(S.gallery))S.gallery=_galleryToMap(S.gallery);
   if(!S.liveMatches||typeof S.liveMatches!=='object')S.liveMatches={};
@@ -1413,6 +1452,8 @@ function load(){
             S.rankSnapshot=fresh.rankSnapshot||S.rankSnapshot;
             S.autoMovement=fresh.autoMovement!==undefined?fresh.autoMovement:S.autoMovement;
             S.hideSubmitTab=fresh.hideSubmitTab!==undefined?fresh.hideSubmitTab:S.hideSubmitTab;
+            S.showBracketHome=fresh.showBracketHome!==undefined?fresh.showBracketHome:S.showBracketHome;
+            S.showGroupStatusHome=fresh.showGroupStatusHome!==undefined?fresh.showGroupStatusHome:S.showGroupStatusHome;
             S.teamPicturesEnabled=fresh.teamPicturesEnabled!==undefined?fresh.teamPicturesEnabled:S.teamPicturesEnabled;
             S.gallery=Array.isArray(fresh.gallery)?fresh.gallery:S.gallery;
             S.liveMatches=fresh.liveMatches||S.liveMatches;
@@ -1530,7 +1571,7 @@ function showTab(t){
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
   event.target.classList.add('active');
-  if(t==='home'){updateHomeStats();calcLeaderboard();}
+  if(t==='home'){updateHomeStats();calcLeaderboard();renderHomeBracket();renderHomeGroupStatus();}
   if(t==='stats')renderStats();
   if(t==='koupdate')checkKOUpdateVisibility();
   if(t!=='admin'&&typeof stopAutoFetch==='function')stopAutoFetch();
@@ -2740,6 +2781,8 @@ function updateKOWindowUI(){
 function renderAdminView(){
   if(!adminLoggedIn)return;
   renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();updateCityLeadersUI();updateSnapshotStatus();updateHideSubmitToggleUI();updateTeamPicturesToggleUI();renderGallery();updateAutoFetchUI(parseInt((document.getElementById('autoFetchMins')||{}).value,10)||2);
+  try{ renderScoringBalance(); }catch(e){}
+  updateHomeTogglesUI();
   // Populate view predictions selector
   const sel=document.getElementById('viewPredPerson');
   const cur=sel.value;
@@ -2932,6 +2975,14 @@ function applyCountdownVisibility(){
 function applyTabVisibility(){
   const np=document.getElementById('navPredict'); if(np)np.style.display=S.hideSubmitTab?'none':'';
   const npic=document.getElementById('navPictures'); if(npic)npic.style.display=S.teamPicturesEnabled?'':'none';
+}
+function toggleBracketHome(){ S.showBracketHome=!S.showBracketHome; save(); updateHomeTogglesUI(); renderHomeBracket(); }
+function toggleGroupStatusHome(){ S.showGroupStatusHome=!S.showGroupStatusHome; save(); updateHomeTogglesUI(); renderHomeGroupStatus(); }
+function updateHomeTogglesUI(){
+  const bs=document.getElementById('bracketToggleStatus'), bb=document.getElementById('bracketToggleBtn');
+  if(bs&&bb){ if(S.showBracketHome===false){ bs.innerHTML='<span style="color:var(--gray-500);">🏆 Knockout bracket is HIDDEN</span>'; bb.textContent='Show Bracket'; bb.style.background='var(--gold)';bb.style.color='var(--black)';bb.style.borderColor='var(--gold)'; } else { bs.innerHTML='<span style="color:var(--green);">🏆 Knockout bracket is SHOWN</span>'; bb.textContent='Hide Bracket'; bb.style.background='';bb.style.color='';bb.style.borderColor=''; } }
+  const gs=document.getElementById('groupStatusToggleStatus'), gb=document.getElementById('groupStatusToggleBtn');
+  if(gs&&gb){ if(S.showGroupStatusHome===false){ gs.innerHTML='<span style="color:var(--gray-500);">📋 Group standings are HIDDEN</span>'; gb.textContent='Show Standings'; gb.style.background='var(--gold)';gb.style.color='var(--black)';gb.style.borderColor='var(--gold)'; } else { gs.innerHTML='<span style="color:var(--green);">📋 Group standings are SHOWN</span>'; gb.textContent='Hide Standings'; gb.style.background='';gb.style.color='';gb.style.borderColor=''; } }
 }
 function toggleHideSubmitTab(){ S.hideSubmitTab=!S.hideSubmitTab; save(); updateHideSubmitToggleUI(); applyTabVisibility(); }
 function updateHideSubmitToggleUI(){
@@ -3624,6 +3675,32 @@ function renderComparison(){
 // ============================
 // LEADERBOARD
 // ============================
+let _MD_MAP=null;
+function matchdayMap(){
+  if(_MD_MAP)return _MD_MAP;
+  const map={},groups={};
+  GM.forEach(m=>{ (groups[m.g]=groups[m.g]||[]).push(m); });
+  Object.keys(groups).forEach(g=>{ groups[g].slice().sort(byKickoff).forEach((m,i)=>{ map[m.n]=Math.floor(i/2)+1; }); }); // 1st pair=R1, 2nd=R2, 3rd=R3
+  _MD_MAP=map; return map;
+}
+function _roundPoints(sub){
+  const mdm=matchdayMap(); const r={1:0,2:0,3:0};
+  GM.forEach(m=>{ const real=S.admin.groupResults[m.n]; const pr=(sub.gs||{})[m.n]; if(!real||!pr||pr.h===undefined||pr.h===null)return;
+    const rO=Math.sign(real.h-real.a),pO=Math.sign(pr.h-pr.a);
+    let pts=0; if(rO===pO)pts=P.OUT+((pr.h===real.h&&pr.a===real.a)?P.EX_BONUS:0);
+    r[mdm[m.n]]+=pts;
+  });
+  return {r1:r[1],r2:r[2],r3:r[3]};
+}
+let _lbView='gs'; // 'gs' = single Group Stage column, 'rounds' = R1/R2/R3
+function setLbView(v){ _lbView=v; updateLbViewUI(); calcLeaderboard(); }
+function updateLbViewUI(){
+  const g=document.getElementById('lbViewGS'), r=document.getElementById('lbViewRounds');
+  if(!g||!r)return;
+  const on='background:var(--black);color:var(--gold);border-color:var(--black);', off='background:var(--white);color:var(--gray-700);border-color:var(--gray-300);';
+  g.style.cssText='cursor:pointer;border-radius:6px;padding:3px 12px;font-size:0.85em;border:1px solid;'+( _lbView==='gs'?on:off);
+  r.style.cssText='cursor:pointer;border-radius:6px;padding:3px 12px;font-size:0.85em;border:1px solid;'+( _lbView==='rounds'?on:off);
+}
 function calcLeaderboard(){
   const rows=[];
   leaderboardNames().forEach(name=>{
@@ -3690,7 +3767,8 @@ function calcLeaderboard(){
     if(sub.totalGoals!==null&&S.admin.totalGoals!==null){
       // Closest total goals - calculated separately
     }
-    rows.push({name,champ:sub.champion?canonicalTeam(sub.champion):'-',gs:gsP,ko:koP,bonus:bonP,total:gsP+koP+bonP,city:sub.city||''});
+    const _rp=_roundPoints(sub);
+    rows.push({name,champ:sub.champion?canonicalTeam(sub.champion):'-',gs:gsP,ko:koP,bonus:bonP,total:gsP+koP+bonP,city:sub.city||'',r1:_rp.r1,r2:_rp.r2,r3:_rp.r3});
   });
   // Closest total goals bonus
   if(S.admin.totalGoals!==null){
@@ -3705,8 +3783,13 @@ function calcLeaderboard(){
     winners.forEach(w=>{const r=rows.find(x=>x.name===w);if(r){r.bonus+=P.GOALS;r.total+=P.GOALS;}});
   }
   rows.sort((a,b)=>b.total-a.total);
+  const _lbHead=document.getElementById('lbHead');
+  if(_lbHead){ const gsCols=(_lbView==='rounds')?'<th>R1</th><th>R2</th><th>R3</th>':'<th>Group Stage</th>';
+    _lbHead.innerHTML='<th>#</th><th>Move</th><th>Participant</th><th>City</th><th>Predicted Champion</th>'+gsCols+'<th>Knockout</th><th>Bonus</th><th>Total</th>'; }
+  updateLbViewUI();
+  const _lbColspan=(_lbView==='rounds')?11:9;
   const tbody=document.getElementById('lbBody');
-  if(rows.length===0){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--regent);padding:20px;">No participants yet.</td></tr>';renderChampDistribution();return;}
+  if(rows.length===0){tbody.innerHTML='<tr><td colspan="'+_lbColspan+'" style="text-align:center;color:var(--regent);padding:20px;">No participants yet.</td></tr>';renderChampDistribution();return;}
   const snap=S.rankSnapshot||{};
   const haveSnap=Object.keys(snap).length>0;
   function moveCell(name,curRank){
@@ -3726,7 +3809,7 @@ function calcLeaderboard(){
     const rank=ranks[i];
     const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
     const cls=rank<=3?'rank-'+rank:'';
-    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td style="text-align:center;">${moveCell(r.name,rank)}</td><td>${r.name}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td><td>${r.gs}</td><td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
+    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td style="text-align:center;">${moveCell(r.name,rank)}</td><td>${r.name}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td>${_lbView==='rounds'?('<td>'+r.r1+'</td><td>'+r.r2+'</td><td>'+r.r3+'</td>'):('<td>'+r.gs+'</td>')}<td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
   }).join('');
   // Expose the current ranking so the admin can capture it as the next snapshot baseline
   _currentRanks={};
@@ -3796,6 +3879,93 @@ function getChampionCounts(){
   return counts;
 }
 let _champFlagCache={};
+function _koRoundMatches(){
+  return { R32:ALLKO.filter(m=>m.n>=73&&m.n<=88), R16:ALLKO.filter(m=>m.n>=89&&m.n<=96), QF:ALLKO.filter(m=>m.n>=97&&m.n<=100), SF:ALLKO.filter(m=>m.n>=101&&m.n<=102), FINAL:ALLKO.filter(m=>m.n===104) };
+}
+function _bracketBox(m){
+  const aLabel=resolveLabel(m.tA,m.n), bLabel=resolveLabel(m.tB,m.n);
+  const aTeam=resolveSlot(m.tA,m.n), bTeam=resolveSlot(m.tB,m.n);
+  const aReal=aTeam&&aTeam!==m.tA, bReal=bTeam&&bTeam!==m.tB;
+  const r=S.admin.koResults[m.n];
+  let aWin=false,bWin=false,aSc='',bSc='';
+  if(r&&r.winner){ aSc=(r.h!==undefined?r.h:''); bSc=(r.a!==undefined?r.a:''); const w=String(r.winner).toLowerCase(); if(aReal&&aTeam.toLowerCase()===w)aWin=true; else if(bReal&&bTeam.toLowerCase()===w)bWin=true; }
+  const row=(label,real,team,sc,win)=>'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:3px 7px;'+(win?'background:rgba(5,150,105,0.16);font-weight:700;':'')+'"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.79em;max-width:118px;">'+(real?fl(team):'')+label+'</span><span style="font-size:0.79em;color:var(--gray-600);min-width:12px;text-align:right;">'+sc+'</span></div>';
+  return '<div style="border:1px solid var(--gray-200);border-radius:6px;background:var(--white);margin:5px 0;min-width:150px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">'+row(aLabel,aReal,aTeam,aSc,aWin)+'<div style="border-top:1px solid var(--gray-100);"></div>'+row(bLabel,bReal,bTeam,bSc,bWin)+'</div>';
+}
+function renderHomeBracket(){
+  const el=document.getElementById('homeBracket'); if(!el)return;
+  const card=document.getElementById('homeBracketCard');
+  if(S.showBracketHome===false){ if(card)card.style.display='none'; return; } if(card)card.style.display='';
+  const R=_koRoundMatches();
+  const col=(title,ms)=>'<div style="display:flex;flex-direction:column;justify-content:space-around;min-width:158px;padding:0 5px;"><div style="text-align:center;font-weight:700;font-size:0.74em;text-transform:uppercase;letter-spacing:0.03em;color:var(--gray-600);margin-bottom:4px;">'+title+'</div>'+ms.map(_bracketBox).join('')+'</div>';
+  el.innerHTML='<h2>🏆 Knockout Bracket</h2>'+
+    '<div style="overflow-x:auto;padding-bottom:8px;"><div style="display:flex;align-items:stretch;min-width:810px;">'+
+    col('Round of 32',R.R32)+col('Round of 16',R.R16)+col('Quarter-finals',R.QF)+col('Semi-finals',R.SF)+col('Final',R.FINAL)+
+    '</div></div><p style="font-size:0.76em;color:var(--regent);margin-top:2px;">Fills in automatically as the organizer enters knockout results and qualifiers. Scroll sideways to see all rounds.</p>';
+}
+function renderHomeGroupStatus(){
+  const el=document.getElementById('homeGroupStatus'); if(!el)return;
+  const card=document.getElementById('homeGroupStatusCard');
+  if(S.showGroupStatusHome===false){ if(card)card.style.display='none'; return; } if(card)card.style.display='';
+  const st=getGroupStandings();
+  let h='<h2>📋 Group Stage Standings</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">';
+  Object.keys(GROUPS).forEach(g=>{
+    const rows=st[g]||[];
+    h+='<div style="border:1px solid var(--gray-200);border-radius:8px;overflow:hidden;"><div style="background:var(--gray-50);padding:5px 9px;font-weight:700;font-size:0.83em;">Group '+g+'</div><table style="width:100%;border-collapse:collapse;font-size:0.77em;"><tbody>';
+    rows.forEach((t,i)=>{
+      const bar=(i<2)?'#059669':(i===2?'#c9a84c':'transparent');
+      h+='<tr style="border-left:3px solid '+bar+';border-top:'+(i?'1px solid var(--gray-100)':'none')+';"><td style="padding:3px 7px;">'+fl(t.team)+t.team+'</td><td style="text-align:center;padding:3px;color:var(--gray-500);width:22px;">'+(t.pld||0)+'</td><td style="text-align:center;padding:3px 7px;font-weight:700;width:24px;">'+t.pts+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  });
+  h+='</div><p style="font-size:0.74em;color:var(--regent);margin-top:6px;"><span style="color:#059669;font-weight:700;">▌</span> top 2 advance &nbsp; <span style="color:var(--gold-dark);font-weight:700;">▌</span> 3rd place (8 best advance) &nbsp;·&nbsp; columns: Played · Points</p>';
+  el.innerHTML=h;
+}
+function renderScoringBalance(){
+  const el=document.getElementById('scoringBalance'); if(!el)return;
+  const names=leaderboardNames().filter(n=>S.submissions[n]&&S.submissions[n].locked);
+  const N=names.length;
+  if(N===0){ el.innerHTML='<p style="color:var(--regent);">No locked submissions yet — analysis will populate once predictions are in.</p>'; return; }
+  // champion concentration
+  const champCount={};
+  names.forEach(n=>{ const c=S.submissions[n].champion?canonicalTeam(S.submissions[n].champion):'(none)'; champCount[c]=(champCount[c]||0)+1; });
+  const champSorted=Object.entries(champCount).sort((a,b)=>b[1]-a[1]);
+  // per-category points
+  const cats={gs:[],ko:[],champ:[],tp:[]};
+  let goalsWinners=0;
+  names.forEach(n=>{ const sc=scoreSubmissionFull(S.submissions[n]); cats.gs.push(sc.gs); cats.ko.push(sc.ko); cats.champ.push(sc.champBonus); cats.tp.push(sc.tp); });
+  if(S.admin.totalGoals!==null&&S.admin.totalGoals!==undefined){
+    let minDiff=Infinity;
+    names.forEach(n=>{ const s=S.submissions[n]; if(s.totalGoals===null||s.totalGoals===undefined)return; const d=Math.abs(s.totalGoals-S.admin.totalGoals); if(d<minDiff)minDiff=d; });
+    names.forEach(n=>{ const s=S.submissions[n]; if(s.totalGoals===null||s.totalGoals===undefined)return; if(Math.abs(s.totalGoals-S.admin.totalGoals)===minDiff)goalsWinners++; });
+  }
+  const stat=(arr)=>{ const sum=arr.reduce((a,b)=>a+b,0),mean=sum/arr.length; const sd=Math.sqrt(arr.reduce((a,b)=>a+(b-mean)*(b-mean),0)/arr.length); return {sum,mean,sd,mx:Math.max.apply(null,arr),mn:Math.min.apply(null,arr)}; };
+  const rowsDef=[
+    ['Group Stage', cats.gs, 360],
+    ['Knockout', cats.ko, 301],
+    ['Champion bonus', cats.champ, 115],
+    ['3rd-place', cats.tp, 16]
+  ];
+  let maxSd=0,maxSdName=''; rowsDef.forEach(r=>{ const s=stat(r[1]); if(s.sd>maxSd){maxSd=s.sd;maxSdName=r[0];} });
+  let h='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85em;"><thead><tr style="border-bottom:2px solid var(--gray-200);">'+
+    '<th style="text-align:left;padding:6px 8px;">Category</th><th style="text-align:right;padding:6px 8px;">Awarded</th><th style="text-align:right;padding:6px 8px;">Avg/player</th><th style="text-align:right;padding:6px 8px;">Spread (σ)</th><th style="text-align:right;padding:6px 8px;">Range</th><th style="text-align:right;padding:6px 8px;">Max</th></tr></thead><tbody>';
+  rowsDef.forEach(r=>{ const s=stat(r[1]); const hot=(r[0]===maxSdName&&maxSd>0);
+    h+='<tr style="border-bottom:1px solid var(--gray-100);'+(hot?'background:rgba(201,168,76,0.10);':'')+'"><td style="padding:6px 8px;">'+r[0]+(hot?' <span style=\'font-size:0.8em;color:var(--gold-dark);\'>most decisive</span>':'')+'</td><td style="text-align:right;padding:6px 8px;">'+s.sum+'</td><td style="text-align:right;padding:6px 8px;">'+s.mean.toFixed(1)+'</td><td style="text-align:right;padding:6px 8px;font-weight:700;">'+s.sd.toFixed(1)+'</td><td style="text-align:right;padding:6px 8px;">'+s.mn+'–'+s.mx+'</td><td style="text-align:right;padding:6px 8px;color:var(--gray-500);">'+r[2]+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  // champion concentration
+  const topC=champSorted[0]; const topPct=Math.round(100*topC[1]/N);
+  h+='<div style="margin-top:14px;font-size:0.88em;"><strong>Champion picks ('+N+' players):</strong> ';
+  h+=champSorted.slice(0,6).map(c=>c[0]+' '+c[1]+' ('+Math.round(100*c[1]/N)+'%)').join(' · ');
+  if(champSorted.length>6)h+=' · +'+(champSorted.length-6)+' more';
+  h+='</div>';
+  h+='<div style="margin-top:6px;font-size:0.86em;color:var(--gray-700);">';
+  h+='• <strong>'+topPct+'%</strong> of players picked <strong>'+topC[0]+'</strong> as champion — '+(topPct>=40?'highly concentrated: the champion bonus will move them as a block, not separate them, and busts hit many at once.':'reasonably spread, so the champion bonus will differentiate.');
+  if(S.admin.totalGoals!==null&&S.admin.totalGoals!==undefined)h+='<br>• Closest-goals bonus currently shared by <strong>'+goalsWinners+'</strong> player'+(goalsWinners!==1?'s':'')+(goalsWinners>N*0.25?' — that is a lot, so it is barely differentiating.':'.');
+  h+='<br>• Most decisive category right now: <strong>'+maxSdName+'</strong> (highest spread). Categories with low spread are not separating the field.';
+  h+='</div>';
+  el.innerHTML=h;
+}
 function renderChampDistribution(){
   const counts=getChampionCounts();
   const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
@@ -3919,7 +4089,7 @@ function replayTimeline(){
   return {steps,dates,people:locked};
 }
 
-const GRAPH_COLORS=['#0f2557','#c9a84c','#059669','#dc2626','#7c3aed'];
+const GRAPH_COLORS=['#0f2557','#c9a84c','#059669','#dc2626','#7c3aed','#0891b2','#ea580c','#db2777'];
 function drawPointsGraph(people){
   const cv=document.getElementById('ptsGraph'); const note=document.getElementById('ptsGraphNote');
   if(!cv)return;
@@ -4480,7 +4650,7 @@ function importData(){
 // Populate the view/compare selectors (called when predict tab shown)
 function populateViewSelectors(){
   const submitted=leaderboardNames().filter(p=>S.submissions[p]&&S.submissions[p].locked);
-  for(let i=1;i<=5;i++){
+  for(let i=1;i<=8;i++){
     const sel=document.getElementById('viewPerson'+i);
     if(!sel)continue;
     const cur=sel.value;
@@ -4492,7 +4662,7 @@ function renderComparison(){
   const cont=document.getElementById('viewMyContent');
   // Gather up to 5 selected, deduplicated participants (slot 1 is required)
   const people=[];
-  for(let i=1;i<=5;i++){
+  for(let i=1;i<=8;i++){
     const el=document.getElementById('viewPerson'+i);
     const v=el?el.value:'';
     if(v&&S.submissions[v]&&!people.includes(v))people.push(v);
