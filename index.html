@@ -420,6 +420,10 @@ a { color:var(--black); }
     </div>
   </div>
 
+  <div class="card" id="homeBracketCard">
+    <div id="homeBracket"></div>
+  </div>
+
   <!-- GROUP STANDINGS -->
   <div class="card" id="groupStandingsCard">
     <h2>Group Standings</h2>
@@ -538,22 +542,14 @@ a { color:var(--black); }
       <strong>9.</strong> As real matches are played, the organizer enters actual scores in the <strong>Admin Panel</strong>.<br>
       <strong>10.</strong> The system automatically compares every participant's predictions against real results:<br>
       &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
-      &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (3→5→8→12→20). Exact KO score = +3 bonus.<br>
+      &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (5→7→9→11→14). Exact KO score = +3 bonus.<br>
       &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +12, QF: +15, SF: +18, Final: +25, <strong>Winner: +35</strong>.<br>
-      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (excluding knockout round Penalty Shootouts) (+5).<br>
+      &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (excluding knockout round Penalty Shootouts) (+15).<br>
       <strong>11.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
   </div>
 
   <!-- Tournament Bracket Chart -->
-  <div class="card" id="homeBracketCard">
-    <div id="homeBracket"></div>
-  </div>
-
-  <div class="card" id="homeGroupStatusCard">
-    <div id="homeGroupStatus"></div>
-  </div>
-
 </div>
 
 <!-- ============ PREDICT TAB ============ -->
@@ -757,6 +753,10 @@ a { color:var(--black); }
       <strong>The knockout prediction update window is now OPEN!</strong><br>
       The group stage is complete and the real qualifiers are known. You can now revise your <strong>knockout bracket match picks and scores</strong> based on the actual teams that advanced. As you pick winners, they automatically flow into the next round to help you visualize the bracket.<br><br>
       <em>Your group stage predictions, 3rd-place qualifier picks, Champion, and Total Goals predictions remain locked — only your knockout bracket can be revised.</em>
+    </div>
+    <div id="koLateBanner" style="display:none;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.35);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:0.88em;">
+      <strong style="color:var(--red);">⏰ The scoring deadline has passed (Sun Jun 28, 3:00 PM ET — first Round-of-32 kickoff).</strong><br>
+      You can still save your knockout bracket so it stays complete and shows on the live bracket — but knockout match points will <strong>no longer count</strong> for any bracket saved after the deadline. Your group stage, Champion, 3rd-place and Total Goals scores are unaffected.
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px;">
       <div>
@@ -1266,6 +1266,13 @@ const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
 const P={OUT:3,EX_BONUS:2,R32:5,R16:7,QF:9,SF:11,FIN:14,KO_EX:3,GOALS:15,TP:2,CHAMP_R32:10,CHAMP_R16:12,CHAMP_QF:15,CHAMP_SF:18,CHAMP_FIN:25,CHAMP_WIN:35};
+
+// Knockout SCORING cutoff = first Round-of-32 kickoff: Sun Jun 28 2026, 3:00 PM ET (EDT = UTC-4).
+// The update WINDOW can stay open later (admin closes it ~Jun 29 1 PM); but any knockout bracket
+// SAVED after this cutoff still populates the bracket yet earns NO knockout points.
+// To change the deadline, edit the one line below.
+const KO_SCORING_CUTOFF=Date.UTC(2026,5,28,19,0,0); // 2026-06-28 19:00 UTC = 3:00 PM EDT
+function koIsLate(sub){ return !!(sub&&sub.koUpdateTimestamp&&new Date(sub.koUpdateTimestamp).getTime()>KO_SCORING_CUTOFF); }
 
 // Submissions lock ONLY when the organizer manually locks them in the Admin Panel.
 function arePredictionsLocked(){ return S.predictionsLocked; }
@@ -2410,6 +2417,8 @@ function checkKOUpdateVisibility(){
   if(card)card.style.display=S.koUpdateOpen?'':'none';
   if(closed)closed.style.display=S.koUpdateOpen?'none':'';
   if(main&&!S.koUpdateOpen)main.style.display='none';
+  const lb=document.getElementById('koLateBanner');
+  if(lb)lb.style.display=(S.koUpdateOpen&&Date.now()>KO_SCORING_CUTOFF)?'':'none';
 }
 
 async function startKOUpdate(){
@@ -2643,10 +2652,15 @@ function submitKOUpdate(){
   // champion and totalGoals are intentionally NOT updated
   S.submissions[koUpdater].koUpdateTimestamp=new Date().toISOString();
   save();
-  alert('✅ Knockout bracket predictions updated for '+koUpdater+'!\n\nNote: Your 3rd-place qualifier picks, Champion, and Total Goals predictions remain as originally submitted (these are locked during the update window).');
+  const lateSave=Date.now()>KO_SCORING_CUTOFF;
+  alert(lateSave
+    ? '✅ Saved for '+koUpdater+'.\n\n⏰ Heads up: the scoring deadline (Sun Jun 28, 3 PM ET) has passed, so these knockout picks will populate your bracket but will NOT earn points. Your group stage, Champion, 3rd-place and Total Goals scores are unaffected.'
+    : '✅ Knockout bracket predictions updated for '+koUpdater+'!\n\nNote: Your 3rd-place qualifier picks, Champion, and Total Goals predictions remain as originally submitted (these are locked during the update window).');
   document.getElementById('koUpdateMain').style.display='none';
   document.getElementById('koUpdatePwd').value='';
-  document.getElementById('koUpdateStatus').innerHTML='<span style="color:var(--green);">✓ KO predictions updated at '+new Date().toLocaleString()+'</span>';
+  document.getElementById('koUpdateStatus').innerHTML=lateSave
+    ? '<span style="color:var(--gold-dark);">✓ Saved at '+new Date().toLocaleString()+' — ⏰ after the deadline, so these knockout picks will not score.</span>'
+    : '<span style="color:var(--green);">✓ KO predictions updated at '+new Date().toLocaleString()+'</span>';
 }
 
 // ============================
@@ -3882,44 +3896,48 @@ let _champFlagCache={};
 function _koRoundMatches(){
   return { R32:ALLKO.filter(m=>m.n>=73&&m.n<=88), R16:ALLKO.filter(m=>m.n>=89&&m.n<=96), QF:ALLKO.filter(m=>m.n>=97&&m.n<=100), SF:ALLKO.filter(m=>m.n>=101&&m.n<=102), FINAL:ALLKO.filter(m=>m.n===104) };
 }
+// Feeder matches (W-codes) of a knockout match; [] for Round of 32 (group-slot fed).
+function _bracketFeeders(m){
+  const out=[];
+  [m.tA,m.tB].forEach(c=>{ if(typeof c==='string'&&c.charAt(0)==='W'){ const n=parseInt(c.slice(1)); const fm=ALLKO.find(x=>x.n===n); if(fm)out.push(fm); } });
+  return out;
+}
+// Order every round by the actual bracket tree so each match sits centred between its two feeders.
+function _bracketColumns(){
+  const minIdx={}, leaves=[]; let idx=0;
+  const fin=ALLKO.find(m=>m.n===104);
+  function rec(m){ const fs=_bracketFeeders(m); if(!fs.length){ minIdx[m.n]=idx; leaves.push(m); idx++; return minIdx[m.n]; } const mi=Math.min.apply(null,fs.map(rec)); minIdx[m.n]=mi; return mi; }
+  if(fin)rec(fin);
+  const round=(lo,hi)=>ALLKO.filter(m=>m.n>=lo&&m.n<=hi).slice().sort((a,b)=>(minIdx[a.n]||0)-(minIdx[b.n]||0));
+  return { R32:leaves, R16:round(89,96), QF:round(97,100), SF:round(101,102), FINAL:round(104,104) };
+}
 function _bracketBox(m){
-  const aLabel=resolveLabel(m.tA,m.n), bLabel=resolveLabel(m.tB,m.n);
+  const aLabel=resolveLabel(m.tA,m.n), bLabel=resolveLabel(m.tB,m.n);   // already includes a flag when resolved
   const aTeam=resolveSlot(m.tA,m.n), bTeam=resolveSlot(m.tB,m.n);
   const aReal=aTeam&&aTeam!==m.tA, bReal=bTeam&&bTeam!==m.tB;
   const r=S.admin.koResults[m.n];
   let aWin=false,bWin=false,aSc='',bSc='';
   if(r&&r.winner){ aSc=(r.h!==undefined?r.h:''); bSc=(r.a!==undefined?r.a:''); const w=String(r.winner).toLowerCase(); if(aReal&&aTeam.toLowerCase()===w)aWin=true; else if(bReal&&bTeam.toLowerCase()===w)bWin=true; }
-  const row=(label,real,team,sc,win)=>'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:3px 7px;'+(win?'background:rgba(5,150,105,0.16);font-weight:700;':'')+'"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.79em;max-width:118px;">'+(real?fl(team):'')+label+'</span><span style="font-size:0.79em;color:var(--gray-600);min-width:12px;text-align:right;">'+sc+'</span></div>';
-  return '<div style="border:1px solid var(--gray-200);border-radius:6px;background:var(--white);margin:5px 0;min-width:150px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">'+row(aLabel,aReal,aTeam,aSc,aWin)+'<div style="border-top:1px solid var(--gray-100);"></div>'+row(bLabel,bReal,bTeam,bSc,bWin)+'</div>';
+  const row=(label,real,win,sc)=>'<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:0 7px;height:21px;'+(win?'background:rgba(5,150,105,0.16);font-weight:700;':'')+(real?'':'color:var(--regent);')+'"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.78em;max-width:118px;">'+label+'</span><span style="font-size:0.78em;color:var(--gray-600);min-width:12px;text-align:right;">'+sc+'</span></div>';
+  return '<div style="border:1px solid var(--gray-200);border-radius:5px;background:var(--white);box-shadow:0 1px 2px rgba(0,0,0,0.05);overflow:hidden;">'+row(aLabel,aReal,aWin,aSc)+'<div style="border-top:1px solid var(--gray-100);"></div>'+row(bLabel,bReal,bWin,bSc)+'</div>';
 }
 function renderHomeBracket(){
   const el=document.getElementById('homeBracket'); if(!el)return;
   const card=document.getElementById('homeBracketCard');
   if(S.showBracketHome===false){ if(card)card.style.display='none'; return; } if(card)card.style.display='';
-  const R=_koRoundMatches();
-  const col=(title,ms)=>'<div style="display:flex;flex-direction:column;justify-content:space-around;min-width:158px;padding:0 5px;"><div style="text-align:center;font-weight:700;font-size:0.74em;text-transform:uppercase;letter-spacing:0.03em;color:var(--gray-600);margin-bottom:4px;">'+title+'</div>'+ms.map(_bracketBox).join('')+'</div>';
+  const C=_bracketColumns();
+  const col=(title,ms)=>'<div style="flex:1;display:flex;flex-direction:column;justify-content:space-around;min-width:150px;padding:0 6px;">'+
+    '<div style="text-align:center;font-weight:700;font-size:0.72em;text-transform:uppercase;letter-spacing:0.03em;color:var(--gray-500);margin-bottom:6px;">'+title+'</div>'+
+    ms.map(m=>'<div style="margin:6px 0;">'+_bracketBox(m)+'</div>').join('')+'</div>';
   el.innerHTML='<h2>🏆 Knockout Bracket</h2>'+
-    '<div style="overflow-x:auto;padding-bottom:8px;"><div style="display:flex;align-items:stretch;min-width:810px;">'+
-    col('Round of 32',R.R32)+col('Round of 16',R.R16)+col('Quarter-finals',R.QF)+col('Semi-finals',R.SF)+col('Final',R.FINAL)+
+    '<div style="overflow-x:auto;padding-bottom:8px;"><div style="display:flex;align-items:stretch;min-width:840px;">'+
+    col('Round of 32',C.R32)+col('Round of 16',C.R16)+col('Quarter-finals',C.QF)+col('Semi-finals',C.SF)+col('Final',C.FINAL)+
     '</div></div><p style="font-size:0.76em;color:var(--regent);margin-top:2px;">Fills in automatically as the organizer enters knockout results and qualifiers. Scroll sideways to see all rounds.</p>';
 }
+// The group standings already live in #groupStandingsCard (top of Home). This just toggles its visibility.
 function renderHomeGroupStatus(){
-  const el=document.getElementById('homeGroupStatus'); if(!el)return;
-  const card=document.getElementById('homeGroupStatusCard');
-  if(S.showGroupStatusHome===false){ if(card)card.style.display='none'; return; } if(card)card.style.display='';
-  const st=getGroupStandings();
-  let h='<h2>📋 Group Stage Standings</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">';
-  Object.keys(GROUPS).forEach(g=>{
-    const rows=st[g]||[];
-    h+='<div style="border:1px solid var(--gray-200);border-radius:8px;overflow:hidden;"><div style="background:var(--gray-50);padding:5px 9px;font-weight:700;font-size:0.83em;">Group '+g+'</div><table style="width:100%;border-collapse:collapse;font-size:0.77em;"><tbody>';
-    rows.forEach((t,i)=>{
-      const bar=(i<2)?'#059669':(i===2?'#c9a84c':'transparent');
-      h+='<tr style="border-left:3px solid '+bar+';border-top:'+(i?'1px solid var(--gray-100)':'none')+';"><td style="padding:3px 7px;">'+fl(t.team)+t.team+'</td><td style="text-align:center;padding:3px;color:var(--gray-500);width:22px;">'+(t.pld||0)+'</td><td style="text-align:center;padding:3px 7px;font-weight:700;width:24px;">'+t.pts+'</td></tr>';
-    });
-    h+='</tbody></table></div>';
-  });
-  h+='</div><p style="font-size:0.74em;color:var(--regent);margin-top:6px;"><span style="color:#059669;font-weight:700;">▌</span> top 2 advance &nbsp; <span style="color:var(--gold-dark);font-weight:700;">▌</span> 3rd place (8 best advance) &nbsp;·&nbsp; columns: Played · Points</p>';
-  el.innerHTML=h;
+  const card=document.getElementById('groupStandingsCard');
+  if(card)card.style.display=(S.showGroupStatusHome===false)?'none':'';
 }
 function renderScoringBalance(){
   const el=document.getElementById('scoringBalance'); if(!el)return;
@@ -4056,7 +4074,9 @@ function scoreSubmissionFull(sub){
   }
   let tp=0;const actual=(typeof getActualThirdPlaceGroups==='function')?getActualThirdPlaceGroups():[];
   if(actual.length&&sub.tp)sub.tp.forEach(g=>{if(actual.includes(g))tp+=P.TP;});
-  return {gs,ko,exactGS,exactKO,correctOut,koWinners,champBonus,tp,base:gs+ko+champBonus+tp};
+  const late=koIsLate(sub);
+  const koScored=late?0:ko;   // late KO save: bracket is stored & shown, but knockout points do not count
+  return {gs,ko:koScored,koRaw:ko,exactGS,exactKO,correctOut,koWinners,champBonus,tp,late,base:gs+koScored+champBonus+tp};
 }
 
 // ---------- Match-by-match replay of the tournament ----------
