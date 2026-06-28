@@ -393,7 +393,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip">Knockout Predictions update phase opens on June 27th, 2026 at 11:30 PM ET — Stay tuned!</div>
+<div class="deadline-strip">Knockout Predictions update phase is on June 26th, 2026 at 12 PM ET — Stay tuned!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -764,7 +764,7 @@ a { color:var(--black); }
     <h2>🔄 Update Knockout Predictions</h2>
     <div class="info-box" style="margin-bottom:14px;">
       <strong>The knockout prediction update window is now OPEN!</strong><br>
-      The group stage is complete and the real qualifiers are known. Submit early before June 28th 1pm to collect Match 73's points, otherwise the latest submission is June 29th at 1pm but will exclude Match 73's points from your score. You can now revise your <strong>knockout bracket match picks and scores</strong> based on the actual teams that advanced. As you pick winners, they automatically flow into the next round to help you visualize the bracket.<br><br>
+      The group stage is complete and the real qualifiers are known. You can now revise your <strong>knockout bracket match picks and scores</strong> based on the actual teams that advanced. As you pick winners, they automatically flow into the next round to help you visualize the bracket.<br><br>
       <em>Your group stage predictions, 3rd-place qualifier picks, Champion, and Total Goals predictions remain locked — only your knockout bracket can be revised.</em>
     </div>
     <div id="koLateBanner" style="display:none;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.35);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:0.88em;">
@@ -1543,6 +1543,23 @@ function buildDisplayNumbers(){
 }
 function dispM(n){return DISPN[n]||n;}
 function dispSlot(code){ if(typeof code==='string'){const mm=code.match(/^W(\d+)$/); if(mm) return 'W'+dispM(+mm[1]);} return code; }
+
+// Resolve a knockout slot for DISPLAY using a person's OWN predicted bracket. Group / 3rd-place
+// slots come from the real qualifiers, but every W-code is followed through THIS person's winner
+// picks — so their bracket shows real Round-of-32 teams flowing up to their predicted finalists and
+// champion, all the way to the Final, regardless of whether the actual knockout games are played.
+function koPredictedResolver(sub){
+  const picks={}; ALLKO.forEach(m=>{ const pk=sub&&sub.ko&&sub.ko[m.n]; if(pk&&pk.pick)picks[m.n]=pk.pick; });
+  function r(code,n){
+    if(typeof code==='string'&&code.charAt(0)==='W'){
+      const mn=parseInt(code.substring(1));
+      if(picks[mn]){ const f=ALLKO.find(x=>x.n===mn); if(f)return r(picks[mn]==='A'?f.tA:f.tB,mn); }
+      return code; // feeder not picked yet -> leave as W-code
+    }
+    return resolveSlot(code,n); // group / 3rd-place -> real qualifier
+  }
+  return r;
+}
 buildDisplayNumbers();
 
 function startCountdown(){
@@ -2583,8 +2600,12 @@ function loadKOUpdateData(sub){
     if(!pk)return;
     koUpScores[m.n]={h:pk.h!==undefined?pk.h:'',a:pk.a!==undefined?pk.a:''};
   });
-  // Clear any carried-over picks that conflict with the actual qualifiers
-  const cleared=reconcileKOUpdate(sub);
+  // Reconcile (clear stale picks whose teams didn't actually qualify) ONLY on the user's FIRST
+  // visit to the window — i.e. before they've ever saved a knockout update. reconcileKOUpdate
+  // compares the real qualifiers against the user's ORIGINAL group-stage prediction (sub.gs, which
+  // never changes), so running it after an update would re-clear the very picks they just saved.
+  // Once koUpdateTimestamp exists, their picks already reference the REAL bracket — load them as-is.
+  const cleared=sub.koUpdateTimestamp?0:reconcileKOUpdate(sub);
   renderKOUpdateForm();
   if(cleared>0){
     const note=document.getElementById('koUpdateStatus');
@@ -4724,7 +4745,13 @@ function renderComparison(){
   const matchCell=(m)=>`<div style="display:grid;grid-template-columns:1fr 18px 1fr;align-items:center;gap:2px;"><span style="text-align:right;white-space:nowrap;">${fl(m.h)}${m.h}</span><span style="text-align:center;color:var(--regent);">v</span><span style="text-align:left;white-space:nowrap;">${fl(m.a)}${m.a}</span></div><div style="text-align:center;font-size:0.76em;color:var(--regent);">M${dispM(m.n)} · ${m.d}</div>`;
   const koLabel=(n)=>{if(n>=89&&n<=96)return 'R16 M'+dispM(n);if(n>=97&&n<=100)return 'QF M'+dispM(n);if(n>=101&&n<=102)return 'SF M'+dispM(n);if(n===104)return 'FINAL';return 'R32 M'+dispM(n);};
   const koCell=(m)=>`<div style="text-align:center;font-weight:600;font-size:0.86em;">${koLabel(m.n)}</div><div style="display:grid;grid-template-columns:1fr 18px 1fr;align-items:center;gap:2px;font-size:0.9em;"><span style="text-align:right;white-space:nowrap;">${resolveLabel(m.tA,m.n)}</span><span style="text-align:center;color:var(--regent);">v</span><span style="text-align:left;white-space:nowrap;">${resolveLabel(m.tB,m.n)}</span></div>`;
-  const pickName=(sub,m)=>{const pr=(sub.ko||{})[m.n];if(!pr||!pr.pick)return '?';const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);return t===slot?('('+pr.pick+')'):t;};
+  // Each person's knockout bracket is resolved through their OWN picks (memoised per submission).
+  const _koResCache=new WeakMap();
+  const koRes=(sub)=>{ if(!_koResCache.has(sub))_koResCache.set(sub,koPredictedResolver(sub)); return _koResCache.get(sub); };
+  const koTeamLabel=(sub,code,n)=>{ const t=koRes(sub)(code,n); return (t&&t!==code)?(fl(t)+t):dispSlot(code); };
+  const pickName=(sub,m)=>{const pr=(sub.ko||{})[m.n];if(!pr||!pr.pick)return '?';const slot=pr.pick==='A'?m.tA:m.tB;const t=koRes(sub)(slot,m.n);return (t&&t!==slot)?(fl(t)+t):('('+pr.pick+')');};
+  // Full predicted matchup for a match, with the person's picked winner in bold.
+  const koMatchup=(sub,m)=>{const pr=(sub.ko||{})[m.n];const pa=pr&&pr.pick==='A',pb=pr&&pr.pick==='B';const la=koTeamLabel(sub,m.tA,m.n),lb=koTeamLabel(sub,m.tB,m.n);return `<span style="${pa?'font-weight:700;':'color:var(--gray-500);'}">${la}</span> <span style="color:var(--regent);font-size:0.88em;">v</span> <span style="${pb?'font-weight:700;':'color:var(--gray-500);'}">${lb}</span>`;};
 
   let h='';
   // Summary cards (one per person, colour-coded to the graph)
@@ -4796,7 +4823,7 @@ function renderComparison(){
         const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);
         bg=(t&&t.toLowerCase()===real.winner.toLowerCase())?'rgba(5,150,105,0.1)':'rgba(220,38,38,0.06)';
       }
-      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;display:flex;justify-content:space-between;gap:6px;"><span>${koLabel(m.n)}: <strong>${pickName(p.sub,m)}</strong> <span style="color:var(--regent);">(${pr?pr.h+'-'+pr.a:'?'})</span></span><span>${badge(pts)}</span></div>`;
+      h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;display:flex;justify-content:space-between;gap:6px;"><span>${koLabel(m.n)}: ${koMatchup(p.sub,m)} <span style="color:var(--regent);white-space:nowrap;">(${pr?pr.h+'-'+pr.a:'?'})</span></span><span>${badge(pts)}</span></div>`;
     });
     h+=`</div><div style="text-align:right;font-weight:700;margin-top:6px;font-size:0.86em;">Knockout subtotal: <span style="color:#059669;">${p.sc.ko} pts</span></div>`;
   } else {
