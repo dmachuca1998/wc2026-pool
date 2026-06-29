@@ -393,7 +393,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip">Knockout Predictions update phase is on June 26th, 2026 at 12 PM ET — Stay tuned!</div>
+<div class="deadline-strip">Knockout Predictions update phase is on June 27th, 2026 at 11:30 PM ET — Stay tuned!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -595,6 +595,18 @@ a { color:var(--black); }
         <button class="btn btn-gold" onclick="startPrediction()">Start / Load My Predictions</button>
       </div>
       <p id="predictEntryStatus" style="font-size:0.86em;margin-top:4px;color:var(--regent);"></p>
+      <p style="font-size:0.84em;margin-top:8px;"><a id="forgotPwLink" onclick="toggleSelfReset(event)" style="color:var(--gold);text-decoration:underline;cursor:pointer;">Forgot your password?</a></p>
+      <div id="selfResetBox" style="display:none;margin-top:8px;padding:14px;border:1px solid var(--gray-200);border-radius:8px;background:var(--gray-50);max-width:560px;">
+        <div style="font-weight:700;margin-bottom:6px;">🔑 Reset your password</div>
+        <div class="info-box" style="margin-bottom:12px;font-size:0.82em;">⚠ There's no email verification, so anyone could reset any name here. Please reset <strong>only your own</strong> — and if you think someone changed yours, let the organizer know.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div><label style="display:block;font-size:0.82em;color:var(--gray-600);margin-bottom:4px;">Your name</label><input type="text" id="resetName" placeholder="Exactly as you entered it" style="min-width:190px;"></div>
+          <div><label style="display:block;font-size:0.82em;color:var(--gray-600);margin-bottom:4px;">New password</label><input type="password" id="resetPwd1" placeholder="Min 4 characters" style="min-width:150px;"></div>
+          <div><label style="display:block;font-size:0.82em;color:var(--gray-600);margin-bottom:4px;">Confirm password</label><input type="password" id="resetPwd2" placeholder="Re-type it" style="min-width:150px;"></div>
+          <button class="btn btn-black btn-sm" onclick="selfResetPassword()">Reset Password</button>
+        </div>
+        <p id="resetStatus" style="font-size:0.85em;margin-top:8px;"></p>
+      </div>
     </div>
   </div>
 
@@ -783,6 +795,7 @@ a { color:var(--black); }
       <button class="btn btn-gold" onclick="startKOUpdate()">Open My KO Predictions</button>
     </div>
     <div id="koUpdateStatus" style="font-size:0.86em;color:var(--gray-600);"></div>
+    <p style="font-size:0.84em;margin-top:8px;"><a onclick="goResetFromKO(event)" style="color:var(--gold);text-decoration:underline;cursor:pointer;">Forgot your password?</a></p>
   </div>
 
   <!-- KO UPDATE CLOSED MESSAGE -->
@@ -1003,6 +1016,23 @@ a { color:var(--black); }
         <select id="comparePerson" onchange="renderComparison()"><option value="">-- Select --</option></select>
       </div>
       <div id="comparisonContent" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>🚫 Disable Knockout Matches (late-save scoring)</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">By default a knockout pick stops scoring once that match's <strong>scheduled kickoff</strong> passes. If you'd rather control it by hand, click <strong>Disable</strong> the moment you see a match kick off. Anyone who <strong>saves their bracket after that</strong> won't earn points for that match. People who saved earlier keep their points. Re-enable to fall back to the scheduled kickoff.</p>
+      <div id="koLockList"></div>
+    </div>
+
+    <div class="card">
+      <h2>🔑 Reset a Participant's Password</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">If someone forgets their password, set a new one here and share it with them privately. There's no email-based reset, so password resets go through you — this keeps anyone from hijacking someone else's locked predictions.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <select id="pwResetPerson" style="min-width:190px;"><option value="">-- Select participant --</option></select>
+        <input type="text" id="pwResetNew" placeholder="New password (min 4 chars)" style="min-width:190px;">
+        <button class="btn btn-black btn-sm" onclick="adminResetPassword()">Set New Password</button>
+      </div>
+      <p id="pwResetStatus" style="font-size:0.85em;margin-top:8px;"></p>
     </div>
 
     <div class="card">
@@ -1354,7 +1384,7 @@ let S = {
   participants:[],
   passwords:{},
   submissions:{},
-  admin:{groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{}},
+  admin:{groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{},koLock:{}},
   predictionsLocked:false,
   koUpdateOpen:false,
   musicEnabled:true,
@@ -1371,9 +1401,10 @@ function ensureDefaults(){
   if(!S.submissions)S.submissions={};
   if(!S.passwords)S.passwords={};
   if(!S.participants)S.participants=[];
-  if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{}};
+  if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{},koLock:{}};
   if(!S.admin.groupResults)S.admin.groupResults={};
   if(!S.admin.koResults)S.admin.koResults={};
+  if(!S.admin.koLock)S.admin.koLock={};
   if(!S.admin.thirdPlace)S.admin.thirdPlace={};
   if(!S.adminPwd)S.adminPwd="David2026";
   if(!S.apiKey)S.apiKey="";
@@ -1519,6 +1550,14 @@ function matchKickoffET(m){
   if(tm){hh=parseInt(tm[1],10)%12;if(/PM/i.test(tm[3]))hh+=12;mi=parseInt(tm[2],10);}
   const pad=n=>String(n).padStart(2,'0');
   return new Date(`2026-${pad(mon+1)}-${pad(day)}T${pad(hh)}:${pad(mi)}:00-04:00`);
+}
+// The instant after which a knockout SAVE no longer scores match m. The admin can manually disable
+// a match (koLock[n] = when they saw it kick off); otherwise we fall back to the scheduled kickoff.
+function koMatchCutoff(m){
+  const lockTs=(S.admin&&S.admin.koLock&&S.admin.koLock[m.n])?new Date(S.admin.koLock[m.n]).getTime():null;
+  if(lockTs!==null && !isNaN(lockTs))return lockTs;
+  const k=matchKickoffET(m);
+  return k?k.getTime():null;
 }
 function firstMatchKickoffET(){
   let best=null;
@@ -2829,9 +2868,81 @@ function updateKOWindowUI(){
   }
   checkKOUpdateVisibility();
 }
+function toggleSelfReset(e){ if(e&&e.preventDefault)e.preventDefault(); const b=document.getElementById('selfResetBox'); if(b)b.style.display=(b.style.display==='none'||!b.style.display)?'block':'none'; }
+function goResetFromKO(e){ if(e&&e.preventDefault)e.preventDefault(); showTab('predict'); setTimeout(function(){ const b=document.getElementById('selfResetBox'); if(b){ b.style.display='block'; if(b.scrollIntoView)b.scrollIntoView({behavior:'smooth',block:'center'}); } const n=document.getElementById('resetName'); if(n&&n.focus)n.focus(); },120); }
+async function selfResetPassword(){
+  const st=document.getElementById('resetStatus');
+  const name=(document.getElementById('resetName').value||'').trim();
+  const p1=(document.getElementById('resetPwd1').value||'').trim();
+  const p2=(document.getElementById('resetPwd2').value||'').trim();
+  if(!name){ st.innerHTML='<span style="color:var(--red);">Enter your name.</span>'; return; }
+  const key=Object.keys(S.passwords||{}).find(k=>k.toLowerCase()===name.toLowerCase());
+  const partKey=(S.participants||[]).find(p=>p.toLowerCase()===name.toLowerCase());
+  const realName=key||partKey;
+  if(!realName){ st.innerHTML='<span style="color:var(--red);">No account found with that name. If you are new, just enter your name and a password in the form above to start.</span>'; return; }
+  if(!p1||p1.length<4){ st.innerHTML='<span style="color:var(--red);">New password must be at least 4 characters.</span>'; return; }
+  if(p1!==p2){ st.innerHTML='<span style="color:var(--red);">The two passwords do not match.</span>'; return; }
+  st.textContent='Resetting…';
+  try{
+    const h=await hashPassword(p1);
+    if(!S.passwords)S.passwords={};
+    S.passwords[realName]=h;
+    save();
+    st.innerHTML='<span style="color:var(--green);">✓ Password reset for <strong>'+realName+'</strong>. You can log in with your new password now.</span>';
+    document.getElementById('resetPwd1').value=''; document.getElementById('resetPwd2').value='';
+  }catch(err){ st.innerHTML='<span style="color:var(--red);">Something went wrong — please try again.</span>'; }
+}
+function renderKoLockPanel(){
+  const el=document.getElementById('koLockList'); if(!el)return;
+  const lock=(S.admin&&S.admin.koLock)||{};
+  const fmt=(iso)=>{ try{ return new Date(iso).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }catch(e){ return ''; } };
+  const rounds=[['Round of 32',73,88],['Round of 16',89,96],['Quarter-finals',97,100],['Semi-finals',101,102],['Final',104,104]];
+  let h='';
+  rounds.forEach(r=>{
+    const ms=ALLKO.filter(m=>m.n>=r[1]&&m.n<=r[2]).sort((a,b)=>a.n-b.n);
+    if(!ms.length)return;
+    h+=`<div style="font-weight:700;margin:12px 0 5px;font-size:0.9em;color:var(--gray-700);">${r[0]}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;">`;
+    ms.forEach(m=>{
+      const on=!!lock[m.n];
+      h+=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;background:${on?'rgba(220,38,38,0.08)':'var(--gray-50)'};font-size:0.8em;">`+
+         `<span style="line-height:1.3;"><strong>M${dispM(m.n)}</strong> ${resolveLabel(m.tA,m.n)} v ${resolveLabel(m.tB,m.n)}`+
+         (on?`<br><span style="color:var(--red);font-weight:600;">🔒 disabled ${fmt(lock[m.n])}</span>`:`<br><span style="color:var(--regent);">kicks off ${m.t||'TBD'} ${m.d||''}</span>`)+
+         `</span>`+
+         `<button class="btn btn-sm ${on?'btn-outline':'btn-black'}" style="white-space:nowrap;padding:3px 9px;" onclick="toggleKoLock(${m.n})">${on?'Re-enable':'Disable'}</button>`+
+         `</div>`;
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function toggleKoLock(n){
+  if(!S.admin.koLock)S.admin.koLock={};
+  if(S.admin.koLock[n]){ delete S.admin.koLock[n]; }
+  else { S.admin.koLock[n]=new Date().toISOString(); }
+  save(); renderKoLockPanel(); calcLeaderboard();
+}
+function populatePwReset(){
+  const sel=document.getElementById('pwResetPerson'); if(!sel)return;
+  const cur=sel.value;
+  const names=(S.participants||[]).slice().sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML='<option value="">-- Select participant --</option>'+names.map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
+}
+async function adminResetPassword(){
+  const sel=document.getElementById('pwResetPerson'); const st=document.getElementById('pwResetStatus');
+  const name=sel?sel.value:''; const np=(document.getElementById('pwResetNew').value||'').trim();
+  if(!name){ st.innerHTML='<span style="color:var(--red);">Select a participant first.</span>'; return; }
+  if(!np||np.length<4){ st.innerHTML='<span style="color:var(--red);">New password must be at least 4 characters.</span>'; return; }
+  st.textContent='Setting new password…';
+  const h=await hashPassword(np);
+  if(!S.passwords)S.passwords={};
+  S.passwords[name]=h;
+  save();
+  st.innerHTML='<span style="color:var(--green);">✓ Password for <strong>'+name+'</strong> has been reset. Share the new password with them privately.</span>';
+  document.getElementById('pwResetNew').value='';
+}
 function renderAdminView(){
   if(!adminLoggedIn)return;
-  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();updateCityLeadersUI();updateSnapshotStatus();updateHideSubmitToggleUI();updateTeamPicturesToggleUI();renderGallery();updateAutoFetchUI(parseInt((document.getElementById('autoFetchMins')||{}).value,10)||2);
+  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();renderKoLockPanel();populatePwReset();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();updateCityLeadersUI();updateSnapshotStatus();updateHideSubmitToggleUI();updateTeamPicturesToggleUI();renderGallery();updateAutoFetchUI(parseInt((document.getElementById('autoFetchMins')||{}).value,10)||2);
   try{ renderScoringBalance(); }catch(e){}
   updateHomeTogglesUI();
   // Populate view predictions selector
@@ -4036,13 +4147,16 @@ function scoreSubmissionFull(sub){
   // that has already started. Champion / 3rd-place / Total Goals are locked during the window, so
   // they are unaffected.
   const koSavedAt=sub.koUpdateTimestamp?new Date(sub.koUpdateTimestamp).getTime():null;
+  // Resolve each pick through THIS person's own bracket: a pick scores when the team they predicted
+  // to win is the actual winner, regardless of which opponent actually showed up.
+  const koResolve=koPredictedResolver(sub);
   ALLKO.forEach(m=>{
     const pr=(sub.ko||{})[m.n],real=S.admin.koResults[m.n];
     if(!pr||!real||!real.winner)return;
-    if(koSavedAt!==null){ const k=matchKickoffET(m); if(k&&koSavedAt>k.getTime()){ koLateExcluded++; return; } }
+    if(koSavedAt!==null){ const cutoff=koMatchCutoff(m); if(cutoff!==null&&koSavedAt>cutoff){ koLateExcluded++; return; } }
     let rPts=0;
     if(m.n>=73&&m.n<=88)rPts=P.R32;else if(m.n>=89&&m.n<=96)rPts=P.R16;else if(m.n>=97&&m.n<=100)rPts=P.QF;else if(m.n>=101&&m.n<=102)rPts=P.SF;else if(m.n===104)rPts=P.FIN;
-    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){ko+=rPts;koWinners++;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)ko+=P.KO_BLOWOUT;}}
+    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=koResolve(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){ko+=rPts;koWinners++;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)ko+=P.KO_BLOWOUT;}}
     if(pr.h===real.h&&pr.a===real.a){ko+=P.KO_EX;exactKO++;}
   });
   let champBonus=0;
@@ -4168,9 +4282,9 @@ function renderMatchComparison(){
     played=!!(real&&real.winner);
     if(played)resultStr=`Winner: ${real.winner} (${real.h}–${real.a})`;
     locked.forEach(name=>{ const pr=(S.submissions[name].ko||{})[n]; if(!pr||(!pr.pick&&pr.h===undefined))return;
-      const slot=pr.pick==='A'?m.tA:m.tB; const predWinner=pr.pick?resolveSlot(slot,n):'—';
+      const slot=pr.pick==='A'?m.tA:m.tB; const _kr=koPredictedResolver(S.submissions[name]); const predWinner=pr.pick?_kr(slot,n):'—';
       let pts=null,close=null;
-      if(played){ let p=0; const rPts=_koRoundPtsFor(n); if(pr.pick){const t=resolveSlot(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase())p+=rPts;} if(pr.h===real.h&&pr.a===real.a)p+=P.KO_EX; pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
+      if(played){ let p=0; const _sv=S.submissions[name].koUpdateTimestamp?new Date(S.submissions[name].koUpdateTimestamp).getTime():null; const _co=koMatchCutoff(m); if(!(_sv!=null&&_co!==null&&_sv>_co)){ const rPts=_koRoundPtsFor(n); if(pr.pick){const t=_kr(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase()){p+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)p+=P.KO_BLOWOUT;}} if(pr.h===real.h&&pr.a===real.a)p+=P.KO_EX; } pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
       rows.push({name,city:(S.submissions[name].city||''),winner:predWinner,pred:`${pr.h!==undefined?pr.h:'?'}–${pr.a!==undefined?pr.a:'?'}`,pts,close});
     });
   }
@@ -4684,12 +4798,13 @@ function renderComparison(){
     if(rOut!==pOut)return 0;
     let pts=P.OUT;if(pr.h===real.h&&pr.a===real.a)pts+=P.EX_BONUS;return pts;
   };
-  const koPts=(m,pr,real)=>{
+  const koPts=(m,pr,real,koResolve,koSavedAt)=>{
     if(!pr||!real||!real.winner)return null;
+    if(koSavedAt!=null){ const cutoff=koMatchCutoff(m); if(cutoff!==null&&koSavedAt>cutoff)return 0; } // saved after this match was disabled/kicked off
     let rPts=0;
     if(m.n>=73&&m.n<=88)rPts=P.R32;else if(m.n>=89&&m.n<=96)rPts=P.R16;else if(m.n>=97&&m.n<=100)rPts=P.QF;else if(m.n>=101&&m.n<=102)rPts=P.SF;else if(m.n===104)rPts=P.FIN;
     let pts=0;
-    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase())pts+=rPts;}
+    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=(koResolve||resolveSlot)(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){pts+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)pts+=P.KO_BLOWOUT;}}
     if(pr.h===real.h&&pr.a===real.a)pts+=P.KO_EX;
     return pts;
   };
@@ -4729,7 +4844,9 @@ function renderComparison(){
   const scoreAll=(sub)=>{
     const gsMap={},koMap={};let gs=0,ko=0;
     GM.forEach(m=>{const pts=gsPts((sub.gs||{})[m.n],S.admin.groupResults[m.n]);gsMap[m.n]=pts;if(pts)gs+=pts;});
-    ALLKO.forEach(m=>{const pts=koPts(m,(sub.ko||{})[m.n],S.admin.koResults[m.n]);koMap[m.n]=pts;if(pts)ko+=pts;});
+    const _kr=koPredictedResolver(sub);
+    const _sv=sub.koUpdateTimestamp?new Date(sub.koUpdateTimestamp).getTime():null;
+    ALLKO.forEach(m=>{const pts=koPts(m,(sub.ko||{})[m.n],S.admin.koResults[m.n],_kr,_sv);koMap[m.n]=pts;if(pts)ko+=pts;});
     const champ=champBreakdown(sub),tp=tpPtsFor(sub);
     return{gsMap,koMap,gs,ko,champ,tp};
   };
@@ -4820,7 +4937,7 @@ function renderComparison(){
       const pts=p.sc.koMap[m.n];
       let bg='var(--gray-50)';
       if(real&&real.winner&&pr&&pr.pick){
-        const slot=pr.pick==='A'?m.tA:m.tB;const t=resolveSlot(slot,m.n);
+        const slot=pr.pick==='A'?m.tA:m.tB;const t=koRes(p.sub)(slot,m.n);
         bg=(t&&t.toLowerCase()===real.winner.toLowerCase())?'rgba(5,150,105,0.1)':'rgba(220,38,38,0.06)';
       }
       h+=`<div style="padding:4px 8px;background:${bg};border-radius:4px;display:flex;justify-content:space-between;gap:6px;"><span>${koLabel(m.n)}: ${koMatchup(p.sub,m)} <span style="color:var(--regent);white-space:nowrap;">(${pr?pr.h+'-'+pr.a:'?'})</span></span><span>${badge(pts)}</span></div>`;
