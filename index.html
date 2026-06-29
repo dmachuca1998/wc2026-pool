@@ -393,7 +393,7 @@ a { color:var(--black); }
   </div>
 </div>
 
-<div class="deadline-strip">Knockout Predictions update phase is on June 27th, 2026 at 11:30 PM ET — Stay tuned!</div>
+<div class="deadline-strip">Knockout Predictions update phase is on June 26th, 2026 at 12 PM ET — Stay tuned!</div>
 
 <div class="nav">
   <button class="active" onclick="showTab('home')">Home</button>
@@ -795,7 +795,18 @@ a { color:var(--black); }
       <button class="btn btn-gold" onclick="startKOUpdate()">Open My KO Predictions</button>
     </div>
     <div id="koUpdateStatus" style="font-size:0.86em;color:var(--gray-600);"></div>
-    <p style="font-size:0.84em;margin-top:8px;"><a onclick="goResetFromKO(event)" style="color:var(--gold);text-decoration:underline;cursor:pointer;">Forgot your password?</a></p>
+    <p style="font-size:0.84em;margin-top:8px;"><a onclick="toggleSelfResetKO(event)" style="color:var(--gold);text-decoration:underline;cursor:pointer;">Forgot your password?</a></p>
+    <div id="selfResetBoxKO" style="display:none;margin-top:8px;padding:14px;border:1px solid var(--gray-200);border-radius:8px;background:var(--gray-50);max-width:560px;">
+      <div style="font-weight:700;margin-bottom:6px;">🔑 Reset your password</div>
+      <div class="info-box" style="margin-bottom:12px;font-size:0.82em;">⚠ There's no email verification, so anyone could reset any name here. Please reset <strong>only your own</strong> — and if you think someone changed yours, let the organizer know.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div><label style="display:block;font-size:0.82em;color:var(--gray-600);margin-bottom:4px;">Your name</label><input type="text" id="resetNameKO" placeholder="Exactly as you entered it" style="min-width:190px;"></div>
+        <div><label style="display:block;font-size:0.82em;color:var(--gray-600);margin-bottom:4px;">New password</label><input type="password" id="resetPwd1KO" placeholder="Min 4 characters" style="min-width:150px;"></div>
+        <div><label style="display:block;font-size:0.82em;color:var(--gray-600);margin-bottom:4px;">Confirm password</label><input type="password" id="resetPwd2KO" placeholder="Re-type it" style="min-width:150px;"></div>
+        <button class="btn btn-black btn-sm" onclick="selfResetPassword('KO')">Reset Password</button>
+      </div>
+      <p id="resetStatusKO" style="font-size:0.85em;margin-top:8px;"></p>
+    </div>
   </div>
 
   <!-- KO UPDATE CLOSED MESSAGE -->
@@ -2869,17 +2880,18 @@ function updateKOWindowUI(){
   checkKOUpdateVisibility();
 }
 function toggleSelfReset(e){ if(e&&e.preventDefault)e.preventDefault(); const b=document.getElementById('selfResetBox'); if(b)b.style.display=(b.style.display==='none'||!b.style.display)?'block':'none'; }
-function goResetFromKO(e){ if(e&&e.preventDefault)e.preventDefault(); showTab('predict'); setTimeout(function(){ const b=document.getElementById('selfResetBox'); if(b){ b.style.display='block'; if(b.scrollIntoView)b.scrollIntoView({behavior:'smooth',block:'center'}); } const n=document.getElementById('resetName'); if(n&&n.focus)n.focus(); },120); }
-async function selfResetPassword(){
-  const st=document.getElementById('resetStatus');
-  const name=(document.getElementById('resetName').value||'').trim();
-  const p1=(document.getElementById('resetPwd1').value||'').trim();
-  const p2=(document.getElementById('resetPwd2').value||'').trim();
+function toggleSelfResetKO(e){ if(e&&e.preventDefault)e.preventDefault(); const b=document.getElementById('selfResetBoxKO'); if(b){ b.style.display=(b.style.display==='none'||!b.style.display)?'block':'none'; const n=document.getElementById('resetNameKO'); if(b.style.display==='block'&&n&&n.focus)n.focus(); } }
+async function selfResetPassword(sfx){
+  sfx=sfx||'';
+  const st=document.getElementById('resetStatus'+sfx);
+  const name=(document.getElementById('resetName'+sfx).value||'').trim();
+  const p1=(document.getElementById('resetPwd1'+sfx).value||'').trim();
+  const p2=(document.getElementById('resetPwd2'+sfx).value||'').trim();
   if(!name){ st.innerHTML='<span style="color:var(--red);">Enter your name.</span>'; return; }
   const key=Object.keys(S.passwords||{}).find(k=>k.toLowerCase()===name.toLowerCase());
   const partKey=(S.participants||[]).find(p=>p.toLowerCase()===name.toLowerCase());
   const realName=key||partKey;
-  if(!realName){ st.innerHTML='<span style="color:var(--red);">No account found with that name. If you are new, just enter your name and a password in the form above to start.</span>'; return; }
+  if(!realName){ st.innerHTML='<span style="color:var(--red);">No account found with that name. If you are new, enter your name and a password on the Submit Prediction tab to start.</span>'; return; }
   if(!p1||p1.length<4){ st.innerHTML='<span style="color:var(--red);">New password must be at least 4 characters.</span>'; return; }
   if(p1!==p2){ st.innerHTML='<span style="color:var(--red);">The two passwords do not match.</span>'; return; }
   st.textContent='Resetting…';
@@ -2889,7 +2901,7 @@ async function selfResetPassword(){
     S.passwords[realName]=h;
     save();
     st.innerHTML='<span style="color:var(--green);">✓ Password reset for <strong>'+realName+'</strong>. You can log in with your new password now.</span>';
-    document.getElementById('resetPwd1').value=''; document.getElementById('resetPwd2').value='';
+    document.getElementById('resetPwd1'+sfx).value=''; document.getElementById('resetPwd2'+sfx).value='';
   }catch(err){ st.innerHTML='<span style="color:var(--red);">Something went wrong — please try again.</span>'; }
 }
 function renderKoLockPanel(){
