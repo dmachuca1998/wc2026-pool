@@ -1031,7 +1031,7 @@ a { color:var(--black); }
 
     <div class="card">
       <h2>🚫 Disable Knockout Matches (late-save scoring)</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">By default a knockout pick stops scoring once that match's <strong>scheduled kickoff</strong> passes. If you'd rather control it by hand, click <strong>Disable</strong> the moment you see a match kick off. Anyone who <strong>saves their bracket after that</strong> won't earn points for that match. People who saved earlier keep their points. Re-enable to fall back to the scheduled kickoff.</p>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">Knockout picks score by the <strong>team selected</strong>, no matter when the bracket was saved. To stop late changes to a match, click <strong>Disable</strong> the moment it kicks off: anyone who <strong>saves after that</strong> won't earn points for that match (they show a &#9200; in View &amp; Compare), while people who saved earlier keep their points. Re-enable to remove the lock.</p>
       <div id="koLockList"></div>
     </div>
 
@@ -1044,6 +1044,18 @@ a { color:var(--black); }
         <button class="btn btn-black btn-sm" onclick="adminResetPassword()">Set New Password</button>
       </div>
       <p id="pwResetStatus" style="font-size:0.85em;margin-top:8px;"></p>
+    </div>
+
+    <div class="card">
+      <h2>&#127873; Compensation Points</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">Manually award (or deduct) points for someone &mdash; e.g. a participant who couldn&rsquo;t update in time. This adds to their <strong>Bonus</strong> column and total, and shows a &#127873; next to their name on the leaderboard. One running total per person &mdash; awarding again replaces it. Use a negative number to take points away.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <select id="compPerson" style="min-width:190px;"><option value="">-- Select participant --</option></select>
+        <input type="number" id="compPts" placeholder="Points (e.g. 5)" style="width:150px;">
+        <input type="text" id="compNote" placeholder="Reason (e.g. M73 Canada &mdash; no pwd reset)" style="min-width:240px;flex:1;">
+        <button class="btn btn-black btn-sm" onclick="adminAddCompensation()">Award Points</button>
+      </div>
+      <div id="compList" style="margin-top:12px;"></div>
     </div>
 
     <div class="card">
@@ -1565,10 +1577,11 @@ function matchKickoffET(m){
 // The instant after which a knockout SAVE no longer scores match m. The admin can manually disable
 // a match (koLock[n] = when they saw it kick off); otherwise we fall back to the scheduled kickoff.
 function koMatchCutoff(m){
+  // A knockout pick only STOPS scoring if the ADMIN manually disabled that match (koLock).
+  // Saving after the scheduled kickoff no longer auto-excludes a pick — the winner is judged purely
+  // on the team the participant selected, no matter when their bracket was last saved.
   const lockTs=(S.admin&&S.admin.koLock&&S.admin.koLock[m.n])?new Date(S.admin.koLock[m.n]).getTime():null;
-  if(lockTs!==null && !isNaN(lockTs))return lockTs;
-  const k=matchKickoffET(m);
-  return k?k.getTime():null;
+  return (lockTs!==null && !isNaN(lockTs))?lockTs:null;
 }
 function firstMatchKickoffET(){
   let best=null;
@@ -2904,6 +2917,43 @@ async function selfResetPassword(sfx){
     document.getElementById('resetPwd1'+sfx).value=''; document.getElementById('resetPwd2'+sfx).value='';
   }catch(err){ st.innerHTML='<span style="color:var(--red);">Something went wrong — please try again.</span>'; }
 }
+function populateCompPerson(){
+  const sel=document.getElementById('compPerson'); if(!sel)return;
+  const cur=sel.value;
+  const names=Object.keys(S.submissions||{}).sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML='<option value="">-- Select participant --</option>'+names.map(n=>`<option value="${String(n).replace(/"/g,'&quot;')}">${n}</option>`).join('');
+  if(cur)sel.value=cur;
+}
+function renderCompList(){
+  const c=document.getElementById('compList'); if(!c)return;
+  const entries=Object.keys(S.submissions||{}).filter(n=>{const cp=S.submissions[n]&&S.submissions[n].compensation;return cp&&typeof cp.pts==='number'&&!isNaN(cp.pts);}).sort((a,b)=>a.localeCompare(b));
+  if(!entries.length){c.innerHTML='<p style="color:var(--regent);font-size:0.84em;">No compensation points awarded yet.</p>';return;}
+  c.innerHTML=entries.map(n=>{
+    const cp=S.submissions[n].compensation;
+    const key=encodeURIComponent(n).replace(/'/g,'%27');
+    return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--gray-200);border-radius:6px;margin-bottom:6px;"><span style="font-size:0.9em;"><strong>${n}</strong>: <span style="color:${cp.pts>=0?'#059669':'#dc2626'};font-weight:700;">${cp.pts>0?'+':''}${cp.pts}</span> pts${cp.note?' <span style="color:var(--gray-500);">\u2014 '+String(cp.note).replace(/</g,'&lt;')+'</span>':''}</span><button onclick="removeCompensation(decodeURIComponent('${key}'))" style="background:transparent;border:1px solid var(--gray-300);color:var(--gray-500);border-radius:4px;padding:2px 10px;cursor:pointer;font-size:0.82em;">Remove</button></div>`;
+  }).join('');
+}
+function adminAddCompensation(){
+  const name=(document.getElementById('compPerson')||{}).value||'';
+  const ptsRaw=(document.getElementById('compPts')||{}).value;
+  const note=((document.getElementById('compNote')||{}).value||'').trim();
+  if(!name){alert('Select a participant first.');return;}
+  if(!S.submissions[name]){alert('No submission found for that participant.');return;}
+  const pts=parseInt(ptsRaw,10);
+  if(isNaN(pts)){alert('Enter a points value (a whole number; negative is allowed).');return;}
+  S.submissions[name].compensation={pts:pts,note:note,ts:new Date().toISOString()};
+  save(); calcLeaderboard(); renderCompList();
+  const pp=document.getElementById('compPts'); if(pp)pp.value='';
+  const nn=document.getElementById('compNote'); if(nn)nn.value='';
+  alert('\u2713 '+(pts>0?'+':'')+pts+' compensation point(s) recorded for '+name+'.');
+}
+function removeCompensation(name){
+  if(!S.submissions[name]||!S.submissions[name].compensation)return;
+  if(!confirm('Remove the compensation points for '+name+'?'))return;
+  delete S.submissions[name].compensation;
+  save(); calcLeaderboard(); renderCompList();
+}
 function renderKoLockPanel(){
   const el=document.getElementById('koLockList'); if(!el)return;
   const lock=(S.admin&&S.admin.koLock)||{};
@@ -2954,7 +3004,7 @@ async function adminResetPassword(){
 }
 function renderAdminView(){
   if(!adminLoggedIn)return;
-  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();renderKoLockPanel();populatePwReset();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();updateCityLeadersUI();updateSnapshotStatus();updateHideSubmitToggleUI();updateTeamPicturesToggleUI();renderGallery();updateAutoFetchUI(parseInt((document.getElementById('autoFetchMins')||{}).value,10)||2);
+  renderParts();renderAdminGS();renderAdminThirdPlace();renderAdminKO();renderKoLockPanel();populatePwReset();populateCompPerson();renderCompList();loadAdminData();updateLockUI();updateKOWindowUI();updateMusicToggleUI();updateCountdownToggleUI();updateCityLeadersUI();updateSnapshotStatus();updateHideSubmitToggleUI();updateTeamPicturesToggleUI();renderGallery();updateAutoFetchUI(parseInt((document.getElementById('autoFetchMins')||{}).value,10)||2);
   try{ renderScoringBalance(); }catch(e){}
   updateHomeTogglesUI();
   // Populate view predictions selector
@@ -3607,7 +3657,7 @@ function renderAdminKO(){
     h+=`<div class="round-hdr">${title}</div>`;
     const arr=Array.isArray(matches)?matches:[matches];
     arr.forEach(m=>{
-      const rA=resolveLabel(m.tA),rB=resolveLabel(m.tB);
+      const rA=resolveLabel(m.tA,m.n),rB=resolveLabel(m.tB,m.n);
       h+=`<div style="margin:6px 0;padding:8px 14px;border:1px solid var(--gray-200);border-radius:6px;">`;
       h+=`<span style="font-size:0.78em;color:var(--regent);">M${dispM(m.n)} · ${m.d} · ${rA} vs ${rB}</span><br>`;
       h+=`<div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">`;
@@ -3700,8 +3750,8 @@ function loadAdminData(){
       const hv=document.getElementById('akh-'+m.n);
       const av=document.getElementById('aka-'+m.n);
       if(w)w.value=r.winner||'';
-      if(hv)hv.value=r.h||'';
-      if(av)av.value=r.a||'';
+      if(hv)hv.value=(r.h!==undefined&&r.h!==null)?r.h:'';
+      if(av)av.value=(r.a!==undefined&&r.a!==null)?r.a:'';
     }
   });
   const ac=document.getElementById('actChamp');if(ac)ac.value=S.admin.champion||'';
@@ -3883,9 +3933,9 @@ function calcLeaderboard(){
     // Single source of truth: score via scoreSubmissionFull so the leaderboard applies the
     // SAME rules everywhere (per-match late knockout rule, +5 blowout, first-time champion, etc.).
     const _sc=scoreSubmissionFull(sub);
-    const gsP=_sc.gs, koP=_sc.ko, bonP=_sc.champBonus+_sc.tp;
+    const gsP=_sc.gs, koP=_sc.ko, bonP=_sc.champBonus+_sc.tp+_sc.comp;
     const _rp=_roundPoints(sub);
-    rows.push({name,champ:sub.champion?canonicalTeam(sub.champion):'-',gs:gsP,ko:koP,bonus:bonP,total:gsP+koP+bonP,city:sub.city||'',r1:_rp.r1,r2:_rp.r2,r3:_rp.r3,late:_sc.late});
+    rows.push({name,champ:sub.champion?canonicalTeam(sub.champion):'-',gs:gsP,ko:koP,bonus:bonP,total:gsP+koP+bonP,city:sub.city||'',r1:_rp.r1,r2:_rp.r2,r3:_rp.r3,late:_sc.late,comp:_sc.comp,compNote:(sub.compensation&&sub.compensation.note)||''});
   });
   // Closest total goals bonus
   if(S.admin.totalGoals!==null){
@@ -3926,7 +3976,7 @@ function calcLeaderboard(){
     const rank=ranks[i];
     const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
     const cls=rank<=3?'rank-'+rank:'';
-    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td style="text-align:center;">${moveCell(r.name,rank)}</td><td>${r.name}${r.late?' <span title="Late knockout update \u2014 some picks not scored" style="font-size:0.82em;cursor:help;opacity:0.85;">\u23f0</span>':''}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td>${_lbView==='rounds'?('<td>'+r.r1+'</td><td>'+r.r2+'</td><td>'+r.r3+'</td>'):('<td>'+r.gs+'</td>')}<td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
+    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td style="text-align:center;">${moveCell(r.name,rank)}</td><td>${r.name}${r.late?' <span title="Late knockout update \u2014 some picks not scored" style="font-size:0.82em;cursor:help;opacity:0.85;">\u23f0</span>':''}${r.comp?` <span title="Compensation: ${r.comp>0?'+':''}${r.comp} pts${r.compNote?' \u2014 '+String(r.compNote).replace(/"/g,'&quot;'):''}" style="font-size:0.82em;cursor:help;">\ud83c\udf81</span>`:''}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td>${_lbView==='rounds'?('<td>'+r.r1+'</td><td>'+r.r2+'</td><td>'+r.r3+'</td>'):('<td>'+r.gs+'</td>')}<td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
   }).join('');
   // Expose the current ranking so the admin can capture it as the next snapshot baseline
   _currentRanks={};
@@ -4189,7 +4239,8 @@ function scoreSubmissionFull(sub){
   }
   let tp=0;const actual=(typeof getActualThirdPlaceGroups==='function')?getActualThirdPlaceGroups():[];
   if(actual.length&&sub.tp)sub.tp.forEach(g=>{if(actual.includes(g))tp+=P.TP;});
-  return {gs,ko,exactGS,exactKO,correctOut,koWinners,champBonus,tp,late:(koLateExcluded>0),koLateExcluded,base:gs+ko+champBonus+tp};
+  const comp=(sub.compensation&&typeof sub.compensation.pts==='number'&&!isNaN(sub.compensation.pts))?sub.compensation.pts:0;
+  return {gs,ko,exactGS,exactKO,correctOut,koWinners,champBonus,tp,comp,late:(koLateExcluded>0),koLateExcluded,base:gs+ko+champBonus+tp+comp};
 }
 
 // ---------- Match-by-match replay of the tournament ----------
@@ -4295,9 +4346,9 @@ function renderMatchComparison(){
     if(played)resultStr=`Winner: ${real.winner} (${real.h}–${real.a})`;
     locked.forEach(name=>{ const pr=(S.submissions[name].ko||{})[n]; if(!pr||(!pr.pick&&pr.h===undefined))return;
       const slot=pr.pick==='A'?m.tA:m.tB; const _kr=koPredictedResolver(S.submissions[name]); const predWinner=pr.pick?_kr(slot,n):'—';
-      let pts=null,close=null;
-      if(played){ let p=0; const _sv=S.submissions[name].koUpdateTimestamp?new Date(S.submissions[name].koUpdateTimestamp).getTime():null; const _co=koMatchCutoff(m); if(!(_sv!=null&&_co!==null&&_sv>_co)){ const rPts=_koRoundPtsFor(n); if(pr.pick){const t=_kr(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase()){p+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)p+=P.KO_BLOWOUT;}} if(pr.h===real.h&&pr.a===real.a)p+=P.KO_EX; } pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
-      rows.push({name,city:(S.submissions[name].city||''),winner:predWinner,pred:`${pr.h!==undefined?pr.h:'?'}–${pr.a!==undefined?pr.a:'?'}`,pts,close});
+      let pts=null,close=null,lateExcl=false;
+      if(played){ let p=0; const _sv=S.submissions[name].koUpdateTimestamp?new Date(S.submissions[name].koUpdateTimestamp).getTime():null; const _co=koMatchCutoff(m); lateExcl=(_sv!=null&&_co!==null&&_sv>_co); if(!lateExcl){ const rPts=_koRoundPtsFor(n); if(pr.pick){const t=_kr(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase()){p+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)p+=P.KO_BLOWOUT;}} if(pr.h===real.h&&pr.a===real.a)p+=P.KO_EX; } pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
+      rows.push({name,city:(S.submissions[name].city||''),winner:predWinner,pred:`${pr.h!==undefined?pr.h:'?'}–${pr.a!==undefined?pr.a:'?'}`,pts,close,lateExcl});
     });
   }
   if(rows.length===0){ cont.innerHTML='<p style="color:var(--regent);padding:10px 0;">No submitted predictions for this match yet.</p>'; return; }
@@ -4323,7 +4374,8 @@ function renderMatchComparison(){
     const pos=(played&&rk===1)?'🥇':(played&&rk===2)?'🥈':(played&&rk===3)?'🥉':rk;
     let bg='';
     if(played)bg=(r.pts>=(P.OUT+P.EX_BONUS))?'background:rgba(5,150,105,0.10);':(r.pts>0?'background:rgba(201,168,76,0.10);':'');
-    const ptsCell=played?(r.pts>0?`<span style="color:#059669;font-weight:700;">+${r.pts}</span>`:'<span style="color:#dc2626;">0</span>'):'';
+    const _clk=r.lateExcl?' <span title="Saved after this match was manually disabled \u2014 not scored" style="cursor:help;">\u23f0</span>':'';
+    const ptsCell=played?((r.pts>0?`<span style="color:#059669;font-weight:700;">+${r.pts}</span>`:'<span style="color:#dc2626;">0</span>')+_clk):'';
     h+=`<tr style="${bg}border-bottom:1px solid var(--gray-100);">`+
        `<td style="padding:6px 8px;font-weight:700;">${pos}</td>`+
        `<td style="padding:6px 8px;">${r.name}</td>`+
