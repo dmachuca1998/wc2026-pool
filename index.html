@@ -1583,6 +1583,29 @@ function koMatchCutoff(m){
   const lockTs=(S.admin&&S.admin.koLock&&S.admin.koLock[m.n])?new Date(S.admin.koLock[m.n]).getTime():null;
   return (lockTs!==null && !isNaN(lockTs))?lockTs:null;
 }
+// Whether a participant's pick for knockout match m must NOT score, because the prediction was
+// committed after the match could already have been seen:
+//   (a) their ORIGINAL submission was locked AFTER this match kicked off (joined late / saw the result), OR
+//   (b) they saved a knockout UPDATE after the admin manually disabled this match.
+// It is PER-MATCH: a late submitter still scores matches that kicked off after they joined, and an
+// on-time member who merely revised/updated their bracket keeps every pick.
+function koPickExcluded(sub,m){
+  const k=matchKickoffET(m);
+  const subTs=(sub&&sub.timestamp)?new Date(sub.timestamp).getTime():null;
+  if(subTs!==null && !isNaN(subTs) && k && subTs>k.getTime())return true;
+  const updTs=(sub&&sub.koUpdateTimestamp)?new Date(sub.koUpdateTimestamp).getTime():null;
+  const lock=koMatchCutoff(m); // manual admin disable only
+  if(updTs!==null && !isNaN(updTs) && lock!==null && updTs>lock)return true;
+  return false;
+}
+// Exact-score match for a KNOCKOUT pick. The score boxes are home-away, but people often type
+// winner-loser, so we accept the same two scores in EITHER box order (the winner pick disambiguates
+// who the participant meant to win). Callers gate this on the winner having been picked correctly.
+function koExactScore(pr,real){
+  if(!pr||!real)return false;
+  if(typeof pr.h!=='number'||typeof pr.a!=='number'||typeof real.h!=='number'||typeof real.a!=='number')return false;
+  return Math.min(pr.h,pr.a)===Math.min(real.h,real.a)&&Math.max(pr.h,pr.a)===Math.max(real.h,real.a);
+}
 function firstMatchKickoffET(){
   let best=null;
   GM.forEach(m=>{const d=matchKickoffET(m);if(d&&(!best||d.getTime()<best.getTime()))best=d;});
@@ -3976,7 +3999,7 @@ function calcLeaderboard(){
     const rank=ranks[i];
     const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
     const cls=rank<=3?'rank-'+rank:'';
-    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td style="text-align:center;">${moveCell(r.name,rank)}</td><td>${r.name}${r.late?' <span title="Late knockout update \u2014 some picks not scored" style="font-size:0.82em;cursor:help;opacity:0.85;">\u23f0</span>':''}${r.comp?` <span title="Compensation: ${r.comp>0?'+':''}${r.comp} pts${r.compNote?' \u2014 '+String(r.compNote).replace(/"/g,'&quot;'):''}" style="font-size:0.82em;cursor:help;">\ud83c\udf81</span>`:''}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td>${_lbView==='rounds'?('<td>'+r.r1+'</td><td>'+r.r2+'</td><td>'+r.r3+'</td>'):('<td>'+r.gs+'</td>')}<td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
+    return `<tr><td class="${cls}"><span class="medal">${medal}</span></td><td style="text-align:center;">${moveCell(r.name,rank)}</td><td>${r.name}${r.comp?` <span title="Compensation: ${r.comp>0?'+':''}${r.comp} pts${r.compNote?' \u2014 '+String(r.compNote).replace(/"/g,'&quot;'):''}" style="font-size:0.82em;cursor:help;">\ud83c\udf81</span>`:''}</td><td style="font-size:0.84em;color:var(--gray-600);">${r.city||'—'}</td><td>${r.champ&&r.champ!=='-'?fl(r.champ)+r.champ:'—'}</td>${_lbView==='rounds'?('<td>'+r.r1+'</td><td>'+r.r2+'</td><td>'+r.r3+'</td>'):('<td>'+r.gs+'</td>')}<td>${r.ko}</td><td>${r.bonus}</td><td><strong>${r.total}</strong></td></tr>`;
   }).join('');
   // Expose the current ranking so the admin can capture it as the next snapshot baseline
   _currentRanks={};
@@ -4215,11 +4238,12 @@ function scoreSubmissionFull(sub){
   ALLKO.forEach(m=>{
     const pr=(sub.ko||{})[m.n],real=S.admin.koResults[m.n];
     if(!pr||!real||!real.winner)return;
-    if(koSavedAt!==null){ const cutoff=koMatchCutoff(m); if(cutoff!==null&&koSavedAt>cutoff){ koLateExcluded++; return; } }
+    if(koPickExcluded(sub,m)){ koLateExcluded++; return; }
     let rPts=0;
     if(m.n>=73&&m.n<=88)rPts=P.R32;else if(m.n>=89&&m.n<=96)rPts=P.R16;else if(m.n>=97&&m.n<=100)rPts=P.QF;else if(m.n>=101&&m.n<=102)rPts=P.SF;else if(m.n===104)rPts=P.FIN;
-    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=koResolve(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){ko+=rPts;koWinners++;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)ko+=P.KO_BLOWOUT;}}
-    if(pr.h===real.h&&pr.a===real.a){ko+=P.KO_EX;exactKO++;}
+    let _wr=false;
+    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=koResolve(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;ko+=rPts;koWinners++;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)ko+=P.KO_BLOWOUT;}}
+    if(_wr&&koExactScore(pr,real)){ko+=P.KO_EX;exactKO++;}
   });
   let champBonus=0;
   if(sub.champion){
@@ -4347,7 +4371,7 @@ function renderMatchComparison(){
     locked.forEach(name=>{ const pr=(S.submissions[name].ko||{})[n]; if(!pr||(!pr.pick&&pr.h===undefined))return;
       const slot=pr.pick==='A'?m.tA:m.tB; const _kr=koPredictedResolver(S.submissions[name]); const predWinner=pr.pick?_kr(slot,n):'—';
       let pts=null,close=null,lateExcl=false;
-      if(played){ let p=0; const _sv=S.submissions[name].koUpdateTimestamp?new Date(S.submissions[name].koUpdateTimestamp).getTime():null; const _co=koMatchCutoff(m); lateExcl=(_sv!=null&&_co!==null&&_sv>_co); if(!lateExcl){ const rPts=_koRoundPtsFor(n); if(pr.pick){const t=_kr(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase()){p+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)p+=P.KO_BLOWOUT;}} if(pr.h===real.h&&pr.a===real.a)p+=P.KO_EX; } pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
+      if(played){ let p=0; lateExcl=koPickExcluded(S.submissions[name],m); if(!lateExcl){ const rPts=_koRoundPtsFor(n); let _wr=false; if(pr.pick){const t=_kr(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;p+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)p+=P.KO_BLOWOUT;}} if(_wr&&koExactScore(pr,real))p+=P.KO_EX; } pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
       rows.push({name,city:(S.submissions[name].city||''),winner:predWinner,pred:`${pr.h!==undefined?pr.h:'?'}–${pr.a!==undefined?pr.a:'?'}`,pts,close,lateExcl});
     });
   }
@@ -4374,11 +4398,11 @@ function renderMatchComparison(){
     const pos=(played&&rk===1)?'🥇':(played&&rk===2)?'🥈':(played&&rk===3)?'🥉':rk;
     let bg='';
     if(played)bg=(r.pts>=(P.OUT+P.EX_BONUS))?'background:rgba(5,150,105,0.10);':(r.pts>0?'background:rgba(201,168,76,0.10);':'');
-    const _clk=r.lateExcl?' <span title="Saved after this match was manually disabled \u2014 not scored" style="cursor:help;">\u23f0</span>':'';
-    const ptsCell=played?((r.pts>0?`<span style="color:#059669;font-weight:700;">+${r.pts}</span>`:'<span style="color:#dc2626;">0</span>')+_clk):'';
+    const _clk=r.lateExcl?' <span title="Late \u2014 this pick was committed after the match, so it did not score" style="font-size:0.82em;cursor:help;opacity:0.85;">\u23f0</span>':'';
+    const ptsCell=played?(r.pts>0?`<span style="color:#059669;font-weight:700;">+${r.pts}</span>`:'<span style="color:#dc2626;">0</span>'):'';
     h+=`<tr style="${bg}border-bottom:1px solid var(--gray-100);">`+
        `<td style="padding:6px 8px;font-weight:700;">${pos}</td>`+
-       `<td style="padding:6px 8px;">${r.name}</td>`+
+       `<td style="padding:6px 8px;">${r.name}${_clk}</td>`+
        `<td style="padding:6px 8px;color:var(--gray-600);">${r.city}</td>`+
        (isKO?`<td style="padding:6px 8px;">${r.winner||'—'}</td>`:'')+
        `<td style="padding:6px 8px;text-align:center;font-weight:600;">${r.pred}</td>`+
@@ -4862,14 +4886,14 @@ function renderComparison(){
     if(rOut!==pOut)return 0;
     let pts=P.OUT;if(pr.h===real.h&&pr.a===real.a)pts+=P.EX_BONUS;return pts;
   };
-  const koPts=(m,pr,real,koResolve,koSavedAt)=>{
+  const koPts=(m,pr,real,koResolve,koSavedAt,sub)=>{
     if(!pr||!real||!real.winner)return null;
-    if(koSavedAt!=null){ const cutoff=koMatchCutoff(m); if(cutoff!==null&&koSavedAt>cutoff)return 0; } // saved after this match was disabled/kicked off
+    if(koPickExcluded(sub,m))return 0; // submitted after this match kicked off, or updated after a manual disable
     let rPts=0;
     if(m.n>=73&&m.n<=88)rPts=P.R32;else if(m.n>=89&&m.n<=96)rPts=P.R16;else if(m.n>=97&&m.n<=100)rPts=P.QF;else if(m.n>=101&&m.n<=102)rPts=P.SF;else if(m.n===104)rPts=P.FIN;
-    let pts=0;
-    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=(koResolve||resolveSlot)(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){pts+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)pts+=P.KO_BLOWOUT;}}
-    if(pr.h===real.h&&pr.a===real.a)pts+=P.KO_EX;
+    let pts=0,_wr=false;
+    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=(koResolve||resolveSlot)(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;pts+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)pts+=P.KO_BLOWOUT;}}
+    if(_wr&&koExactScore(pr,real))pts+=P.KO_EX;
     return pts;
   };
   const champBreakdown=(sub)=>{
@@ -4910,7 +4934,7 @@ function renderComparison(){
     GM.forEach(m=>{const pts=gsPts((sub.gs||{})[m.n],S.admin.groupResults[m.n]);gsMap[m.n]=pts;if(pts)gs+=pts;});
     const _kr=koPredictedResolver(sub);
     const _sv=sub.koUpdateTimestamp?new Date(sub.koUpdateTimestamp).getTime():null;
-    ALLKO.forEach(m=>{const pts=koPts(m,(sub.ko||{})[m.n],S.admin.koResults[m.n],_kr,_sv);koMap[m.n]=pts;if(pts)ko+=pts;});
+    ALLKO.forEach(m=>{const pts=koPts(m,(sub.ko||{})[m.n],S.admin.koResults[m.n],_kr,_sv,sub);koMap[m.n]=pts;if(pts)ko+=pts;});
     const champ=champBreakdown(sub),tp=tpPtsFor(sub);
     return{gsMap,koMap,gs,ko,champ,tp};
   };
@@ -4918,7 +4942,8 @@ function renderComparison(){
     const sub=S.submissions[name];
     const sc=scoreAll(sub);
     const goals=goalsBonusFor(name);
-    return {name,sub,sc,goals,total:sc.gs+sc.ko+sc.champ.total+sc.tp.total+(goals||0),color:GRAPH_COLORS[i%GRAPH_COLORS.length]};
+    const late=ALLKO.some(m=>{const real=S.admin.koResults[m.n];const pr=(sub.ko||{})[m.n];return real&&real.winner&&pr&&pr.pick&&koPickExcluded(sub,m);});
+    return {name,sub,sc,goals,late,total:sc.gs+sc.ko+sc.champ.total+sc.tp.total+(goals||0),color:GRAPH_COLORS[i%GRAPH_COLORS.length]};
   });
   const multi=P5.length>1;
 
@@ -4939,7 +4964,7 @@ function renderComparison(){
   h+='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">';
   P5.forEach(p=>{
     h+=`<div style="flex:1;min-width:220px;padding:12px 16px;background:var(--gray-50);border-radius:8px;border-top:3px solid ${p.color};">
-      <strong>${p.name}</strong> &nbsp;<span style="background:var(--black);color:var(--gold);border-radius:6px;padding:2px 10px;font-weight:700;font-size:0.9em;">${p.total} pts</span><br>
+      <strong>${p.name}</strong>${p.late?' <span title="Late \u2014 has a knockout pick that did not score (committed after the match)" style="font-size:0.82em;cursor:help;opacity:0.85;">\u23f0</span>':''} &nbsp;<span style="background:var(--black);color:var(--gold);border-radius:6px;padding:2px 10px;font-weight:700;font-size:0.9em;">${p.total} pts</span><br>
       <span style="font-size:0.85em;">🏙️ <strong>${p.sub.city||'N/A'}</strong> &nbsp;🏆 <strong>${p.sub.champion?fl(canonicalTeam(p.sub.champion))+canonicalTeam(p.sub.champion):'N/A'}</strong> &nbsp;⚽ <strong>${p.sub.totalGoals!==null&&p.sub.totalGoals!==undefined?p.sub.totalGoals:'N/A'}</strong></span><br>
       <span style="font-size:0.8em;color:var(--gray-600);">GS ${p.sc.gs} · KO ${p.sc.ko} · Champion ${p.sc.champ.total} · 3rd ${p.sc.tp.total}${p.goals?(' · Goals +'+p.goals):''}</span><br>
       <span style="font-size:0.82em;color:var(--regent);">3rd-place groups: ${(p.sub.tp||[]).join(', ')||'N/A'}</span>
