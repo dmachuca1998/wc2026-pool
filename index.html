@@ -554,9 +554,9 @@ a { color:var(--black); }
       <strong>10.</strong> The system automatically compares every participant's predictions against real results:<br>
       &nbsp;&nbsp;• <strong>Group Stage:</strong> Correct outcome = 3 pts, plus 2 bonus for exact score (total 5 for exact).<br>
       &nbsp;&nbsp;• <strong>Knockout:</strong> Points increase by round (5→7→9→11→14). Exact KO score = +3 bonus.<br>
-      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +12, QF: +15, SF: +18, Final: +20, <strong>Winner: +30</strong>.<br>
-      &nbsp;&nbsp;• <strong>Knockout blowout:</strong> if your correctly-picked winner wins a knockout match by more than 4 goals, +5.<br>
-      &nbsp;&nbsp;• <strong>First-time champion:</strong> if your predicted champion wins the World Cup for the first time in their history, +40.<br>
+      &nbsp;&nbsp;• <strong>Champion Progression:</strong> R32: +10, R16: +12, QF: +15, SF: +18, Final: +20, <strong>Winner: +40</strong>.<br>
+      &nbsp;&nbsp;• <strong>Knockout blowout:</strong> if your correctly-picked winner wins a knockout match by 4 or more goals, +7.<br>
+      &nbsp;&nbsp;• <strong>First-time champion:</strong> if your predicted champion wins the World Cup for the first time in their history, the Winner bonus is +50 instead of +40.<br>
       &nbsp;&nbsp;• <strong>Bonus:</strong> Closest total goals (excluding knockout round Penalty Shootouts) (+15).<br>
       <strong>11.</strong> The <strong>Leaderboard</strong> updates automatically!
     </div>
@@ -1030,8 +1030,8 @@ a { color:var(--black); }
     </div>
 
     <div class="card">
-      <h2>🚫 Disable Knockout Matches (late-save scoring)</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;"><strong>Disabling</strong> a match locks its scoring at that match's scheduled <strong>kickoff (Eastern time)</strong> — no matter when you click, so re-enabling and disabling again never shifts it. Anyone whose <strong>last save</strong> (submission or knockout update) was after kickoff won't earn that match's points and shows a &#9200; in Participant Statistics; people who saved before kickoff keep them. Heads-up: this compares each person's <em>most recent</em> save, so someone who edits their bracket after this match has kicked off loses it even if they only changed a later round — disable a match only once you're ready to lock it.</p>
+      <h2>🚫 Disable or Exclude Knockout Matches</h2>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;"><strong>Disable</strong> locks a match's scoring at its scheduled <strong>kickoff (Eastern time)</strong> — no matter when you click, so re-enabling and disabling again never shifts it. A pick only loses points if it was <strong>saved after kickoff</strong>; picks saved before keep them, and the person shows a &#9200; in Participant Statistics. Knockout-update saves are now stamped <strong>per match</strong>, so editing a later round no longer costs anyone an earlier one (older picks with no per-match stamp fall back to the person's last overall save).<br><br><strong>Exclude</strong> removes a match from scoring <strong>entirely</strong> — its winner / exact-score / blowout points count for <em>no one</em>, regardless of when they saved. Use it for an abandoned or voided result. Champion-progression bonuses still follow the real tournament results. Re-include the match before disabling it.</p>
       <div id="koLockList"></div>
     </div>
 
@@ -1331,7 +1331,7 @@ const FINAL={n:104,tA:"W101",tB:"W102",d:"Jul 19"};
 const ALLKO=[...R32,...R16,...QF,...SF,FINAL];
 
 // Points
-const P={OUT:3,EX_BONUS:2,R32:5,R16:7,QF:9,SF:11,FIN:14,KO_EX:3,KO_BLOWOUT:5,GOALS:15,TP:2,CHAMP_R32:10,CHAMP_R16:12,CHAMP_QF:15,CHAMP_SF:18,CHAMP_FIN:20,CHAMP_WIN:30,CHAMP_FIRST:40};
+const P={OUT:3,EX_BONUS:2,R32:5,R16:7,QF:9,SF:11,FIN:14,KO_EX:3,KO_BLOWOUT:7,GOALS:15,TP:2,CHAMP_R32:10,CHAMP_R16:12,CHAMP_QF:15,CHAMP_SF:18,CHAMP_FIN:20,CHAMP_WIN:40,CHAMP_FIRST:50};
 // Nations that have ALREADY won a World Cup (West Germany counted as Germany). A predicted champion
 // NOT on this list winning the title earns the first-time-winner bonus (P.CHAMP_FIRST).
 const PAST_WC_WINNERS=['brazil','germany','italy','argentina','france','uruguay','england','spain'];
@@ -1407,7 +1407,7 @@ let S = {
   participants:[],
   passwords:{},
   submissions:{},
-  admin:{groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{},koLock:{}},
+  admin:{groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{},koLock:{},koExclude:{}},
   predictionsLocked:false,
   koUpdateOpen:false,
   musicEnabled:true,
@@ -1424,10 +1424,11 @@ function ensureDefaults(){
   if(!S.submissions)S.submissions={};
   if(!S.passwords)S.passwords={};
   if(!S.participants)S.participants=[];
-  if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{},koLock:{}};
+  if(!S.admin)S.admin={groupResults:{},koResults:{},champion:"",totalGoals:null,thirdPlace:{},koLock:{},koExclude:{}};
   if(!S.admin.groupResults)S.admin.groupResults={};
   if(!S.admin.koResults)S.admin.koResults={};
   if(!S.admin.koLock)S.admin.koLock={};
+  if(!S.admin.koExclude)S.admin.koExclude={};
   if(!S.admin.thirdPlace)S.admin.thirdPlace={};
   if(!S.adminPwd)S.adminPwd="David2026";
   if(!S.apiKey)S.apiKey="";
@@ -1597,6 +1598,11 @@ function koPickExcluded(sub,m){
   if(!(S.admin&&S.admin.koLock&&S.admin.koLock[m.n]))return false;
   const k=matchKickoffET(m);
   if(!k)return false;
+  // Prefer the PER-MATCH save time when we have it (knockout updates stamp each pick the moment it
+  // changes), so editing a later round never re-dates this match. Picks with no per-match stamp
+  // fall back to the participant's last overall save (submission / revision / knockout update).
+  const pr=sub&&sub.ko&&sub.ko[m.n];
+  if(pr&&pr.ts){ const pt=new Date(pr.ts).getTime(); if(!isNaN(pt))return pt>k.getTime(); }
   let last=null;
   const consider=(v)=>{ if(v){ const t=new Date(v).getTime(); if(!isNaN(t)&&(last===null||t>last))last=t; } };
   if(sub){ consider(sub.timestamp); consider(sub.lastRevised); consider(sub.koUpdateTimestamp); }
@@ -1609,6 +1615,13 @@ function koExactScore(pr,real){
   if(!pr||!real)return false;
   if(typeof pr.h!=='number'||typeof pr.a!=='number'||typeof real.h!=='number'||typeof real.a!=='number')return false;
   return Math.min(pr.h,pr.a)===Math.min(real.h,real.a)&&Math.max(pr.h,pr.a)===Math.max(real.h,real.a);
+}
+// The admin can fully EXCLUDE a knockout match from scoring (e.g. an abandoned/voided result, or a
+// data problem). An excluded match awards ZERO prediction points to EVERYONE and is not counted as
+// a late exclusion. NOTE: champion-progression bonuses still follow the real tournament results.
+function koMatchExcluded(m){
+  const n=(m&&typeof m==='object')?m.n:m;
+  return !!(S.admin&&S.admin.koExclude&&S.admin.koExclude[n]);
 }
 function firstMatchKickoffET(){
   let best=null;
@@ -2756,12 +2769,23 @@ function submitKOUpdate(){
       koUpScores[m.n].a=av&&av.value!==''?parseInt(av.value):'';
     }
   });
+  const _nowISO=new Date().toISOString();
+  const _prevKo=(S.submissions[koUpdater].ko)||{};
+  const _origTs=S.submissions[koUpdater].timestamp||_nowISO;
   ALLKO.forEach(m=>{
     const pick=koUpPicks[m.n]||'';
     const sc=koUpScores[m.n]||{};
     const hVal=(sc.h!==''&&sc.h!==undefined)?sc.h:'';
     const aVal=(sc.a!==''&&sc.a!==undefined)?sc.a:'';
-    ko[m.n]={pick:pick,h:hVal!==''?parseInt(hVal):0,a:aVal!==''?parseInt(aVal):0};
+    const _h=hVal!==''?parseInt(hVal):0;
+    const _a=aVal!==''?parseInt(aVal):0;
+    // Per-match save time: stamp NOW only when this individual pick actually CHANGED. Unchanged
+    // picks keep their existing timestamp (or fall back to the original submission time), so a
+    // participant can edit a LATER round without re-dating earlier matches that already kicked off.
+    const _ex=_prevKo[m.n];
+    const _changed=!_ex||_ex.pick!==pick||((_ex.h||0)!==_h)||((_ex.a||0)!==_a);
+    const _ts=_changed?_nowISO:((_ex&&_ex.ts)?_ex.ts:_origTs);
+    ko[m.n]={pick:pick,h:_h,a:_a,ts:_ts};
     if(!pick)koMissingPick++;
     if(hVal===''||aVal==='')koMissingScore++;
   });
@@ -2777,7 +2801,7 @@ function submitKOUpdate(){
   S.submissions[koUpdater].ko=ko;
   // tp is intentionally NOT updated — third-place picks are locked once originally submitted
   // champion and totalGoals are intentionally NOT updated
-  S.submissions[koUpdater].koUpdateTimestamp=new Date().toISOString();
+  S.submissions[koUpdater].koUpdateTimestamp=_nowISO;
   save();
   const lateSave=Date.now()>KO_SCORING_CUTOFF;
   alert(lateSave
@@ -2984,6 +3008,7 @@ function removeCompensation(name){
 function renderKoLockPanel(){
   const el=document.getElementById('koLockList'); if(!el)return;
   const lock=(S.admin&&S.admin.koLock)||{};
+  const excl=(S.admin&&S.admin.koExclude)||{};
   const fmt=(iso)=>{ try{ return new Date(iso).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }catch(e){ return ''; } };
   const rounds=[['Round of 32',73,88],['Round of 16',89,96],['Quarter-finals',97,100],['Semi-finals',101,102],['Final',104,104]];
   let h='';
@@ -2993,11 +3018,20 @@ function renderKoLockPanel(){
     h+=`<div style="font-weight:700;margin:12px 0 5px;font-size:0.9em;color:var(--gray-700);">${r[0]}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;">`;
     ms.forEach(m=>{
       const on=!!lock[m.n];
-      h+=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;background:${on?'rgba(220,38,38,0.08)':'var(--gray-50)'};font-size:0.8em;">`+
+      const ex=!!excl[m.n];
+      const bg=ex?'rgba(107,114,128,0.14)':(on?'rgba(220,38,38,0.08)':'var(--gray-50)');
+      let statusLine;
+      if(ex)statusLine=`<br><span style="color:var(--gray-600);font-weight:600;">&#10060; excluded from scoring (counts for no one)</span>`;
+      else if(on)statusLine=`<br><span style="color:var(--red);font-weight:600;">&#128274; locked at kickoff (${m.t||'TBD'} ${m.d||''} ET)</span>`;
+      else statusLine=`<br><span style="color:var(--regent);">kicks off ${m.t||'TBD'} ${m.d||''}</span>`;
+      h+=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;background:${bg};font-size:0.8em;">`+
          `<span style="line-height:1.3;"><strong>M${dispM(m.n)}</strong> ${resolveLabel(m.tA,m.n)} v ${resolveLabel(m.tB,m.n)}`+
-         (on?`<br><span style="color:var(--red);font-weight:600;">🔒 locked at kickoff (${m.t||'TBD'} ${m.d||''} ET)</span>`:`<br><span style="color:var(--regent);">kicks off ${m.t||'TBD'} ${m.d||''}</span>`)+
+         statusLine+
          `</span>`+
-         `<button class="btn btn-sm ${on?'btn-outline':'btn-black'}" style="white-space:nowrap;padding:3px 9px;" onclick="toggleKoLock(${m.n})">${on?'Re-enable':'Disable'}</button>`+
+         `<span style="display:flex;flex-direction:column;gap:4px;flex:0 0 auto;">`+
+           `<button class="btn btn-sm ${on?'btn-outline':'btn-black'}" style="white-space:nowrap;padding:3px 9px;" onclick="toggleKoLock(${m.n})"${ex?' disabled title="Re-include the match before disabling"':''}>${on?'Re-enable':'Disable'}</button>`+
+           `<button class="btn btn-sm ${ex?'btn-outline':'btn-black'}" style="white-space:nowrap;padding:3px 9px;" onclick="toggleKoExclude(${m.n})">${ex?'Include':'Exclude'}</button>`+
+         `</span>`+
          `</div>`;
     });
     h+='</div>';
@@ -3008,6 +3042,12 @@ function toggleKoLock(n){
   if(!S.admin.koLock)S.admin.koLock={};
   if(S.admin.koLock[n]){ delete S.admin.koLock[n]; }
   else { S.admin.koLock[n]=new Date().toISOString(); }
+  save(); renderKoLockPanel(); calcLeaderboard();
+}
+function toggleKoExclude(n){
+  if(!S.admin.koExclude)S.admin.koExclude={};
+  if(S.admin.koExclude[n]){ delete S.admin.koExclude[n]; }
+  else { S.admin.koExclude[n]=true; }
   save(); renderKoLockPanel(); calcLeaderboard();
 }
 function populatePwReset(){
@@ -3910,7 +3950,7 @@ function renderComparison(){
     // Champion Winner bonus: if predicted champion = actual tournament champion
     if(S.admin.champion){
       const champWon=sub.champion.toLowerCase()===S.admin.champion.toLowerCase();
-      if(champWon){bonP+=P.CHAMP_WIN;h+=`<div><span class="pts-badge pts-5">+${P.CHAMP_WIN}</span> 🏆 Champion Winner!</div>`;}
+      if(champWon){const _ck=((typeof canonicalTeam==='function'?canonicalTeam(S.admin.champion):S.admin.champion)||'').toLowerCase();const _ift=PAST_WC_WINNERS.indexOf(_ck)===-1;const _wp=_ift?P.CHAMP_FIRST:P.CHAMP_WIN;bonP+=_wp;h+=`<div><span class="pts-badge pts-5">+${_wp}</span> &#127942; Champion Winner!${_ift?' (first-time winner!)':''}</div>`;}
       else{h+=`<div><span class="pts-badge pts-0">0</span> Champion Winner (${S.admin.champion} won)</div>`;}
     } else {
       h+=`<div><span style="color:var(--regent);">TBD</span> Champion Winner</div>`;
@@ -4242,11 +4282,12 @@ function scoreSubmissionFull(sub){
   ALLKO.forEach(m=>{
     const pr=(sub.ko||{})[m.n],real=S.admin.koResults[m.n];
     if(!pr||!real||!real.winner)return;
+    if(koMatchExcluded(m))return; // admin fully excluded this match -> no points for anyone
     if(koPickExcluded(sub,m)){ koLateExcluded++; return; }
     let rPts=0;
     if(m.n>=73&&m.n<=88)rPts=P.R32;else if(m.n>=89&&m.n<=96)rPts=P.R16;else if(m.n>=97&&m.n<=100)rPts=P.QF;else if(m.n>=101&&m.n<=102)rPts=P.SF;else if(m.n===104)rPts=P.FIN;
     let _wr=false;
-    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=koResolve(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;ko+=rPts;koWinners++;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)ko+=P.KO_BLOWOUT;}}
+    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=koResolve(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;ko+=rPts;koWinners++;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>=4)ko+=P.KO_BLOWOUT;}}
     if(_wr&&koExactScore(pr,real)){ko+=P.KO_EX;exactKO++;}
   });
   let champBonus=0;
@@ -4260,9 +4301,9 @@ function scoreSubmissionFull(sub){
     if(wonAny([97,98,99,100]))champBonus+=P.CHAMP_SF;
     if(wonAny([101,102]))champBonus+=P.CHAMP_FIN;
     if(S.admin.champion&&cl===S.admin.champion.toLowerCase()){
-      champBonus+=P.CHAMP_WIN;
       const champKey=((typeof canonicalTeam==='function'?canonicalTeam(S.admin.champion):S.admin.champion)||'').toLowerCase();
-      if(PAST_WC_WINNERS.indexOf(champKey)===-1)champBonus+=P.CHAMP_FIRST; // first-ever World Cup title
+      const isFirstTime=PAST_WC_WINNERS.indexOf(champKey)===-1; // never won a World Cup before
+      champBonus+=isFirstTime?P.CHAMP_FIRST:P.CHAMP_WIN; // 50 for a first-time champion, otherwise 40 (replacement, NOT additive)
     }
   }
   let tp=0;const actual=(typeof getActualThirdPlaceGroups==='function')?getActualThirdPlaceGroups():[];
@@ -4371,11 +4412,13 @@ function renderMatchComparison(){
   } else {
     const real=S.admin.koResults[n];
     played=!!(real&&real.winner);
+    const _matchExcl=koMatchExcluded(m);
     if(played)resultStr=`Winner: ${real.winner} (${real.h}–${real.a})`;
+    if(_matchExcl)resultStr=(resultStr?resultStr+' — ':'')+'❌ excluded from scoring';
     locked.forEach(name=>{ const pr=(S.submissions[name].ko||{})[n]; if(!pr||(!pr.pick&&pr.h===undefined))return;
       const slot=pr.pick==='A'?m.tA:m.tB; const _kr=koPredictedResolver(S.submissions[name]); const predWinner=pr.pick?_kr(slot,n):'—';
       let pts=null,close=null,lateExcl=false;
-      if(played){ let p=0; lateExcl=koPickExcluded(S.submissions[name],m); if(!lateExcl){ const rPts=_koRoundPtsFor(n); let _wr=false; if(pr.pick){const t=_kr(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;p+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)p+=P.KO_BLOWOUT;}} if(_wr&&koExactScore(pr,real))p+=P.KO_EX; } pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
+      if(played&&!_matchExcl){ let p=0; lateExcl=koPickExcluded(S.submissions[name],m); if(!lateExcl){ const rPts=_koRoundPtsFor(n); let _wr=false; if(pr.pick){const t=_kr(slot,n); if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;p+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>=4)p+=P.KO_BLOWOUT;}} if(_wr&&koExactScore(pr,real))p+=P.KO_EX; } pts=p; close=Math.abs((pr.h||0)-real.h)+Math.abs((pr.a||0)-real.a); }
       rows.push({name,city:(S.submissions[name].city||''),winner:predWinner,pred:`${pr.h!==undefined?pr.h:'?'}–${pr.a!==undefined?pr.a:'?'}`,pts,close,lateExcl});
     });
   }
@@ -4892,11 +4935,12 @@ function renderComparison(){
   };
   const koPts=(m,pr,real,koResolve,koSavedAt,sub)=>{
     if(!pr||!real||!real.winner)return null;
+    if(koMatchExcluded(m))return null; // admin fully excluded this match -> not scored
     if(koPickExcluded(sub,m))return 0; // submitted after this match kicked off, or updated after a manual disable
     let rPts=0;
     if(m.n>=73&&m.n<=88)rPts=P.R32;else if(m.n>=89&&m.n<=96)rPts=P.R16;else if(m.n>=97&&m.n<=100)rPts=P.QF;else if(m.n>=101&&m.n<=102)rPts=P.SF;else if(m.n===104)rPts=P.FIN;
     let pts=0,_wr=false;
-    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=(koResolve||resolveSlot)(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;pts+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>4)pts+=P.KO_BLOWOUT;}}
+    if(pr.pick){const slot=pr.pick==='A'?m.tA:m.tB;const t=(koResolve||resolveSlot)(slot,m.n);if(t&&t.toLowerCase()===real.winner.toLowerCase()){_wr=true;pts+=rPts;if(typeof real.h==='number'&&typeof real.a==='number'&&Math.abs(real.h-real.a)>=4)pts+=P.KO_BLOWOUT;}}
     if(_wr&&koExactScore(pr,real))pts+=P.KO_EX;
     return pts;
   };
@@ -4912,7 +4956,7 @@ function renderComparison(){
     push('Reaches QF',P.CHAMP_QF,wonAny([89,90,91,92,93,94,95,96]));
     push('Reaches SF',P.CHAMP_SF,wonAny([97,98,99,100]));
     push('Reaches Final',P.CHAMP_FIN,wonAny([101,102]));
-    push('Wins it all',P.CHAMP_WIN,!!(S.admin.champion&&cl===S.admin.champion.toLowerCase()));
+    {const _ift=PAST_WC_WINNERS.indexOf(((typeof canonicalTeam==='function'?canonicalTeam(cl):cl)||'').toLowerCase())===-1;push(_ift?'Wins it all (first-time!)':'Wins it all',_ift?P.CHAMP_FIRST:P.CHAMP_WIN,!!(S.admin.champion&&cl===S.admin.champion.toLowerCase()));}
     return{total,steps};
   };
   const tpPtsFor=(sub)=>{
