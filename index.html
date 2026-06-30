@@ -1031,7 +1031,7 @@ a { color:var(--black); }
 
     <div class="card">
       <h2>🚫 Disable Knockout Matches (late-save scoring)</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;">Knockout picks score by the <strong>team selected</strong>, no matter when the bracket was saved. To stop late changes to a match, click <strong>Disable</strong> the moment it kicks off: anyone who <strong>saves after that</strong> won't earn points for that match (they show a &#9200; in View &amp; Compare), while people who saved earlier keep their points. Re-enable to remove the lock.</p>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;"><strong>Disabling</strong> a match locks its scoring at that match's scheduled <strong>kickoff (Eastern time)</strong> — no matter when you click, so re-enabling and disabling again never shifts it. Anyone whose <strong>last save</strong> (submission or knockout update) was after kickoff won't earn that match's points and shows a &#9200; in Participant Statistics; people who saved before kickoff keep them. Heads-up: this compares each person's <em>most recent</em> save, so someone who edits their bracket after this match has kicked off loses it even if they only changed a later round — disable a match only once you're ready to lock it.</p>
       <div id="koLockList"></div>
     </div>
 
@@ -1590,13 +1590,17 @@ function koMatchCutoff(m){
 // It is PER-MATCH: a late submitter still scores matches that kicked off after they joined, and an
 // on-time member who merely revised/updated their bracket keeps every pick.
 function koPickExcluded(sub,m){
+  // A match's picks only stop scoring if the admin has DISABLED that match. When disabled, the
+  // cutoff is the match's scheduled KICKOFF in Eastern time — NOT when Disable was clicked — so
+  // re-enabling/re-disabling never shifts it. A pick is excluded when the participant's LAST save
+  // (latest of: original submission, a main-form revision, or a knockout update) was after kickoff.
+  if(!(S.admin&&S.admin.koLock&&S.admin.koLock[m.n]))return false;
   const k=matchKickoffET(m);
-  const subTs=(sub&&sub.timestamp)?new Date(sub.timestamp).getTime():null;
-  if(subTs!==null && !isNaN(subTs) && k && subTs>k.getTime())return true;
-  const updTs=(sub&&sub.koUpdateTimestamp)?new Date(sub.koUpdateTimestamp).getTime():null;
-  const lock=koMatchCutoff(m); // manual admin disable only
-  if(updTs!==null && !isNaN(updTs) && lock!==null && updTs>lock)return true;
-  return false;
+  if(!k)return false;
+  let last=null;
+  const consider=(v)=>{ if(v){ const t=new Date(v).getTime(); if(!isNaN(t)&&(last===null||t>last))last=t; } };
+  if(sub){ consider(sub.timestamp); consider(sub.lastRevised); consider(sub.koUpdateTimestamp); }
+  return last!==null && last>k.getTime();
 }
 // Exact-score match for a KNOCKOUT pick. The score boxes are home-away, but people often type
 // winner-loser, so we accept the same two scores in EITHER box order (the winner pick disambiguates
@@ -2991,7 +2995,7 @@ function renderKoLockPanel(){
       const on=!!lock[m.n];
       h+=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;background:${on?'rgba(220,38,38,0.08)':'var(--gray-50)'};font-size:0.8em;">`+
          `<span style="line-height:1.3;"><strong>M${dispM(m.n)}</strong> ${resolveLabel(m.tA,m.n)} v ${resolveLabel(m.tB,m.n)}`+
-         (on?`<br><span style="color:var(--red);font-weight:600;">🔒 disabled ${fmt(lock[m.n])}</span>`:`<br><span style="color:var(--regent);">kicks off ${m.t||'TBD'} ${m.d||''}</span>`)+
+         (on?`<br><span style="color:var(--red);font-weight:600;">🔒 locked at kickoff (${m.t||'TBD'} ${m.d||''} ET)</span>`:`<br><span style="color:var(--regent);">kicks off ${m.t||'TBD'} ${m.d||''}</span>`)+
          `</span>`+
          `<button class="btn btn-sm ${on?'btn-outline':'btn-black'}" style="white-space:nowrap;padding:3px 9px;" onclick="toggleKoLock(${m.n})">${on?'Re-enable':'Disable'}</button>`+
          `</div>`;
