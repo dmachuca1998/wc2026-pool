@@ -512,7 +512,7 @@ a { color:var(--black); }
       <span>+11 SF Correct</span>
       <span>+14 Final Correct</span>
       <span>+3 Exact KO Score</span>
-      <span style="background:#0a1f3c;color:#fff;padding:4px 10px;border-radius:10px;font-weight:700;">💥 +5 Win by 5+ goals</span>
+      <span style="background:#0a1f3c;color:#fff;padding:4px 10px;border-radius:10px;font-weight:700;">💥 +7 Win by 4+ goals</span>
     </div>
     <h3>Champion Progression Bonus</h3>
     <div class="scoring">
@@ -521,10 +521,10 @@ a { color:var(--black); }
       <span>🏆 QF: +15</span>
       <span>🏆 SF: +18</span>
       <span>🏆 Final: +20</span>
-      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +30</span>
-      <span style="background:#0a1f3c;color:var(--gold);padding:4px 10px;border-radius:10px;font-weight:700;">✨ First-Time Winner: +40</span>
+      <span style="background:var(--gold);color:var(--black);padding:4px 10px;border-radius:10px;font-weight:700;">🏆 Champion Winner: +40</span>
+      <span style="background:#0a1f3c;color:var(--gold);padding:4px 10px;border-radius:10px;font-weight:700;">✨ First-Time Winner: +50</span>
     </div>
-    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches each round AND wins the final, you earn up to <strong>105 bonus points</strong> — plus a <strong>+40 bonus</strong> if your champion is a nation winning the World Cup for the <strong>first time ever</strong> (i.e. not Brazil, Germany, Italy, Argentina, France, Uruguay, England or Spain).</p>
+    <p style="font-size:0.82em;color:var(--regent);margin-top:4px;">Cumulative: if your champion team reaches every round AND wins the final, you earn up to <strong>115 bonus points</strong> (75 for advancing + 40 for the title). If your champion is a nation winning the World Cup for the <strong>first time ever</strong> (not Brazil, Germany, Italy, Argentina, France, Uruguay, England or Spain), the winner bonus is <strong>+50 instead of +40</strong> — up to <strong>125</strong>.</p>
     <h3>Other Bonuses</h3>
     <div class="scoring">
       <span>🥉 +2 per Correct 3rd-Place Qualifier</span>
@@ -1031,7 +1031,7 @@ a { color:var(--black); }
 
     <div class="card">
       <h2>🚫 Disable or Exclude Knockout Matches</h2>
-      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;"><strong>Disable</strong> locks a match's scoring at its scheduled <strong>kickoff (Eastern time)</strong> — no matter when you click, so re-enabling and disabling again never shifts it. A pick only loses points if it was <strong>saved after kickoff</strong>; picks saved before keep them, and the person shows a &#9200; in Participant Statistics. Knockout-update saves are now stamped <strong>per match</strong>, so editing a later round no longer costs anyone an earlier one (older picks with no per-match stamp fall back to the person's last overall save).<br><br><strong>Exclude</strong> removes a match from scoring <strong>entirely</strong> — its winner / exact-score / blowout points count for <em>no one</em>, regardless of when they saved. Use it for an abandoned or voided result. Champion-progression bonuses still follow the real tournament results. Re-include the match before disabling it.</p>
+      <p style="color:var(--gray-600);font-size:0.86em;margin-bottom:10px;"><strong>Disable</strong> locks a match's scoring at its scheduled <strong>kickoff (Eastern time)</strong> — no matter when you click, so re-enabling and disabling again never shifts it. A pick only loses points if it was <strong>saved after kickoff</strong>; picks saved before keep them, and the person shows a &#9200; in Participant Statistics. Knockout-update saves are now stamped <strong>per match</strong>, so editing a later round no longer costs anyone an earlier one (older picks with no per-match stamp fall back to the person's last overall save).<br><br><strong>Exclude</strong> removes a match from scoring <strong>entirely</strong> — its winner / exact-score / blowout points count for <em>no one</em>, regardless of when they saved. Use it for an abandoned or voided result. Champion-progression bonuses still follow the real tournament results. Disable and Exclude are independent — a match can use either, both, or neither.</p>
       <div id="koLockList"></div>
     </div>
 
@@ -1785,7 +1785,7 @@ function updateScoresTicker(){
   ALLKO.forEach(m=>{
     const r=S.admin.koResults[m.n];
     let label='R32';if(m.n>=89&&m.n<=96)label='R16';else if(m.n>=97&&m.n<=100)label='QF';else if(m.n>=101&&m.n<=102)label='SF';else if(m.n===104)label='Final';
-    const rA=resolveSlot(m.tA),rB=resolveSlot(m.tB);
+    const rA=resolveSlot(m.tA,m.n),rB=resolveSlot(m.tB,m.n);
     const status=r&&r.winner?'FT · '+r.winner+' adv':'Upcoming';
     allM.push({n:m.n,d:m.d,t:'',label:label,h:rA,a:rB,hS:r?r.h||0:'-',aS:r?r.a||0:'-',status:status,played:!!(r&&r.winner)});
   });
@@ -3029,7 +3029,7 @@ function renderKoLockPanel(){
          statusLine+
          `</span>`+
          `<span style="display:flex;flex-direction:column;gap:4px;flex:0 0 auto;">`+
-           `<button class="btn btn-sm ${on?'btn-outline':'btn-black'}" style="white-space:nowrap;padding:3px 9px;" onclick="toggleKoLock(${m.n})"${ex?' disabled title="Re-include the match before disabling"':''}>${on?'Re-enable':'Disable'}</button>`+
+           `<button class="btn btn-sm ${on?'btn-outline':'btn-black'}" style="white-space:nowrap;padding:3px 9px;" onclick="toggleKoLock(${m.n})">${on?'Re-enable':'Disable'}</button>`+
            `<button class="btn btn-sm ${ex?'btn-outline':'btn-black'}" style="white-space:nowrap;padding:3px 9px;" onclick="toggleKoExclude(${m.n})">${ex?'Include':'Exclude'}</button>`+
          `</span>`+
          `</div>`;
@@ -3040,14 +3040,17 @@ function renderKoLockPanel(){
 }
 function toggleKoLock(n){
   if(!S.admin.koLock)S.admin.koLock={};
-  if(S.admin.koLock[n]){ delete S.admin.koLock[n]; }
-  else { S.admin.koLock[n]=new Date().toISOString(); }
+  // Write the EXACT child path immediately. The debounced save() merges the whole admin object,
+  // and a realtime snapshot landing in that 400ms window would otherwise restore a just-deleted
+  // key — so toggling looked like it "snapped back". A direct set/remove commits instantly.
+  if(S.admin.koLock[n]){ delete S.admin.koLock[n]; try{fbDb.ref(DB_ROOT+'/admin/koLock/'+n).remove();}catch(e){} }
+  else { const v=new Date().toISOString(); S.admin.koLock[n]=v; try{fbDb.ref(DB_ROOT+'/admin/koLock/'+n).set(v);}catch(e){} }
   save(); renderKoLockPanel(); calcLeaderboard();
 }
 function toggleKoExclude(n){
   if(!S.admin.koExclude)S.admin.koExclude={};
-  if(S.admin.koExclude[n]){ delete S.admin.koExclude[n]; }
-  else { S.admin.koExclude[n]=true; }
+  if(S.admin.koExclude[n]){ delete S.admin.koExclude[n]; try{fbDb.ref(DB_ROOT+'/admin/koExclude/'+n).remove();}catch(e){} }
+  else { S.admin.koExclude[n]=true; try{fbDb.ref(DB_ROOT+'/admin/koExclude/'+n).set(true);}catch(e){} }
   save(); renderKoLockPanel(); calcLeaderboard();
 }
 function populatePwReset(){
